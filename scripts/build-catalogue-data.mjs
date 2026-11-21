@@ -1,32 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The corpus data the code parser reads, never built from the network.
-//
-// Per corpus (they follow the corpus, as the vocabulary and groups do):
-//   prefixes.json        the letter parts of offered codes, with their module counts;
-//   catalogue-codes.json the catalogue-only codes (in moduleInfo.json, no offering
-//                        in the corpus's year), sorted: what the Worker bundles
-//                        (`catalogue-codes-data`, `prefixes-data`);
-//   catalogue-only.json  the same codes with their titles and descriptions (noMatch
-//                        `not-offered`): the rows ingest loads into D1 `catalogue_only`.
-// `--corpus production` builds them under data/ from `current` (data/corpus.json,
-// scripts/corpus-manifest.mjs), what wrangler.jsonc ships. `--corpus pinned` builds the
-// prefixes and catalogue codes under data/pinned/ from the pinned corpus
-// (scripts/pinned-corpus.mjs, sha-checked): what the Worker tests, test/full and every eval
-// run search with; the pinned catalogue-only.json is built in memory for test/full
-// (pinnedCatalogueOnlyPath). The pinned build also writes the files that are no corpus's:
-//   ge-pillars.json      the GE pillar table, from eval/query-rules/ge-pillars.json;
-//   collision-list.json  the collision list and its exempt pillar prefixes,
-//                        from eval/query-rules/collision-list.json (the Worker cannot read eval/);
-//   constraint-phrases.json  the constraint phrase lists (no exam, S/U,
-//                        workload, prerequisite), from eval/query-rules/intent-phrases.json
-//                        `constraints`, for parse pass A;
-//   cohort-only-prereq.json  the cohort-only prerequisite rule, from
-//                        eval/query-rules/cohort-only-prereq.json (normalise() reads it, and
-//                        the eval workspace has data/ but not eval/).
-//
-//   node scripts/build-catalogue-data.mjs --corpus production|pinned            write the corpus's files
-//   node scripts/build-catalogue-data.mjs --corpus production|pinned --check    exit 1 if a committed one differs
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -38,13 +11,11 @@ import { loadPinnedCorpus, PINNED_RELEASE } from './pinned-corpus.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-/** The per-corpus files, relative to the repo root. The pinned catalogue-only rows are never committed. */
 export const CORPUS_OUTPUTS = Object.freeze({
   production: Object.freeze({ prefixes: 'data/prefixes.json', catalogueCodes: 'data/catalogue-codes.json', catalogueOnly: 'data/catalogue-only.json' }),
   pinned: Object.freeze({ prefixes: 'data/pinned/prefixes.json', catalogueCodes: 'data/pinned/catalogue-codes.json' }),
 });
 
-/** The files that are no corpus's (written by the pinned build), relative to the repo root. */
 export const SHARED_OUTPUTS = Object.freeze({
   gePillars: 'data/ge-pillars.json',
   collisionList: 'data/collision-list.json',
@@ -62,11 +33,7 @@ const readJson = async (rel) => JSON.parse(await readFile(join(ROOT, rel), 'utf8
 const lettersOf = (code) => /** @type {RegExpExecArray} */ (/^[A-Z]+/.exec(code))[0];
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
 
-/**
- * A corpus's prefixes, catalogue codes and catalogue-only rows, as the bytes each file holds.
- * @param {{ records: import('./lib.mjs').NusModsRecord[], modules: { code: string }[], source: CorpusSource, label?: string }} c
- *   `label` names the corpus in the files' rule lines ('pinned' keeps the pinned files' wording).
- */
+/** @param {{ records: import('./lib.mjs').NusModsRecord[], modules: { code: string }[], source: CorpusSource, label?: string }} c */
 export function corpusFiles({ records, modules, source, label = 'production' }) {
   const offered = modules.map((m) => m.code).sort(byCode);
   /** @type {Record<string, number>} */
@@ -84,15 +51,12 @@ export function corpusFiles({ records, modules, source, label = 'production' }) 
       schema: 'vnm-3b-catalogue-codes/1', source, rule: `codes in moduleInfo.json with no offering in ${year} (catalogue-only), sorted`,
       count: catalogue.length, codes: catalogue.map((r) => r.code),
     })}\n`,
-    // One row per line, so a catalogue change diffs by row.
     catalogueOnly: `{"schema":"vnm-3b-catalogue-only/1","source":${JSON.stringify(source)},"columns":["code","title","description"],"count":${catalogue.length},"rows":[\n${
       catalogue.map((r) => JSON.stringify([r.code, r.title, r.description])).join(',\n')}\n]}\n`,
   };
 }
 
 /**
- * The committed files, of `byPath` (repo-relative path -> the bytes it should hold), that differ
- * or are missing under `root`, in `byPath`'s order.
  * @param {Record<string, string>} byPath
  * @param {string} [root]
  */
@@ -106,7 +70,6 @@ export async function staleFiles(byPath, root = ROOT) {
 }
 
 /**
- * Every file a corpus's build owns, as repo-relative path -> bytes.
  * @param {'production' | 'pinned'} corpus
  * @returns {Promise<Record<string, string>>}
  */
@@ -123,10 +86,6 @@ export async function build(corpus) {
   };
 }
 
-/**
- * The pinned catalogue-only rows as a file (.data/catalogue/, git-ignored), rebuilt if absent or
- * stale: what vitest.config.mjs aliases `catalogue-only-data` to for test/full.
- */
 export async function pinnedCatalogueOnlyPath() {
   const { files } = await pinnedBuild();
   const path = join(ROOT, '.data/catalogue/catalogue-only-pinned.json');
@@ -137,7 +96,6 @@ export async function pinnedCatalogueOnlyPath() {
   return path;
 }
 
-/** The pinned corpus's files and the shared files. */
 async function pinnedBuild() {
   const corpus = await loadPinnedCorpus();
   const source = { release: PINNED_RELEASE, acadYear: corpus.acadYear, moduleInfoSha256: corpus.moduleInfoSha256 };

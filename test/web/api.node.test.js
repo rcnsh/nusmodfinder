@@ -1,16 +1,8 @@
 // @ts-check
-// public/api.js: each search aborts the previous, gives up
-// after 10 s, reads 429's Retry-After, and handles a non-JSON body before
-// parsing it. Driven with a fake fetch and fake timers; the browser half is
-// test/ui/failures.spec.js.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SEARCH_TIMEOUT_MS, createModuleClient, createSearchClient, fetchFacets, fetchSearch, parseRetryAfter } from '../../public/api.js';
 
-/**
- * A fetch that answers each call with the next queued responder, and records
- * the URL and signal of every call.
- * @param {((url: string, init: RequestInit) => Promise<Response>)[]} queue
- */
+/** @param {((url: string, init: RequestInit) => Promise<Response>)[]} queue */
 function fakeFetch(queue) {
   /** @type {{ url: string, signal: AbortSignal }[]} */
   const calls = [];
@@ -24,7 +16,6 @@ function fakeFetch(queue) {
   return { fetch: f, calls };
 }
 
-/** A response that settles only when its request is aborted (then rejects as fetch does). */
 const hang = (/** @type {string} */ _url, /** @type {RequestInit} */ init) => new Promise((_, reject) => {
   const signal = /** @type {AbortSignal} */ (init.signal);
   signal.addEventListener('abort', () => reject(signal.reason ?? new DOMException('Aborted', 'AbortError')));

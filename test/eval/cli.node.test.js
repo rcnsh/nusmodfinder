@@ -1,9 +1,4 @@
 // @ts-check
-// The eval CLI's `report` path end to end on a small encrypted set built here
-// with a throwaway key (no workerd, no Cloudflare). Run files are synthetic:
-// every returned code is judged, so the set is fully judged. The baseline
-// carries the shipped-ranker pin's block and every set has a MANIFEST.json,
-// as a custody verdict requires (gate-custody.node.test.js tests both).
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -16,8 +11,6 @@ import { REPO } from '../../eval/lib/sets.mjs';
 import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
-// The self-test twin of the holdout set: same rules, ledger in its own
-// directory. Tests never touch the real eval/holdout-ledger.md.
 const SET = 'selftest';
 
 /** @type {string} */
@@ -26,7 +19,6 @@ let tmp;
 let keyFile;
 /** @type {Buffer} */
 let key;
-/** The ranker block of a genuine run of the shipped pin, the baseline of a per-change holdout look. */
 let pinned = {};
 beforeAll(async () => {
   tmp = await mkdtemp(join(tmpdir(), 'vnm-cli-'));
@@ -39,8 +31,6 @@ afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 const fixture = async (/** @type {string} */ f) => JSON.parse(await readFile(join(REPO, 'eval', 'fixtures', f), 'utf8'));
 
 /**
- * A synthetic run file over the fixture queries: each query returns its judged
- * codes, best grade first (`order: 'best'`) or worst first.
  * @param {any} querySet
  * @param {any} qrels
  * @param {string} variant
@@ -66,8 +56,6 @@ function syntheticRun(querySet, qrels, variant, order) {
 }
 
 /**
- * Writes an encrypted set (queries, qrels, runs `base` and `cand`) into a new
- * directory under tmp, bound to `edit.as` (default the self-test set).
  * @param {string} name
  * @param {{ qrels?: (q: any) => void, as?: string }} [edit]
  */
@@ -120,8 +108,6 @@ describe('holdout errors are withheld', () => {
 describe('--embed-missing on an encrypted set', () => {
   it('a failed embedding prints only the withheld line and finalises the reserved look as aborted', async () => {
     const { dir } = await makeSet('embed-fails');
-    // A corrupt cache: embed.mjs fails reading it, before any network call.
-    // The custodian re-manifests it, so the manifest check lets the run start.
     await writeFile(join(dir, 'embeddings.json.enc'), 'not a ciphertext\n');
     await updateManifest(dir);
     const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'em', '--baseline', 'base', '--embed-missing'], { CI: '' });
@@ -179,7 +165,6 @@ describe('parallel looks', () => {
 
 describe('qrels and runs must share a corpus', () => {
   /**
-   * A plaintext copy of the fixture set with synthetic runs; `edit` changes the qrels.
    * @param {string} name
    * @param {(q: any) => void} [edit]
    */
@@ -222,7 +207,7 @@ describe('qrels and runs must share a corpus', () => {
     const r = cli(['run', '--set', 'fixture', '--set-dir', dir, '--variant', 'never', '--out', join(dir, 'never.json'), '--baseline', join(dir, 'base.json')]);
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/^eval: qrels fixture-qrels-v1 were judged on a corpus with moduleInfoSha256 000000000000…/);
-    expect(r.stdout).not.toMatch(/ranker/); // the runner never started
+    expect(r.stdout).not.toMatch(/ranker/);
   });
 
   it('holdout: report refuses, withheld, and records no look', async () => {
@@ -237,8 +222,6 @@ describe('qrels and runs must share a corpus', () => {
 describe('the committed duplicate groups (eval/groups.json) apply to every set', () => {
   const OTHER = '0'.repeat(64);
   /**
-   * A plaintext copy of the fixture set whose qrels and runs agree with each
-   * other; `edit` changes the qrels before the runs are built from them.
    * @param {string} name
    * @param {(q: any) => void} [edit]
    */
@@ -285,7 +268,6 @@ describe('the committed duplicate groups (eval/groups.json) apply to every set',
     expect(r.stdout).not.toMatch(/ranker/);
   });
 
-  /** An encrypted set whose qrels and runs agree on a corpus the groups were not built from. */
   async function holdoutOn(/** @type {string} */ name) {
     const dir = join(tmp, name);
     const querySet = await fixture('queries.json');

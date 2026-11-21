@@ -1,16 +1,4 @@
 // @ts-check
-// The NG-listed codes with no classes this year (data/ng-unscheduled.json,
-// test/fixtures/ng-unscheduled.json), built by scripts/build-ng-unscheduled.mjs.
-// - Every production entry's allow mask and rule ids are what eligibility()
-//   gives from the entry's own fields and listed semesters under the committed
-//   rules, recomputed here with no cache, so a stale mask fails CI.
-// - Every production code is on the year's NG list, for exactly the semesters
-//   it lists.
-// - The fixture file is what the build writes from its hand-kept source.
-// - Where the moduleInfo cache exists (the re-ingest machine), the production
-//   file is what the build writes from it and holds exactly the NG codes with
-//   no offered row; CI has no cache and skips that, saying why, as the
-//   production groups' check does.
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FIXTURE_SOURCE, NG_UNSCHEDULED_SCHEMA, OUTPUTS, build, productionCorpusPath } from '../scripts/build-ng-unscheduled.mjs';
@@ -27,12 +15,7 @@ const fixtureFile = /** @type {NgUnscheduledFile} */ (read(OUTPUTS.fixture));
 const rules = loadNgRestrictions(production.acadYear);
 const ngList = read(`data/ng-courses-${production.acadYear}.json`);
 
-/**
- * The entries whose stored eligibility is not what eligibility() gives now,
- * from their own fields: a course with no classes, on the NG list for the
- * semesters it lists.
- * @param {NgUnscheduledFile} file
- */
+/** @param {NgUnscheduledFile} file */
 const stale = (file) => file.modules.filter((e) => {
   const m = {
     code: e.code, title: e.title, department: e.department, faculty: e.faculty, level: e.level,
@@ -52,7 +35,6 @@ describe('data/ng-unscheduled.json', () => {
   });
 
   it('holds some codes, every one in data/catalogue-codes.json, since both follow the same corpus', () => {
-    // How many follows NUSMods, so no count is pinned.
     expect(production.count).toBeGreaterThan(0);
     const catalogue = new Set(read('data/catalogue-codes.json').codes);
     expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c))).toEqual([]);
@@ -60,7 +42,6 @@ describe('data/ng-unscheduled.json', () => {
 
   it('every entry\'s allow mask and rule ids are eligibility()\'s from its own fields, recomputed with the committed rules', () => {
     expect(stale(production)).toEqual([]);
-    // PF2102 is closed at grad in Sem 1 (4-be-l1234-grad), so an entry left open there is caught.
     const pf = /** @type {NgUnscheduledEntry} */ (production.modules.find((e) => e.code === 'PF2102'));
     expect(pf.ngAllow & bitOf(1, 'grad')).toBe(0);
     const doctored = { ...production, modules: production.modules.map((e) => (e.code === 'PF2102' ? { ...e, ngAllow: e.ngAllow | bitOf(1, 'grad') } : e)) };

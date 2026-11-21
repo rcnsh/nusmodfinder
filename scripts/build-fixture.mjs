@@ -1,8 +1,4 @@
 // @ts-check
-// Builds test/fixtures/corpus.json: ~430 normalised modules from the pinned
-// snapshot, chosen to cover the cases the tests name (NAMED and RULES below),
-// plus a deterministic filler sample. Output is stable for a given snapshot, so a rebuild with no input
-// change produces no diff. Usage: npm run fixture
 import { writeFile } from 'node:fs/promises';
 import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,10 +9,8 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = fileURLToPath(new URL('../test/fixtures/corpus.json', import.meta.url));
 const TARGET = 400;
 
-// Named because a test or code path refers to them directly.
 const NAMED = [
   'CS1010S', 'CS2109S', 'CS3244', 'CG3201', 'PC3270', 'PL1101E', 'CE5316QA', 'LAK1201', 'LAK2201',
-  // Long variant codes that motivated the widened MODULE_CODE_RE (lib.mjs).
   'ACC1701XA', 'DMA1401L01', 'DMR1201GEQA', 'LC6009GRSII',
 ];
 
@@ -36,11 +30,7 @@ const RULES = [
   ['level-8', (m) => m.level === 8],
 ];
 
-/**
- * Stable pseudo-random order, so the filler sample does not favour
- * early-alphabet codes and does not change between runs.
- * @param {NormalisedModule} m
- */
+/** @param {NormalisedModule} m */
 const order = (m) => hashOf(`fixture:${m.code}`);
 
 async function main() {
@@ -59,8 +49,6 @@ async function main() {
   const missing = NAMED.filter((c) => !reasons.has(c));
   if (missing.length) throw new Error(`named modules missing from the pinned corpus: ${missing.join(', ')}`);
 
-  // Coverage: two modules per faculty (so /facets lists every faculty), and
-  // some special-term (sem 3/4) and NG modules.
   const shuffled = [...modules].sort((a, b) => order(a).localeCompare(order(b)));
   /** @type {Map<string | null, number>} */
   const perFaculty = new Map();
@@ -76,9 +64,6 @@ async function main() {
     if (!reasons.has(m.code)) pick(m, 'filler');
   }
 
-  // Exchange-mode coverage, added after the filler so the filler sample stays
-  // the same: every NG module at level 5000+ and every NG module also offered
-  // in a special term.
   for (const m of modules) {
     if (m.ng && m.level !== null && m.level >= 5) pick(m, 'ng-level-5');
     if (m.ng && m.semesters.some((s) => s >= 3)) pick(m, 'ng-special-term');
@@ -104,7 +89,6 @@ async function main() {
     reasons: Object.fromEntries(selected.map((m) => [m.code, [.../** @type {Set<string>} */ (reasons.get(m.code))].sort()])),
   };
 
-  // One module per line keeps diffs reviewable.
   const body = [
     '{',
     `  "source": ${JSON.stringify(header.source)},`,

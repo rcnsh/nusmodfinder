@@ -1,21 +1,12 @@
 // @ts-check
-// Shared helpers for the Worker tests: a recording D1, timeouts and synthetic modules.
 import { env } from 'cloudflare:workers';
 import { fixture } from '../helpers.js';
 
-/**
- * One SQL statement the Worker executed: its text, its bound values, and the
- * D1 meta (rows read/written) when the call returned a result object.
- * @typedef {{ sql: string, binds: unknown[], method: string, session: string | null }} DbCall
- */
+/** @typedef {{ sql: string, binds: unknown[], method: string, session: string | null }} DbCall */
 
 /**
- * Wraps the test D1 binding so every statement the Worker runs is logged,
- * including statements run on a session (`withSession`), whose constraint is
- * recorded as `session`. Pass the result as `env: { DB }` to `call()`.
  * @param {DbCall[]} log
- * @param {{ hang?: (sql: string) => boolean }} [options] `hang`: statements
- *   for which it returns true never settle, for D1 timeout tests.
+ * @param {{ hang?: (sql: string) => boolean }} [options]
  * @returns {D1Database}
  */
 export function recordingDb(log, options = {}) {
@@ -61,17 +52,12 @@ export function recordingDb(log, options = {}) {
   });
 }
 
-/** The FTS statement in a log, if the Worker ran one. */
 export const ftsCalls = (/** @type {DbCall[]} */ log) => log.filter((c) => c.sql.includes('modules_fts MATCH'));
 
-/** Resolves to 'pending' if `p` has not settled within `ms`. */
 export const settlesWithin = (/** @type {Promise<unknown>} */ p, ms = 100) =>
   Promise.race([p.then(() => 'settled', () => 'settled'), new Promise((r) => setTimeout(() => r('pending'), ms))]);
 
 /**
- * A synthetic module in the shape /admin/ingest takes. `text` and `textHash`
- * follow the title/department/faculty/description rule of scripts/lib.mjs, but
- * the hash is a stand-in: these tests never compare it to lib's sha256.
  * @param {Partial<NormalisedModule> & { code: string, title: string }} over
  * @returns {NormalisedModule}
  */
@@ -91,5 +77,8 @@ export function syntheticModule(over) {
 
 /** @param {{ code: string }[]} results */
 export const codes = (results) => results.map((r) => r.code);
-/** Result codes and their duplicate-group variants. @param {any[]} results @returns {string[]} */
+/**
+ * @param {any[]} results
+ * @returns {string[]}
+ */
 export const shownCodes = (results) => results.flatMap((r) => [r.code, ...(r.variants ?? []).map((/** @type {{ code: string }} */ v) => v.code)]);

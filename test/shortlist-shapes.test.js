@@ -1,10 +1,4 @@
 // @ts-check
-// The shortlist's shape check: public/shortlist.js's own tests use hand-made
-// /module 404s and /facets rules. Here the Worker answers for real (the fixture, the
-// fixture's ng-unscheduled.json, a catalogue-only row), through the page's
-// own fetch layer (public/api.js createModuleClient and fetchFacets), and
-// the shortlist's answerOf and workOut read them. A field renamed on either side fails
-// here, not on the live page.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createModuleClient, fetchFacets } from '../public/api.js';
 import { emptyList } from '../public/list.js';
@@ -13,7 +7,7 @@ import { adminCall, call, seed } from './helpers.js';
 
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
-/** The page's fetch, answered by the Worker under test. @type {typeof fetch} */
+/** @type {typeof fetch} */
 const pageFetch = /** @type {any} */ ((/** @type {string} */ url) => call(String(url), { fakes }));
 /** @type {{ get: (code: string) => Promise<import('../public/api.js').Outcome> }} */
 let modules;
@@ -25,10 +19,7 @@ beforeAll(async () => {
   modules = createModuleClient({ fetch: pageFetch });
 });
 
-/**
- * Works out a list over the Worker's real answers.
- * @param {{ pick?: [string, '' | '1' | '2'][], alt?: [string, '' | '1' | '2'][], study?: string, rules?: any }} spec
- */
+/** @param {{ pick?: [string, '' | '1' | '2'][], alt?: [string, '' | '1' | '2'][], study?: string, rules?: any }} spec */
 async function run({ pick = [], alt = [], study = 'ug2', rules = null }) {
   const list = { ...emptyList(), pick: pick.map(([code, sem]) => ({ code, sem })), alt: alt.map(([code, sem]) => ({ code, sem })) };
   /** @type {Map<string, import('../public/shortlist.js').Answer>} */
@@ -78,8 +69,6 @@ describe('the Worker\'s answers, read by the shortlist', () => {
     const facets = await fetchFacets({ fetch: pageFetch });
     const rules = facets?.offListRules;
     expect(Array.isArray(rules)).toBe(true);
-    // The fixture has no level 1–4 CEE course off a list, so the rows are the Worker's for real
-    // courses, with the department changed: what covers() reads is the rule's scope.
     const base = /** @type {any} */ ((await modules.get('CS3244'))).body;
     const answers = new Map([
       ['CE2183', answerOf({ kind: 'ok', body: { ...base, code: 'CE2183', department: 'Civil and Environmental Engineering', level: 2 } })],
@@ -87,7 +76,6 @@ describe('the Worker\'s answers, read by the shortlist', () => {
       ['CS3244', answerOf({ kind: 'ok', body: base })],
     ]);
     const list = { ...emptyList(), pick: ['CE2183', 'ACC2706', 'CS3244'].map((code) => ({ code, sem: /** @type {'1'} */ ('1') })) };
-    // CS3244 is off the Sem 1 list (fixture), so all three are closed as off-list in Sem 1.
     const r = workOut({ list, sem: '1', study: 'ug2', answers, rules });
     const text = (/** @type {string} */ id) => rules.find((/** @type {any} */ x) => x.id === id).text;
     expect(at(r, 'CE2183').why).toContain(text('4-cee-no-appeal'));

@@ -1,7 +1,4 @@
 // @ts-check
-// src/groups.js, groups-v1 in the Worker: the eval's
-// duplicate-group rule, one rule for eval and product, as a versioned module
-// (data/groups.json, test/fixtures/groups.json) and the pure collapse.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -67,8 +64,6 @@ describe('collapse', () => {
 });
 
 describe('semesterRepresentative', () => {
-  // ACC1701X-shaped: one course text, members on different timetables. XB (Sem 2 only) ranks
-  // first for a Sem 1 exchange search; XC (Sem 1) and XA (both) are its group mates.
   const semesters = new Map([['ACC1701XA', [1, 2]], ['ACC1701XB', [2]], ['ACC1701XC', [1]], ['ACC1701XD', [2]]]);
   /** @param {number} sem */
   const offeredIn = (sem) => (/** @type {string} */ c) => (semesters.get(c) ?? []).includes(sem);
@@ -81,7 +76,6 @@ describe('semesterRepresentative', () => {
   it('picks the highest-ranked offered member when the first is not offered', () => {
     const rank = new Map([['ACC1701XB', 0], ['ACC1701XC', 1], ['ACC1701XA', 2]]);
     expect(semesterRepresentative('ACC1701XB', ['ACC1701XA', 'ACC1701XC'], rank, offeredIn(1))).toBe('ACC1701XC');
-    // Sem 2: XB is offered and stays.
     expect(semesterRepresentative('ACC1701XB', ['ACC1701XA', 'ACC1701XC'], rank, offeredIn(2))).toBe('ACC1701XB');
   });
 

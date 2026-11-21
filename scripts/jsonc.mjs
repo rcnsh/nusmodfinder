@@ -1,18 +1,9 @@
 // @ts-check
-// wrangler.jsonc, read as JSONC: `//` and `/* */` comments and trailing commas, then JSON.parse.
-// The deploy's preflight (`vars`) and the D1 config (`d1_databases`) read it whole instead of
-// matching one block with a regex, which a nested object or a second entry fools. A file it can't read throws, naming the file: the callers fail rather than pass blind.
-//
-// No Node APIs here (the text is passed in), so anything can use it.
 
-/**
- * The text with comments removed and trailing commas dropped, strings kept byte for byte.
- * @param {string} text
- */
+/** @param {string} text */
 export function stripJsonc(text) {
   /** @type {string[]} */
   const out = [];
-  // The index in `out` of a comma with only white space and comments after it so far.
   let comma = -1;
   for (let i = 0; i < text.length;) {
     const c = text[i];
@@ -42,8 +33,8 @@ export function stripJsonc(text) {
 }
 
 /**
- * Parses JSONC, naming `where` in the error.
- * @param {string} text @param {string} [where]
+ * @param {string} text
+ * @param {string} [where]
  * @returns {unknown}
  */
 export function parseJsonc(text, where = 'the file') {

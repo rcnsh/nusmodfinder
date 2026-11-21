@@ -1,8 +1,4 @@
 // @ts-check
-// The page says it is unofficial, in the title and the
-// visible header at every width, with NUS not the brand, and its footer
-// links the sources: NUSMods, the NG list, the restrictions and the
-// Registrar's vacancy report.
 import { expect, test } from '@playwright/test';
 
 test('"unofficial" is in the title, and in view at 390×664, on the first screen and after a search', async ({ page }) => {

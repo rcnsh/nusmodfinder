@@ -1,17 +1,4 @@
 // @ts-check
-// The status area and the result entries, laid out as an annotated catalogue.
-// Built with DOM nodes only. Each entry is an APG disclosure: a heading holding
-// one button (code and title) that controls the detail region below it; the
-// units, facts and the exchange status are plain text outside the button. The
-// status is a stamp per semester (an icon, a word and a colour, so never colour
-// alone), and every note shows in full with a lead-in word. No search score; the
-// review panel (ADR 0018) shows what students say.
-// app.js wires the buttons and fills the detail and the hidden-code lines. The
-// list is `aria-busy` while a search runs, and each answer comes with the one
-// sentence app.js puts in the page's polite live region (`announce`). "Also as"
-// codes are links to that code's own entry; each typed code not shown carries a
-// stamp (with room for app.js's "Switch to Sem 2"); and, for a query of course
-// codes only, the count says which typed codes it shows.
 import { h, setChildren } from './dom.js';
 import { NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, studyAdj, typedCodes, unpinnedLine } from './explain.js';
 import { examParts, quoteUser, semLabel } from './format.js';
@@ -21,30 +8,22 @@ import { isCode } from './state.js';
 
 /** @typedef {{ status: HTMLElement, results: HTMLElement }} Targets */
 /**
- * What app.js needs from a rendered answer.
  * @typedef {{
  *   cards: Map<string, { button: HTMLButtonElement, region: HTMLElement }>,
  *   hidden: Map<string, { why: HTMLElement, title: HTMLElement, stamp: HTMLElement, actions: HTMLElement }>,
  *   partial: { line: HTMLElement, actions: HTMLElement, prefix: string, sem: string, study: string } | null,
  *   announce: string,
  * }} Rendered
- *   `announce`: what the live region says for this answer (the count or why there is none,
- *   the typed codes not shown, a keyword-only note)
  * @typedef {{
  *   searchHref: (code: string) => string, variantHref: (code: string, from: string) => string,
  *   removableFilters: number, query: string, listed: (code: string) => boolean,
  * }} RenderContext
- *   `variantHref`: the page URL an "Also as" link opens: that code's search with its detail open, from `from`
- *   `removableFilters`: how many filter chips the student could remove (not the exchange set-up);
- *   `query`: the query as the student typed it (/search echoes it normalised), for the count line;
- *   `listed`: whether a code is on the shortlist, so each card's toggle starts pressed or not
  */
 
-/** The stamp class and icon for a status. @type {Readonly<Record<string, string>>} */
+/** @type {Readonly<Record<string, string>>} */
 const STAMP = Object.freeze({ open: 'open', note: 'note', closed: 'closed' });
 
 /**
- * A status message; `error` gives it the error style.
  * @param {Targets} t
  * @param {import('./dom.js').Child[]} content
  * @param {boolean} [error]
@@ -58,7 +37,6 @@ export function setStatus(t, content, error = false) {
 const setBusy = (t, busy) => t.results.setAttribute('aria-busy', String(busy));
 
 /**
- * A message with no results under it.
  * @param {Targets} t
  * @param {string} text
  * @param {boolean} [error]
@@ -78,8 +56,6 @@ export function showLoading(t) {
 }
 
 /**
- * A link that runs a search for a course code (app.js handles the click, so
- * the page doesn't reload; the href works in a new tab).
  * @param {string} code
  * @param {{ searchHref: (code: string) => string }} ctx
  */
@@ -88,12 +64,8 @@ export function searchLink(code, ctx) {
 }
 
 /**
- * An "Also as" code: a link to that code's own search, its detail open and
- * saying which entry it was opened from. app.js handles the click, so the
- * page doesn't reload; the href works in a new tab. A code in no code's shape
- * stays text.
  * @param {string} code
- * @param {string} from the entry's own code
+ * @param {string} from
  * @param {Pick<RenderContext, 'variantHref'>} ctx
  */
 function variantLink(code, from, ctx) {
@@ -102,10 +74,6 @@ function variantLink(code, from, ctx) {
 }
 
 /**
- * The shortlist toggle, on a card and in a detail's head: a
- * button "Shortlist" with `aria-pressed`, named "Shortlist, CS3244" (the
- * visible text first). Pressed also shows by a filled bookmark, not colour
- * alone. app.js handles the click and keeps every toggle for a code in step.
  * @param {string} code
  * @param {boolean} pressed
  */
@@ -116,8 +84,7 @@ export function shortlistToggle(code, pressed) {
 }
 
 /**
- * A status stamp: shape, word and colour.
- * @param {string} status 'open' | 'note' | 'closed'
+ * @param {string} status
  * @param {string} text
  */
 export function stamp(status, text) {
@@ -126,10 +93,9 @@ export function stamp(status, text) {
 }
 
 /**
- * A note: its lead-in word, then its text in full.
  * @param {{ kind: string, text: string }} r
  * @param {string} text
- * @param {import('./dom.js').Child} [extra] after the text (the detail's source line)
+ * @param {import('./dom.js').Child} [extra]
  */
 export function noteItem(r, text, extra = null) {
   const lead = r.kind === 'closed' ? '' : noteLead(r.kind);
@@ -145,10 +111,7 @@ const statusOf = (x) => (x?.status === 'open' ? 'open' : x?.status === 'note' ? 
 /** @param {{ reasons?: unknown } | null | undefined} x */
 const reasonsOf = (x) => (Array.isArray(x?.reasons) ? x.reasons.map(asReason) : []);
 
-/**
- * The notes aside: groups of notes, each with an optional scope line.
- * @param {{ scope: string, items: { r: { kind: string, text: string }, text: string }[] }[]} groups
- */
+/** @param {{ scope: string, items: { r: { kind: string, text: string }, text: string }[] }[]} groups */
 function notesBox(groups) {
   const shown = groups.filter((g) => g.items.length);
   if (!shown.length) return null;
@@ -159,11 +122,7 @@ function notesBox(groups) {
 }
 
 /**
- * The entry's exchange column: the chosen semester's stamp and its notes; or,
- * planning both, a stamp per semester (never one merged value) with the notes
- * each semester shares said once; outside exchange mode, the semesters the
- * course is on the exchange list for (the first screen's marker).
- * @param {any} m a /search result
+ * @param {any} m
  * @param {Record<string, unknown>} filters
  */
 function exchangeBlock(m, filters) {
@@ -189,23 +148,17 @@ function exchangeBlock(m, filters) {
       h('div', { class: 'stamps' }, stamp(status, stampText(status, sem, notes.map((n) => n.r)))),
       notesBox([{ scope: '', items: notes }]));
   }
-  // An NUS student's search: no exchange line on the card (the detail keeps the exchange table).
   return null;
 }
 
-/** Fewer reviews than this show no panel. */
 export const MIN_REVIEWS = 3;
 
-/**
- * The word beside the overall score.
- * @param {number} x 1-5
- */
+/** @param {number} x */
 export function overallWord(x) {
   return x >= 4 ? 'Well liked' : x >= 3.4 ? 'Liked' : x >= 2.6 ? 'Mixed' : x >= 1.8 ? 'Disliked' : 'Strongly disliked';
 }
 
 /**
- * One 1-5 score as five segments, filled to the rounded score, with its scale's two ends.
  * @param {string} label
  * @param {unknown} x
  * @param {string} low
@@ -221,12 +174,7 @@ function reviewMeter(label, x, low, high) {
     h('span', { class: 'rv-ends', attrs: { 'aria-hidden': 'true' } }, `${low} – ${high}`));
 }
 
-/**
- * What students say about the course on NUSMods (ADR 0018): the age-weighted overall score and
- * a word, meters for workload, difficulty and teaching, how many reviews and how recent, and a
- * link to read them. Null under MIN_REVIEWS, where a score would mislead.
- * @param {any} m a /search result
- */
+/** @param {any} m */
 export function reviewsPanel(m) {
   const r = m.reviews;
   if (!r || typeof r !== 'object' || typeof r.n !== 'number' || r.n < MIN_REVIEWS || typeof r.overall !== 'number') return null;
@@ -246,11 +194,7 @@ export function reviewsPanel(m) {
     h('p', { class: 'rv-foot' }, `${count}${latest}. `, link));
 }
 
-/**
- * The entry's right-hand column: the exchange status and notes, then what students say; null
- * with neither.
- * @param {...(HTMLElement | null)} blocks
- */
+/** @param {...(HTMLElement | null)} blocks */
 function guideColumn(...blocks) {
   const shown = blocks.filter((b) => b !== null);
   return shown.length ? h('div', { class: 'guide' }, ...shown) : null;
@@ -259,10 +203,9 @@ function guideColumn(...blocks) {
 let nextId = 0;
 
 /**
- * One result entry: code and units, title and facts, exchange status and notes.
- * @param {any} m a /search result
+ * @param {any} m
  * @param {Record<string, unknown>} filters
- * @param {Rendered['cards']} cards filled with this entry's button and region
+ * @param {Rendered['cards']} cards
  * @param {Pick<RenderContext, 'variantHref' | 'listed'>} ctx
  */
 function card(m, filters, cards, ctx) {
@@ -282,7 +225,6 @@ function card(m, filters, cards, ctx) {
   const fac = m.department && m.faculty && m.faculty !== m.department ? String(m.faculty) : '';
   return h('li', { class: 'card entry' },
     h('h2', { class: 'card-head' }, button),
-    // The toggle sits outside the h2, under the units (beside them on a phone), so the stamps don't move.
     h('div', { class: 'unitcol' }, h('p', { class: 'units' }, `${m.credits ?? '?'} units`), shortlistToggle(code, ctx.listed(code))),
     h('p', { class: 'meta' },
       h('span', { class: 'dept' }, dept, fac ? h('span', { class: 'fac' }, ` · ${fac}`) : null),
@@ -296,14 +238,11 @@ function card(m, filters, cards, ctx) {
 }
 
 /**
- * The typed codes this answer doesn't show, in a box above the entries: a
- * hidden code waits for app.js to say why (from /module/:code); a code not
- * offered this year is said at once.
  * @param {any} data
  * @param {Record<string, unknown>} filters
  * @param {Rendered['hidden']} hidden
- * @param {HTMLElement | null} unpinned the pin note, kept inside the box when there is one
- * @returns {{ box: HTMLElement, summary: string } | null} `summary`: the box's heading and its codes, for the live region
+ * @param {HTMLElement | null} unpinned
+ * @returns {{ box: HTMLElement, summary: string } | null}
  */
 function hiddenBox(data, filters, hidden, unpinned) {
   const nm = data.noMatch;
@@ -312,9 +251,6 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const notOffered = boxNotOffered(data.notOffered, nm);
   if (!hiddenPins.length && !notOffered.length) return null;
   /**
-   * Each code is drawn as the code and its title in one column
-   * (app.js fills the title from /module/:code); in the other, a stamp, why,
-   * and any action (app.js fills the three for a hidden code).
    * @param {string} code
    * @param {{ why: HTMLElement, title?: HTMLElement, stamp?: HTMLElement, actions?: HTMLElement }} parts
    */
@@ -339,7 +275,6 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const intro = hiddenPins.length && exchange
     ? `You chose ${when} as a ${studyAdj(String(filters.study))} exchange student, so courses you can't take then are left out.`
     : null;
-  // Every code typed is missing: say so plainly, not "1 of the 1 code".
   const heading = count === typed
     ? (count === 1 ? "The code you typed isn't shown" : `The ${count} codes you typed aren't shown`)
     : `${count} of the ${typed} code${typed === 1 ? '' : 's'} you typed ${count === 1 ? "isn't" : "aren't"} shown`;
@@ -352,22 +287,18 @@ function hiddenBox(data, filters, hidden, unpinned) {
   return { box, summary: `${heading}: ${[...hiddenPins, ...notOffered].join(', ')}.` };
 }
 
-/**
- * The stamp on a typed code that isn't shown: the "not shown" shape, a word
- * and the colour. Not an `exchange-status`: it says why the code
- * is missing, not a course's status.
- * @param {string} text
- */
+/** @param {string} text */
 export function hiddenStamp(text) {
   return h('span', { class: 'st st-closed' }, icon('closed'), h('span', null, text));
 }
 
-/** @param {...(string | null | undefined | false)} parts @returns {string} the parts that say something, as one line */
+/**
+ * @param {...(string | null | undefined | false)} parts
+ * @returns {string}
+ */
 const sentence = (...parts) => parts.filter(Boolean).join(' ');
 
 /**
- * A whole-query partial code ("CS32") that exchange mode emptied, with only
- * the exchange set-up as filters, or null.
  * @param {any} data
  * @param {Record<string, unknown>} filters
  */
@@ -381,8 +312,6 @@ function partialCode(data, filters) {
 }
 
 /**
- * A /search answer: why typed codes aren't shown, the count (or why there are
- * no results and what to do next); then the entries.
  * @param {Targets} t
  * @param {any} data
  * @param {RenderContext} ctx
@@ -425,11 +354,8 @@ export function showResults(t, data, ctx) {
     const relatedLine = related.length
       ? h('p', { class: 'related' }, 'Related courses offered this year: ', ...related.flatMap((c, i) => [i ? ', ' : null, searchLink(c, ctx)]))
       : null;
-    // Exchange mode with no other filter: eligibility emptied the list, so say that, not "no course
-    // matches" (NUS does have one), and don't send the student to other words.
     const exchange = filters.ng === true && typeof filters.study === 'string';
     const eligibility = !data.noMatch && !box && exchange && ctx.removableFilters === 0;
-    // The next step. Never "loosen" the exchange set-up: it is eligibility, not a preference.
     const next = data.noMatch || eligibility ? null
       : ctx.removableFilters > 0 ? 'Remove a filter above to see more courses, or try other words.'
         : box ? null : 'Try other words for the topic, or fewer of them.';
@@ -444,13 +370,11 @@ export function showResults(t, data, ctx) {
   const typedQuery = ctx.query.trim() || query;
   let countLine;
   if (codesOnly(typedQuery)) {
-    // Course codes only: say which of them the list shows.
     const { count, rest } = codesCount(typedQuery, results, Array.isArray(data.interpreted?.pin) ? data.interpreted.pin.map(String) : []);
     out.announce = sentence(`${count}${rest}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
   } else {
     const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
-    // The student's own words, capped and kept inside the quotes.
     const typed = quoteUser(typedQuery);
     const verb = results.length === 1 ? 'matches' : 'match';
     out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);
@@ -469,11 +393,8 @@ export function showResults(t, data, ctx) {
 }
 
 /**
- * The partial-code line once the other semester has been checked: the
- * either-semester sentence when it is empty too, else the chosen semester's
- * and a button to see the other.
  * @param {NonNullable<Rendered['partial']>} p
- * @param {boolean | null} otherHasResults null when the check failed
+ * @param {boolean | null} otherHasResults
  * @param {() => void} seeOther
  */
 export function settlePartial(p, otherHasResults, seeOther) {

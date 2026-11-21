@@ -1,38 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The year-switch rehearsal (CI job `rollover`). In a temp copy of the repo, with no PDF and no archive, it relabels the pinned corpus as
-// next year's and runs the switch the runbook describes, locally:
-//
-//   1. setup: copies the tree; sets DEFAULT_ACAD_YEAR, public/year.js and the header to next
-//      year; copies this year's NG files, source manifest, overlay module, register and oracle,
-//      each marked as next year; makes the pinned corpus next year's `current`;
-//   2. `year next`, which must keep every copy (it never overwrites) and change nothing;
-//   3. the builders other than the restrictions builder: the reason texts, then the production
-//      bundle (with the data version, vocabulary, groups, NG-unscheduled and catalogue files), then
-//      `corpus check`;
-//   4. `year check` (CI mode), which must pass;
-//   5. a local Worker (scripts/ui-server.mjs: wrangler dev --local, FakeAI, a temp D1) holding
-//      this year's corpus, then `ingest --d1-only --write-budget 80000`, refused without
-//      --allow-year-change and done in one run with it, then `verify --pre-deploy`;
-//   6. what each copy must fail on: a stale public/year.js (year check) and a stub NG file
-//      (year check and ingest);
-//   7. the oracle tests (oracle and oracle-node) over the relabelled corpus against the oracle
-//      the selector picks for next year, every test passing and none skipped (all but
-//      test/oracle/catalogue.test.js, whose premise, codes production gained since the pin, is
-//      false when the pin is production);
-//   8. the variant with Sem 2 unpublished: the manifest marks it so and the NG list loses
-//      its Sem 2; year check passes, the state is exercised (courses on last year's Sem 2 list
-//      are "to confirm"), and oracle-node agrees with the oracle.
-//
-// It proves the code has no year built in. It cannot show what a new PDF layout or new rules will
-// break: the wrong-year heading and the missing role are unit tests, and a real year still needs
-// the source gate and a person's rulings.
-//
-//   node scripts/rollover.mjs [--keep] [--skip-oracle]
-//
-// Needs the pinned corpus (.data/<year>-moduleInfo.json, sha-checked) and the eval's corpus
-// embeddings (downloaded by the bundle build with gh when absent). Never contacts Cloudflare or
-// NUSMods; ports 8787 and 8799 are never used.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -55,8 +22,10 @@ const say = (m) => console.log(`rollover: ${m}`);
 const fail = (m) => { throw new Error(m); };
 
 /**
- * Runs a command in the copy; resolves with its exit code and output (also streamed).
- * @param {string} cwd @param {string} cmd @param {string[]} args @param {Record<string, string>} [env]
+ * @param {string} cwd
+ * @param {string} cmd
+ * @param {string[]} args
+ * @param {Record<string, string>} [env]
  * @returns {Promise<{ code: number, out: string }>}
  */
 function run(cwd, cmd, args, env = {}) {
@@ -76,7 +45,6 @@ async function must(cwd, cmd, args, env) {
   return r;
 }
 
-/** The tree's files: tracked ones and untracked ones git doesn't ignore, as they are on disk. */
 async function treeFiles() {
   const r = await run(ROOT, 'git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard']);
   if (r.code !== 0) fail('git ls-files failed');
@@ -97,8 +65,9 @@ const replaceIn = (path, from, to) => {
 };
 
 /**
- * Step 1: the copy, relabelled.
- * @param {string} copy @param {string} y0 @param {string} y1
+ * @param {string} copy
+ * @param {string} y0
+ * @param {string} y1
  */
 async function setup(copy, y0, y1) {
   const files = await treeFiles();
@@ -112,12 +81,10 @@ async function setup(copy, y0, y1) {
   symlinkSync(join(ROOT, '.data/emb'), join(copy, '.data/emb'));
   say(`copied ${files.length} files into ${copy}`);
 
-  // The one year source and the two places that must equal it.
   replaceIn(join(copy, 'scripts/lib.mjs'), `export const DEFAULT_ACAD_YEAR = '${y0}';`, `export const DEFAULT_ACAD_YEAR = '${y1}';`);
   replaceIn(join(copy, 'public/year.js'), `export const DEFAULT_ACAD_YEAR = '${y0}';`, `export const DEFAULT_ACAD_YEAR = '${y1}';`);
   replaceIn(join(copy, 'public/index.html'), `Academic year ${yearLabel(y0)}<`, `Academic year ${yearLabel(y1)}<`);
 
-  // The year's files, as next year's.
   const courses = readJson(join(ROOT, ngCoursesRel(y0)));
   writeJson(join(copy, ngCoursesRel(y1)), { ...courses, acadYear: y1 }, 2);
   const restrictions = readJson(join(ROOT, ngRestrictionsRel(y0)));
@@ -129,7 +96,6 @@ async function setup(copy, y0, y1) {
   cpSync(join(ROOT, manifest.register), join(copy, registerRel(y1)));
   writeJson(join(copy, manifestRel(y1)), { ...manifest, acadYear: y1, overlay: overlayRel(y1), oracle: oracleRel(y1), register: registerRel(y1) }, 1);
 
-  // The pinned corpus as next year's `current`.
   if (!existsSync(MODULE_INFO_PATH)) fail(`no pinned corpus at ${MODULE_INFO_PATH} (CI downloads it from its release)`);
   const raw = readFileSync(MODULE_INFO_PATH);
   const digest = createHash('sha256').update(raw).digest('hex');
@@ -141,16 +107,11 @@ async function setup(copy, y0, y1) {
   corpus.current = release;
   writeJson(join(copy, 'data/corpus.json'), corpus, 2);
 
-  // A repo of its own (scripts record HEAD; nothing is pushed: it has no remote).
   for (const args of [['init', '-q', '-b', 'main'], ['config', 'user.email', 'rollover@localhost'], ['config', 'user.name', 'rollover'],
     ['config', 'commit.gpgsign', 'false'], ['add', '-A'], ['commit', '-q', '-m', `rehearsal: ${y0} -> ${y1}`]]) await must(copy, 'git', args);
   return { records: JSON.parse(raw.toString('utf8')) };
 }
 
-/**
- * The GitHub repo the releases are read from (the corpus and embeddings): CI's, else the checkout's
- * origin. The copy has no remote, so gh is told (GH_REPO).
- */
 async function githubRepo() {
   if (process.env.GITHUB_REPOSITORY) return process.env.GITHUB_REPOSITORY;
   const r = await run(ROOT, 'git', ['remote', 'get-url', 'origin']);
@@ -158,7 +119,10 @@ async function githubRepo() {
   return m ? m[1] : fail('cannot tell the GitHub repo: set GITHUB_REPOSITORY');
 }
 
-/** Every file's sha256 in the copy, for "year next changed nothing". @param {string} copy @param {string[]} rels */
+/**
+ * @param {string} copy
+ * @param {string[]} rels
+ */
 const hashes = (copy, rels) => Object.fromEntries(rels.filter((r) => existsSync(join(copy, r))).map((r) => [r, sha(join(copy, r))]));
 
 async function main() {
@@ -200,7 +164,6 @@ async function main() {
     const { startUiServer } = await import(pathToFileURL(join(copy, 'scripts/ui-server.mjs')).href);
     worker = /** @type {{ url: string, secret: string, stop: () => Promise<void> }} */ (await startUiServer({}));
     const w = /** @type {{ url: string, secret: string }} */ (worker);
-    // This year's corpus, as production holds it before the switch (rows written by this checkout's ingest code).
     const thisYear = offeredModules(records, y0, await loadNgCourses(y0)).modules;
     for (let i = 0; i < thisYear.length; i += 100) {
       const res = await fetch(`${w.url}/admin/ingest?d1Only=1`, {
@@ -209,9 +172,6 @@ async function main() {
       });
       if (res.status !== 200) fail(`seeding ${y0}: /admin/ingest answered ${res.status}`);
     }
-    // And its catalogue-only rows as this year's: their row hash includes the year, so the switch
-    // rewrites them too (about 28.7k rows charged), which the 80,000-row
-    // budget must cover in one run.
     const catalogue = readJson(join(copy, 'data/catalogue-only.json'));
     for (let i = 0; i < catalogue.rows.length; i += 100) {
       const upsert = catalogue.rows.slice(i, i + 100).map((/** @type {[string, string, string]} */ [code, title, description]) => ({ code, title, description, acadYear: y0 }));
@@ -251,8 +211,6 @@ async function main() {
     if (!values['skip-oracle']) {
       say(`${SECTION} 7. the oracle tests over ${y1}, against the oracle the selector picks`);
       const report = join(copy, '.oracle.json');
-      // test/oracle/catalogue.test.js checks the codes production gained since the pin; here
-      // production is the pinned corpus relabelled, so it has none by construction.
       await run(copy, 'npx', ['vitest', 'run', '--project', 'oracle', '--project', 'oracle-node', '--exclude', 'test/oracle/catalogue.test.js',
         '--reporter=default', '--reporter=json', `--outputFile=${report}`], { ...env, PRODUCTION_CORPUS: '1' });
       const r = readJson(report);
@@ -268,8 +226,6 @@ async function main() {
     delete sem1.semesters['2'];
     sem1.allCodes = [...sem1.semesters['1']].sort();
     writeJson(coursesPath, sem1, 2);
-    // The rules' answers change, so the data version does: the bundle build rewrites it with
-    // data/ng-unscheduled.json and the other per-corpus files, as a real revision's would.
     await must(copy, process.execPath, ['scripts/vectors.mjs', 'build', '--corpus', 'production', '--expect-count', String(rows)], env);
     const check = await must(copy, process.execPath, ['scripts/year.mjs', 'check'], env);
     if (!/Sem 2 unpublished/.test(check.out)) fail('year check did not note the unpublished Sem 2');

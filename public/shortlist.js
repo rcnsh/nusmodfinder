@@ -1,20 +1,4 @@
 // @ts-check
-// The shortlist worked out: from the list, the study level and each code's
-// /module answer, what counts, what is to confirm with NUS and what isn't
-// counted and why; the same course listed twice; NUS's form order for each
-// semester; the totals for each semester; the exam-overlap and preclusion
-// flags; NUS's notes on particular courses; and the lines NUS's own sources
-// give. Pure: no DOM, no fetch; test/web/shortlist.node.test.js runs it in
-// Node. The view and the exports render what it returns.
-//
-// Every entry is worked out at its own semester, whatever the state's `sem`,
-// which only sets which semester's totals come first. Rank is the entry's place
-// in its `pick` or `alt` sequence, one order for the year.
-//
-// For an NUS student (`nus`: the search is not in exchange mode) the list is a
-// plain plan: a pick counts by its units if it is taught in its semester, with
-// the exam-overlap, preclusion and same-title flags, and none of the exchange
-// application's lines, notes, invitations or form order.
 import { semLabel } from './format.js';
 import { names } from './preclusion.js';
 import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
@@ -24,7 +8,6 @@ import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
 /** @typedef {import('./explain.js').ExchangeEntry} ExchangeEntry */
 /** @typedef {import('./explain.js').Reason} Reason */
 /**
- * A course: a /module/:code row, or a 404 of kind `ng-listed` read as one.
  * @typedef {{
  *   code?: string, title?: string | null, credits?: number | null, department?: string | null,
  *   faculty?: string | null, level?: number | null, semesters?: number[], ng?: boolean,
@@ -38,10 +21,7 @@ import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
  *   | { kind: 'catalogue-only', title: string, description: string, acadYear: string } | { kind: 'unknown', acadYear: string }
  *   | { kind: 'loading' } | { kind: 'failed' }} Answer
  * @typedef {{ id: string, text: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } | null, role?: string }} OffListRule
- *   /facets' `offListRules` (data/ng-reasons.json): `levels` as digits (4 is level 4000); `role`
- *   `off-list-rule` marks rule E, the line for any course off the list (a role, not an id)
  * @typedef {'counted' | 'confirm' | 'invite' | 'out' | 'pending' | 'duplicate'} Standing
- *   `invite`: a Business or Law course the student hasn't said they were invited for (to confirm, on a line of its own)
  * @typedef {{ kind: 'exam' | 'preclusion' | 'group', with: string, text: string, quote?: string }} Flag
  * @typedef {{
  *   code: string, which: Which, rank: number, sem: '' | '1' | '2', kind: Answer['kind'],
@@ -61,24 +41,11 @@ import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
  * }} Result
  */
 
-// ---------------------------------------------------------------- NUS's words
-// Each quoted word for word from the source named beside it.
-
-/** GRO, "Incoming Exchange Students", on Business, Law and Economics courses after the offer. */
 export const GRO_POPULAR = 'If you are not successful in gaining placements into these popular courses at the point of offer, you are not able to add these courses during CourseReg';
-/** GRO, on Business and Law courses. */
 export const GRO_BIZ_LAW = 'Business and Law courses are only available to students who are invited by NUS Business School and NUS Law respectively to apply for the exchange during the nomination period';
-/** The Registrar's restrictions, rule E, on courses off the exchange list. */
 export const RULE_E = 'not available during application stage but may be available during Course registration';
-/** GRO, on the semester's length. */
 export const GRO_WEEKS = 'Each semester normally includes 13 weeks of instruction and 2 weeks of examinations';
 
-/**
- * NUS's notes on particular courses (NUS's own cautions, cited).
- * GRO's level 4000 sentence is not one of them: it
- * is an exchange note on the /module answer (src/level-note.js), counted like
- * a quota note (CONDITION_KINDS), so the row says it once, among its notes.
- */
 export const NOTES = Object.freeze({
   oversubscribed: 'NUS says these courses are extremely oversubscribed, gives priority to students majoring in them, and advises students with other majors against choosing them (GRO)',
   psychology: 'NUS says Psychology courses are extremely oversubscribed (GRO)',
@@ -88,7 +55,6 @@ export const NOTES = Object.freeze({
   master: 'NUS: master-level courses are open only to students on a master-level exchange agreement (GRO)',
 });
 
-/** The lines on a Business or Law course's row. */
 export const BIZ_LAW = Object.freeze({
   gro: `GRO: “${GRO_BIZ_LAW}”`,
   question: Object.freeze({
@@ -116,19 +82,15 @@ export const BIZ_LAW = Object.freeze({
   }),
 });
 
-/** Under the totals of each semester. */
 export const TOTAL_LINES = Object.freeze({
   rate: 'NUS states hours a week only; your university\'s own conversion decides credit',
   weeks: `GRO: “${GRO_WEEKS}”`,
   admitted: 'To be admitted, NUS must accept you into at least 12 units in a semester (NUS\'s brochure; GRO: “three pre-registered courses (or 12 units)”)',
   courseReg: 'In CourseReg you must keep at least 12 units or three courses (GRO)',
-  // The maximum-units line (ADR 0010): word for word, typographic apostrophes.
   maximum: 'NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.',
-  // What the maximum limits: a semester's picks above 20 are flagged (Totals.over20), never refused.
   maximumScope: 'This limits the courses NUS enrols you in, not the courses you list',
 });
 
-/** The lines for applicants, under the form order. */
 export const APPLICANT_LINES = Object.freeze([
   'NUS recommends listing as many relevant courses as you can, up to 40 units (GRO)',
   'NUS recommends ranking your compulsory courses among your top three choices, to increase your chances of securing them (GRO)',
@@ -136,11 +98,10 @@ export const APPLICANT_LINES = Object.freeze([
   'GRO: “If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds”',
 ]);
 
-/** NUS's form order: its heading's note, the browse-mode line and the full-year line. */
 export const FORM_LINES = Object.freeze({
   /**
-   * @param {string} year 'YYYY/YY', the rows' year
-   * @param {string} listDate the NG list's "updated as at" date from /facets ('01 Sep YYYY'), '' if it failed
+   * @param {string} year
+   * @param {string} listDate
    */
   applicants: (year, listDate) => {
     const dated = listDate ? ` (the ${year} list is dated ${listDate.replace(/^0/, '')})` : '';
@@ -152,7 +113,6 @@ export const FORM_LINES = Object.freeze({
   ten: 'NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check',
 });
 
-/** The CourseReg box, for admitted students: NUS's rules, each cited, then the page's own line, set apart. */
 export const COURSEREG_BOX = Object.freeze({
   rules: Object.freeze([
     'Keep at least 12 units or three courses a semester (GRO)',
@@ -172,49 +132,35 @@ export const COURSEREG_BOX = Object.freeze({
   page: 'This page can\'t see your offer. Your offer and CourseReg show which courses are yours.',
 });
 
-// ---------------------------------------------------------------- helpers
-
-/**
- * Note kinds the student can meet: counted, "if NUS accepts you into each".
- * `supply` is GRO's level 4000 note, a condition like `quota`.
- */
 export const CONDITION_KINDS = Object.freeze(['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee']);
 const OFF_LIST = ['ng-list:not-listed', 'ng-list:not-in-semester'];
-/** Rule E's role in /facets' offListRules (scripts/ng-overlay/<year>.mjs), read instead of its id. */
 const OFF_LIST_ROLE = 'off-list-rule';
-/**
- * A semester NUS hasn't published yet. A course on last year's list for it is to
- * confirm (kind `ask`); one that wasn't isn't counted (src/eligibility.js).
- */
 const UNPUBLISHED = 'ng:unpublished-sem';
 const UNPUBLISHED_UNLISTED = 'ng:unpublished-sem-unlisted';
-/** NUS's 40 units, in tenths. */
 const FORM_TENTHS = 400;
-/** NUS's rate: 2.5 hours a week per unit (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
 const HOURS_PER_UNIT = 2.5;
 
-// The year labels live in public/year.js with the header's year line.
 export { yearLabel };
 
-/** A sum in tenths, so 2.5 + 1.5 is 4. @param {number} n */
+/** @param {number} n */
 const tenths = (n) => Math.round(n * 10);
-/** @param {number} t tenths */
+/** @param {number} t */
 const fromTenths = (t) => t / 10;
 
-/** The letters a code starts with: CS2030S → CS. @param {string} code */
+/** @param {string} code */
 const lettersOf = (code) => /^[A-Z]+/.exec(code)?.[0] ?? '';
 /** @param {unknown} v @returns {number[]} */
 const nums = (v) => (Array.isArray(v) ? v.map(Number).filter(Number.isFinite) : []);
 /** @param {unknown} v @returns {string[]} */
 const strs = (v) => (Array.isArray(v) ? v.map(String) : []);
 
-/** Business or Law, by faculty, as NUSMods names them. @param {Course | null} c @returns {'' | 'biz' | 'law'} */
+/**
+ * @param {Course | null} c
+ * @returns {'' | 'biz' | 'law'}
+ */
 const facultyKind = (c) => (c?.faculty === 'NUS Business School' ? 'biz' : c?.faculty === 'Law' ? 'law' : '');
 
 /**
- * A /module or /search outcome (api.js) as an answer: a row, a 404's kind
- * (`error.detail.kind`; a 404 without one is `unknown`), loading
- * (no outcome yet) or failed.
  * @param {any} outcome
  * @returns {Answer}
  */
@@ -225,12 +171,10 @@ export function answerOf(outcome) {
     const d = outcome.error.detail && typeof outcome.error.detail === 'object' ? outcome.error.detail : {};
     const acadYear = typeof d.acadYear === 'string' ? d.acadYear : '';
     if (d.kind === 'ng-listed') {
-      // NUS lists it for these semesters; NUSMods shows no classes in any.
       const listed = nums(d.ngSemesters ?? d.ng_semesters ?? d.semesters);
       return { kind: 'ng-listed', course: { ...d, ng: true, semesters: [], ng_semesters: listed, acad_year: acadYear } };
     }
     if (d.kind === 'catalogue-only') {
-      // Its title and description, so the exports carry its text.
       return { kind: 'catalogue-only', title: typeof d.title === 'string' ? d.title : '', description: typeof d.description === 'string' ? d.description : '', acadYear };
     }
     return { kind: 'unknown', acadYear };
@@ -239,14 +183,13 @@ export function answerOf(outcome) {
 }
 
 /**
- * The exchange entry at a semester and study level.
- * @param {Course} c @param {number} sem @param {string} study
+ * @param {Course} c
+ * @param {number} sem
+ * @param {string} study
  */
 const exchangeAt = (c, sem, study) => (Array.isArray(c.exchange) ? c.exchange : []).find((x) => String(x.sem) === String(sem) && x.study === study);
 
 /**
- * The semesters (of 1 and 2) a course is open in at `study` (exchange mode),
- * or taught in (browse mode): what a new entry's tag is chosen from (list.js tagFor).
  * @param {Answer} answer
  * @param {string} study
  * @returns {number[]}
@@ -263,9 +206,6 @@ export function openSems(answer, study) {
 }
 
 /**
- * The semesters an entry's buttons offer: those the course is taught in or,
- * in exchange mode, on NUS's list for (ACC1701XB: listed for both, taught in
- * Sem 2); an NG-listed 404, the semesters NUS lists it for; any other 404, none.
  * @param {Answer} answer
  * @param {string} study
  * @returns {number[]}
@@ -278,12 +218,10 @@ export function semChoices(answer, study) {
   return [1, 2].filter((s) => sems.has(s));
 }
 
-/** Whether a course is taught only in special terms. @param {Answer} answer */
+/** @param {Answer} answer */
 const specialOnly = (answer) => answer.kind === 'row' && nums(answer.course.semesters).length > 0 && nums(answer.course.semesters).every((s) => s >= 3);
 
 /**
- * The year the shortlist prints: the rows' (the first loaded row in the
- * list's order), else a 404's, else public/year.js's.
  * @param {List} list
  * @param {Map<string, Answer>} answers
  */
@@ -295,18 +233,14 @@ export function yearOf(list, answers) {
 }
 
 /**
- * "Made with <the link's year> courses; showing <the rows' year>'s" when the link's `ay` isn't
- * the rows' year; '' otherwise (or before any row loads).
- * @param {string} ay the list's `ay`
- * @param {string} rowsYear the loaded rows' acad_year, '' before any
+ * @param {string} ay
+ * @param {string} rowsYear
  */
 export function yearLine(ay, rowsYear) {
   return ay && rowsYear && ay !== rowsYear ? `Made with ${yearLabel(ay)} courses; showing ${yearLabel(rowsYear)}'s` : '';
 }
 
 /**
- * Loaded rows from an older acad year than the newest one loaded (an ingest
- * within the cache's 5 minutes): refetched once with `cache: 'reload'`.
  * @param {Map<string, Answer>} answers
  * @returns {string[]}
  */
@@ -319,10 +253,6 @@ export function staleRows(answers) {
 }
 
 /**
- * Whether an off-list rule's scope covers a course: one of its departments
- * (and, if it names levels, one of them, as digits: 4 is level 4000), or one
- * of its faculties. Never by code prefix. Rule E's scope is `{}`: it covers
- * nothing on its own, and is the line used when no other rule does.
  * @param {OffListRule['scope']} scope
  * @param {Course} c
  */
@@ -337,11 +267,11 @@ function covers(scope, c) {
 }
 
 /**
- * Why an entry off NUS's exchange list for its semester isn't counted, with
- * what NUS says about adding it later: a department's or faculty's no-appeal
- * rule, GRO's sentence for an EC-coded or Law course, else rule E. With no
- * rules (/facets failed), "ask NUS whether it can be added later".
- * @param {string} code @param {Course} c @param {number} sem @param {OffListRule[] | null} rules @param {string} year
+ * @param {string} code
+ * @param {Course} c
+ * @param {number} sem
+ * @param {OffListRule[] | null} rules
+ * @param {string} year
  */
 function offListWhy(code, c, sem, rules, year) {
   const head = `Not on NUS's ${year} exchange course list for ${semLabel(sem)}`;
@@ -352,11 +282,7 @@ function offListWhy(code, c, sem, rules, year) {
   return `${head}. Courses not on the list “are ${RULE_E}” (the Registrar's course restrictions, rule E)`;
 }
 
-// ---------------------------------------------------------------- one entry
-
 /**
- * An entry's standing at its own semester and the study level, before the
- * same-course rule.
  * @param {{ code: string, sem: '' | '1' | '2', which: Which, rank: number }} e
  * @param {Answer} answer
  * @param {{ study: string, nus: boolean, rules: OffListRule[] | null, inv: string[], year: string }} ctx
@@ -381,7 +307,6 @@ function workEntry(e, answer, ctx) {
   const ngListed = answer.kind === 'ng-listed';
   if (w.faculty && !ctx.nus) w.lines.push(BIZ_LAW.gro);
   if (specialOnly(answer)) {
-    // Its closed stamp at the chosen semester; the reason is the line below.
     if (e.sem && ctx.study) w.status = exchangeAt(c, Number(e.sem), ctx.study)?.status ?? 'closed';
     return as('out', 'Taught only in special terms: this page plans Sem 1 and Sem 2');
   }
@@ -390,13 +315,11 @@ function workEntry(e, answer, ctx) {
   const sem = Number(e.sem);
   const ngLine = `NUS lists it for ${semLabel(sem)} in ${ctx.year}, but NUSMods shows no classes: ask NUS`;
   if (ctx.nus) {
-    // A course NUS lists with no classes in NUSMods: to confirm in the semesters NUS lists it for.
     if (ngListed && nums(c.ng_semesters).includes(sem)) { w.lines.push(ngLine); return as('confirm', ngLine); }
     if (!nums(c.semesters).includes(sem)) return as('out', `Not taught in ${semLabel(sem)}`);
     return as('counted', 'Counted');
   }
   if (ngListed && !nums(c.ng_semesters).includes(sem)) {
-    // Its closed stamp, as a row's; the reason is the line below, not a note.
     const at = ctx.study ? exchangeAt(c, sem, ctx.study) : undefined;
     if (ctx.study) w.status = at?.status ?? 'closed';
     const unlisted = (Array.isArray(at?.reasons) ? at.reasons : []).find((r) => r.id === UNPUBLISHED_UNLISTED);
@@ -404,7 +327,6 @@ function workEntry(e, answer, ctx) {
     return as('out', `Not on NUS's exchange list for ${semLabel(sem)} in ${ctx.year}`);
   }
   if (!ctx.study) {
-    // Browse mode: no study level, so no exchange status. A pick counts by its units if it is taught then.
     if (ngListed) { w.lines.push(ngLine); return as('confirm', ngLine); }
     if (!nums(c.semesters).includes(sem)) return as('out', `Not taught in ${semLabel(sem)}`);
     return as('counted', 'Counted: exchange status not checked');
@@ -422,14 +344,12 @@ function workEntry(e, answer, ctx) {
   const kinds = w.reasons.map((r) => r.kind);
   w.audition = kinds.includes('audition');
   const unpublished = w.reasons.find((r) => r.id === UNPUBLISHED);
-  // In a semester NUS hasn't published, the listing is last year's, so the line says so.
   const listedLine = unpublished ? `${unpublished.text.replace(/\.$/, '')}, and NUSMods shows no classes: ask NUS` : ngLine;
   if (ngListed) w.lines.push(listedLine);
   if (w.faculty) {
     if (ctx.inv.includes(w.faculty)) w.lines.push(...BIZ_LAW.invited[w.faculty]);
     else {
       w.lines.push(...BIZ_LAW.uninvited[w.faculty]);
-      // Its quota gives priority to the faculty's own partners: not a chance for everyone.
       for (const r of w.reasons) if (r.kind === 'quota') w.lines.push(`If you were invited: ${r.text}`);
       return as('invite', w.faculty === 'biz' ? 'Only for students invited by NUS Business School' : 'Only for students invited by NUS Law');
     }
@@ -442,9 +362,6 @@ function workEntry(e, answer, ctx) {
 }
 
 /**
- * NUS's notes on particular courses: oversubscribed subjects,
- * Economics after the offer, language courses and master-level supply (level
- * 4000 supply is an exchange note).
  * @param {Worked} w
  * @param {string} study
  */
@@ -465,21 +382,21 @@ function nusNotes(w, study) {
   return out;
 }
 
-// ---------------------------------------------------------------- the list
-
-/** Entries that take part in the same-course rule, the form and the flags. @param {Worked} w */
+/** @param {Worked} w */
 const takesPart = (w) => w.standing === 'counted' || w.standing === 'confirm' || w.standing === 'invite';
 
-/** Whether either code's group (`otherCodes`) lists the other. @param {Worked} a @param {Worked} b */
+/**
+ * @param {Worked} a
+ * @param {Worked} b
+ */
 const grouped = (a, b) => strs(a.course?.otherCodes).includes(b.code) || strs(b.course?.otherCodes).includes(a.code);
-/** On NUS's exchange list (an NG-listed code with no classes is). @param {Worked} w */
+/** @param {Worked} w */
 const onNgList = (w) => w.kind === 'ng-listed' || w.course?.ng === true;
 
 /**
- * Two codes are the same course when one group holds both (either side's
- * `otherCodes`) and both are on the NG list (whose groups are each one
- * course), or either's preclusion names the other.
- * @param {Worked} a @param {Worked} b @param {string} study
+ * @param {Worked} a
+ * @param {Worked} b
+ * @param {string} study
  */
 function sameCourse(a, b, study) {
   if (!grouped(a, b)) return false;
@@ -488,12 +405,8 @@ function sameCourse(a, b, study) {
 }
 
 /**
- * Settles the same course listed twice, once for the year: counted picks in
- * rank order, then to-confirm picks, each compared only with picks already
- * kept (the relation isn't transitive); then backups in rank order against
- * kept picks and earlier kept backups. The others say "the same course as …"
- * and take no total, number or flag.
- * @param {Worked[]} entries @param {string} study
+ * @param {Worked[]} entries
+ * @param {string} study
  */
 function settleSameCourse(entries, study) {
   /** @type {Worked[]} */
@@ -514,8 +427,8 @@ function settleSameCourse(entries, study) {
 }
 
 /**
- * The exam for a semester, as a time span; null when none is listed.
- * @param {Worked} w @param {string} sem
+ * @param {Worked} w
+ * @param {string} sem
  */
 function examIn(w, sem) {
   const e = (Array.isArray(w.course?.examDates) ? w.course?.examDates ?? [] : []).find((x) => String(x.sem) === sem);
@@ -525,9 +438,8 @@ function examIn(w, sem) {
 }
 
 /**
- * Whether two exams overlap: start plus duration; a missing duration overlaps
- * only an identical start. Adjacent exams don't.
- * @param {{ start: number, mins: number | null }} a @param {{ start: number, mins: number | null }} b
+ * @param {{ start: number, mins: number | null }} a
+ * @param {{ start: number, mins: number | null }} b
  */
 function overlaps(a, b) {
   if (a.mins === null || b.mins === null) return a.start === b.start;
@@ -535,11 +447,10 @@ function overlaps(a, b) {
 }
 
 /**
- * The flags: exam overlaps between any two entries taking part in one
- * semester, picks or backups; preclusions between picks only (a backup a pick
- * precludes is a normal alternative); and group members that aren't the same
- * course, with the check line.
- * @param {Worked[]} entries @param {string} study @param {string} year @param {boolean} nus
+ * @param {Worked[]} entries
+ * @param {string} study
+ * @param {string} year
+ * @param {boolean} nus
  */
 function flag(entries, study, year, nus) {
   const live = entries.filter(takesPart);
@@ -575,15 +486,9 @@ function flag(entries, study, year, nus) {
 }
 
 /**
- * NUS's application form order, per semester: counted and to-confirm
- * entries only (not duplicates, audition courses or uninvited Business and
- * Law), picks then backups, each in rank order, numbered while the semester's
- * units stay at or under 40. An entry that would pass 40 is marked and takes
- * no number; a later, smaller one that fits takes the next. Past the 10th
- * number each is marked, keeping its number.
  * @param {Worked[]} entries
  * @param {boolean} exchange
- * @param {boolean} nus no form at all, so no line either
+ * @param {boolean} nus
  * @returns {{ '1': { units: number, line: string } | null, '2': { units: number, line: string } | null }}
  */
 function formOrder(entries, exchange, nus) {
@@ -617,13 +522,10 @@ function formOrder(entries, exchange, nus) {
 }
 
 /**
- * The shortlist worked out.
  * @param {{
  *   list: List, sem: string, study: string, answers: Map<string, Answer>,
  *   rules: OffListRule[] | null, nus?: boolean,
- * }} input `sem` the state's (it orders the totals); `study` '' in browse
- *   mode; `rules` /facets' offListRules, null if /facets failed; `nus` an
- *   NUS student's plain plan (the search is not in exchange mode)
+ * }} input
  * @returns {Result}
  */
 export function workOut({ list, sem, study: given, answers, rules, nus = false }) {
@@ -648,7 +550,6 @@ export function workOut({ list, sem, study: given, answers, rules, nus = false }
     const confirm = sum('confirm');
     const invite = sum('invite');
     return {
-      // "Units picked" (the shortlist button, the sentences): every loaded pick's units, counted or not.
       picked: fromTenths(picks.reduce((t, w) => t + tenths(w.units ?? 0), 0)),
       counted, confirm, invite,
       pending: picks.filter((w) => w.standing === 'pending').length,
@@ -673,9 +574,6 @@ export function workOut({ list, sem, study: given, answers, rules, nus = false }
 }
 
 /**
- * The lines under one semester's totals: the units picked (counted, then to
- * confirm, then only if invited), the hours at NUS's rate, the Economics and
- * exam-overlap lines when they apply, and NUS's minimum and maximum.
  * @param {'1' | '2'} sem
  * @param {Totals} t
  * @param {{ exchange: boolean, year: string, nus?: boolean }} r
@@ -698,30 +596,16 @@ export function totalLines(sem, t, { exchange, year, nus = false }) {
   return out;
 }
 
-/**
- * The view's one sentence after a settings change: "Sem 2 first: 12 units
- * picked; Sem 1: 8", in units picked as the shortlist button counts them.
- * @param {Result} r
- */
+/** @param {Result} r */
 export function summary(r) {
   const [first, second] = r.order;
   return `${semLabel(first)} first: ${r.sems[first].picked} units picked; ${semLabel(second)}: ${r.sems[second].picked}`;
 }
 
-/**
- * Whether an entry can be asked its semester: not once its answer shows it
- * can't take one (taught only in special terms, a catalogue-only or unknown
- * 404). A row still loading can, until it answers.
- * @param {Answer | undefined} answer
- */
+/** @param {Answer | undefined} answer */
 export const askable = (answer) => !(answer && (answer.kind === 'catalogue-only' || answer.kind === 'unknown' || specialOnly(answer)));
 
 /**
- * The question before an export (the view asks it, the exports wait on it): the year of
- * study in browse mode, and a semester for each untagged entry that can take
- * one. Entries that can't (taught only in special terms, a catalogue-only or
- * unknown 404) are exempt.
- * An NUS student is never asked the year of study.
  * @param {{ list: List, study: string, answers: Map<string, Answer>, nus?: boolean }} input
  * @returns {{ ask: boolean, year: boolean, entries: string[] }}
  */

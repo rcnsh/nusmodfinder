@@ -70,8 +70,8 @@ costs no D1 read, no Vectorize query and no Workers AI call, however it is spell
 ## The vectors bundle
 
 Every corpus vector, L2-normalised float32, plus a 32-byte filter row per module (semesters,
-level, credits, faculty, NG, the prefix id, the group id and the constraint fields), is one binary
-file (`src/vector-bundle.js` documents the layout). The Worker imports it as a `Data` module
+level, credits, faculty, NG, the exchange allow mask and the constraint fields), is one binary
+file (layout below). The Worker imports it as a `Data` module
 through the wrangler `alias` `vectors-bundle` and parses it on its first dense search: no I/O per
 request, no Vectorize query, and the vectors deploy and roll back with the code that reads them.
 
@@ -90,6 +90,50 @@ manifest records each bundle's data version, row count, sha256 and `rowsKey`, th
 sorted (code, `text_hash`) pairs; the deploy guard compares that with D1.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Use `npm run deploy`.
+
+### Byte layout
+
+`src/vector-bundle.js` writes the bundle (`encodeBundle`, used by `scripts/vectors.mjs` and the
+eval runner) and reads it (`parseBundle`, `exactSearch`, via `src/dense.js`), so both sides agree
+on the bytes. It uses only WebCrypto and `TextEncoder`. All numbers are little-endian.
+
+| offset | size | content |
+|---|---|---|
+| 0 | 8 B | magic `VNMVEC01` |
+| 8 | 4 B | u32 header length H |
+| 12 | H B | header, UTF-8 JSON, then zero padding to a multiple of 8 |
+| T | count × 32 B | filter table, one row per code, in code order |
+| V | count × dims × 4 B | vectors, float32, L2-normalised, in the same row order |
+
+The header holds `schema` (`BUNDLE_SCHEMA`), `corpus` (fixture, pinned, production or eval),
+`model`, `embedding`, `dims`, `count`, `dataVersion`, `rowsKey`, `rowStride`, `faculties` (sorted)
+and `codes` (in code order). `parseBundle` refuses a bundle whose magic, schema or row stride
+differs, whose size isn't what the header implies, or whose codes aren't strictly in code order.
+
+The filter row (`ROW_STRIDE`, 32 B):
+
+| offset | type | field |
+|---|---|---|
+| 0 | u8 | semesters 1–4 as bits 0–3 |
+| 1 | u8 | level; 255 = null |
+| 2 | u8 | flags: bit 0 = NG-listed |
+| 3 | u8 | NG semesters 1–4 as bits 0–3 |
+| 4 | u16 | faculty id, an index into the header's `faculties`; 0xFFFF = null |
+| 6 | u16 | `ng_allow`, the exchange-mode allow mask (`src/ng-bit.js`); 0 = closed |
+| 8 | f64 | credits; NaN = null |
+| 16 | 4 B | reserved, zero (a group id slot; groups live in `data/groups.json`) |
+| 20 | u8 | exam semesters 1–4 as bits 0–3 |
+| 21 | u8 | S/U: bit 0 = `attributes.su`, bit 1 = graded CS/CU |
+| 22 | u8 | prerequisites: bit 0 = none, bit 1 = cohort-only |
+| 23 | 1 B | reserved, zero |
+| 24 | f64 | workload hours a week; NaN = null |
+
+- **A new field** fills a reserved slot and bumps `BUNDLE_SCHEMA`, so an old reader refuses a new
+  bundle.
+- **No prefix id.** Rows are in code order, so a code range (a partial code, a GE pillar) is a
+  contiguous block of rows (`rowBlocks`), found by binary search over `codes`.
+- **Deterministic.** `encodeBundle` writes no timestamps, so the same input gives the same bytes
+  and sha256; each vector is normalised in double precision, then stored as float32.
 
 ## Data files as aliases
 

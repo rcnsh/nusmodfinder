@@ -1,9 +1,4 @@
 // @ts-check
-// The query tokeniser in src/lexical.js splits exactly where the
-// modules_fts tokenizer (`porter unicode61`, migrations/0006_fts_external.sql)
-// splits, and ASCII queries keep their MATCH strings byte for byte, so only
-// non-ASCII queries can rank differently. Runs in Node against node:sqlite's
-// FTS5, the same unicode61 tables D1 uses (Unicode 6.1, frozen in FTS5).
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +8,6 @@ import { ftsMatch, queryTokens } from '../src/fts-query.js';
 
 const read = (/** @type {string} */ p) => readFileSync(fileURLToPath(new URL(`../${p}`, import.meta.url)), 'utf8');
 
-/** The ASCII-only tokeniser, kept verbatim as the differential reference for ASCII queries. */
 const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
   'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
 /** @param {string} query */
@@ -24,7 +18,6 @@ function oldFtsMatch(query) {
   return used.length === 0 ? null : used.map((t) => `"${t}"`).join(' OR ');
 }
 
-/** FTS5 terms (after porter and diacritic folding) of each string, in order. */
 function ftsTerms(/** @type {string[]} */ strings) {
   const db = new DatabaseSync(':memory:');
   db.exec(`CREATE VIRTUAL TABLE t USING fts5(x, tokenize = 'porter unicode61');
@@ -38,7 +31,6 @@ function ftsTerms(/** @type {string[]} */ strings) {
   return out;
 }
 
-/** Deterministic PRNG (mulberry32). */
 function rng(/** @type {number} */ seed) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -49,19 +41,12 @@ function rng(/** @type {number} */ seed) {
 }
 
 describe('the query tokeniser', () => {
-  // The full probe (every code point through SQLite) takes ~5.2 s on a GitHub
-  // runner, past vitest's 5 s default; it is kept whole, not sampled.
   it('the separator table equals the unicode61 separators probed from SQLite, for every code point', () => {
     expect(read('src/fts-separators.js')).toBe(render(probeSeparators()));
   }, 60_000);
 
-  // "At most": a token of nothing but strippable diacritics folds to no term at
-  // all, in the index as in the query; FTS5 treats that empty phrase as
-  // matching nothing, without an error (checked below).
   it('every query token is at most one FTS5 term, and together they are the FTS5 terms of the query', () => {
     const random = rng(8);
-    // Mixed strings: ASCII, Latin diacritics (precomposed and decomposed),
-    // marks unicode61 splits on, CJK, symbols, emoji old and new, private use.
     const alphabet = [...'aZ09 -_.,\'"’éÅßıİǅﬁ½²①ⅫΩж机学̈́ःְ⃝­​😀🥰𝐀'];
     const strings = ['naïve bayes', 'naïve bayes', 'Ångström café', 'São Paulo', 'İstanbul', '机器学习 data',
       'x² ½', "l'été", 'co-op', 'ａｂｃ', 'हिन्दी', 'עִברִית'];
@@ -100,12 +85,10 @@ describe('the query tokeniser', () => {
     const lexical = /** @type {{ queries: string[] }} */ (JSON.parse(read('test/fixtures/lexical-queries.json'))).queries;
     const dev = /** @type {{ queries: { text: string }[] }} */ (JSON.parse(read('eval/dev/queries.json'))).queries.map((q) => q.text);
     const queries = [...new Set([...lexical, ...dev])];
-    // Every printable ASCII character alone and in context, too.
     for (let c = 0; c < 128; c++) queries.push(String.fromCharCode(c), `data${String.fromCharCode(c)}Base 2`);
     const ascii = queries.filter((q) => [...q].every((ch) => ch.charCodeAt(0) < 128));
     expect(ascii.length).toBeGreaterThan(500);
     for (const q of ascii) expect(ftsMatch(q), JSON.stringify(q)).toBe(oldFtsMatch(q));
-    // The non-ASCII fixture queries: which MATCH strings change.
     const changed = queries.filter((q) => !ascii.includes(q)).filter((q) => ftsMatch(q) !== oldFtsMatch(q));
     expect(changed).toEqual([]);
   });

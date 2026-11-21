@@ -1,13 +1,8 @@
 // @ts-check
-// public/saved.js: the last list this student edited, kept
-// on this device. "Restore your last shortlist" offers it when a link has no
-// list; "Forget this list on this device" clears it; opening someone else's
-// link never overwrites it (the page saves only on its own edits).
 import { describe, expect, it } from 'vitest';
 import { entryValue, parseList } from '../../public/list.js';
 import { SAVED_KEY, forgetList, loadList, restoreOffer, saveList } from '../../public/saved.js';
 
-/** A Storage stand-in; `broken` throws as Safari's private mode and blocked storage do. */
 function memory(broken = false) {
   /** @type {Map<string, string>} */
   const m = new Map();
@@ -51,7 +46,6 @@ describe('the list on this device', () => {
     saveList(s, list('pick=CS2030.1'));
     expect(values(restoreOffer(list(''), s))).toEqual(['CS2030.1']);
     expect(restoreOffer(list('pick=GE2101.1'), s)).toBeNull();
-    // ay or inv alone are not a list.
     expect(values(restoreOffer(list('ay=2026-2027'), s))).toEqual(['CS2030.1']);
   });
 

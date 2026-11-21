@@ -1,6 +1,4 @@
 // @ts-check
-// scripts/ci-changes.mjs, the one diff rule CI's heavy jobs skip by. Every case is a
-// table row over injected git and GitHub answers; nothing here calls GitHub, and git only in a temp repo.
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

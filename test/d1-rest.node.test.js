@@ -1,10 +1,4 @@
 // @ts-check
-// The deploy guard, rollback and d1:restore read production D1 through
-// Cloudflare's D1 REST query endpoint (scripts/d1-rest.mjs), never `wrangler dev --remote`.
-// The client sends only SELECT and read-only PRAGMA statements, refusing anything else before
-// a request leaves; it sums `meta.rows_read`; and the token (CLOUDFLARE_API_TOKEN, else
-// `wrangler auth token`) never reaches an error, a log line or a run record. Fake fetch and
-// exec only: nothing here calls Cloudflare.
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
@@ -35,10 +29,8 @@ describe('assertReadOnly', () => {
       "INSERT INTO modules (code) VALUES ('X')",
       "UPDATE modules SET title = 'x'",
       'DELETE FROM modules',
-      // (meta, not modules: test/migrations.node.test.js bans any REPLACE on modules in the repo.)
       'REPLACE INTO meta (key) VALUES (1)',
       'DROP TABLE modules',
-      // 7-0's mistake: a permission probe that would have written, had the token allowed it.
       'CREATE TABLE IF NOT EXISTS probe (x)',
       'ALTER TABLE modules ADD COLUMN x',
       'SELECT 1; DELETE FROM modules',
@@ -51,8 +43,6 @@ describe('assertReadOnly', () => {
       "ATTACH DATABASE 'x' AS y",
       'VACUUM',
       'BEGIN',
-      // SQLite's TCL-style parameter tokens run to the next ')' and swallow quotes, so a quote
-      // inside one would hide a second statement from a quote-aware scan.
       "SELECT $a(');DELETE FROM modules --')",
       "SELECT @x(');DELETE FROM modules --')",
       'SELECT :name',
@@ -61,16 +51,12 @@ describe('assertReadOnly', () => {
   });
 });
 
-// SQLite reads `$`, `@`, `:` or `#` followed by an
-// identifier character as a parameter, and its identifier characters include `$` and every byte
-// >= 0x80, so `$$(')` or `@é(')` is a TCL-style parameter that swallows a quote the literal-blanking
-// took for a string's start, hiding the `;` after it. The check refuses any parameter sigil.
 describe('assertReadOnly refuses every parameter sigil', () => {
   const PAYLOADS = [
     "SELECT $$(');UPDATE modules SET title='pwned';--')",
     "SELECT @é(');UPDATE modules SET title='pwned';--')",
   ];
-  /** Runs `sql` as a batch, as the REST endpoint might, over a two-row table; the titles after. @param {string} sql */
+  /** @param {string} sql */
   const runBatch = (sql) => {
     const db = new DatabaseSync(':memory:');
     db.exec("CREATE TABLE modules(code TEXT, title TEXT); INSERT INTO modules VALUES ('CS1010', 'Programming'), ('CS2030', 'OOP');");
@@ -123,7 +109,6 @@ describe('assertReadOnly refuses every parameter sigil', () => {
   it('still admits every statement the callers send (each a constant)', async () => {
     const { SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_ROWS_SQL } = await import('../src/admin-hashes.js');
     for (const sql of [SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_ROWS_SQL]) expect(() => assertReadOnly(sql), sql).not.toThrow();
-    // Words that hold a write keyword but are not one, and keywords inside literals.
     for (const sql of ["SELECT name FROM sqlite_master WHERE name = 'modules_fts_update'", 'SELECT "delete" FROM t', 'SELECT updated_at, created FROM t']) {
       expect(() => assertReadOnly(sql), sql).not.toThrow();
     }
@@ -235,7 +220,6 @@ describe('the token and the account', () => {
     expect(await d1Config()).toEqual({ databaseName: 'nusmods-apac', databaseId: 'de4527ff-19ec-4a5b-9c5c-4d1791078b25' });
   });
 
-  // d1Config picks the d1_databases entry bound as DB, not the first one listed.
   it('picks the DB binding when another database is listed first, and fails when none is bound as DB', async () => {
     const path = join(dir, 'wrangler.jsonc');
     writeFileSync(path, `{

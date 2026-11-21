@@ -1,10 +1,4 @@
 // @ts-check
-// The no-signal answer in /search: a query with no signal (no route,
-// no vocabulary match before correction: parsed.noSignal) whose top exact
-// cosine, for the query as typed, is below τ answers `count: 0` with
-// `noMatch: { reason: "no-signal" }`, before hydration. The fixture's fake
-// embedder has its own cosine scale, so these tests set τ through
-// NO_SIGNAL_TAU; the τ in force is src/no-signal.js's.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createFakes } from './fakes.js';
 import { callJson, seed } from './helpers.js';

@@ -1,9 +1,4 @@
 // @ts-check
-// The weekly NUSMods data-change check and the monthly reminder
-// (scripts/drift.mjs, run by .github/workflows/drift.yml). Fixture NUSMods records, a fake
-// NUSMods and a fake GitHub: nothing here reaches the network or creates a real issue. The years
-// here are fixture data (no NG file is read); the data version over HEAD's NG files is checked
-// in test/drift-data-version.node.test.js.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -18,25 +13,26 @@ const NO_NG = { available: false, bySem: new Map(), updatedAsAt: null, source: n
 const NOW = new Date('2026-11-16T01:17:00Z');
 const RUN_URL = 'https://github.com/o/r/actions/runs/1';
 
-/** A NUSMods moduleInfo record. @param {string} code @param {Record<string, unknown>} [o] */
+/**
+ * @param {string} code
+ * @param {Record<string, unknown>} [o]
+ */
 const rec = (code, o = {}) => ({
   moduleCode: code, title: `Title of ${code}`, description: `What ${code} is about.`, moduleCredit: '4',
   department: 'Computer Science', faculty: 'Computing', semesterData: [{ semester: 1 }], ...o,
 });
 
-// The fixture pair: before is what production holds, after is NUSMods a week later.
 const BEFORE = [
   rec('CS1010'), rec('CS2030', { semesterData: [{ semester: 1 }, { semester: 2 }] }), rec('CS3230'), rec('CS4248'),
   rec('XX1000', { semesterData: [] }), rec('XX2000', { semesterData: [], title: 'Old catalogue title' }),
 ];
 const AFTER = [
-  rec('CS1010', { description: 'A new description.' }),                     // description (and the embedded text)
-  rec('CS2030', { semesterData: [{ semester: 2 }] }),                       // semesters
-  rec('CS3230', { moduleCredit: '6', prerequisite: 'CS2040' }),             // credits and prerequisite
-  rec('CS5000'),                                                            // added
+  rec('CS1010', { description: 'A new description.' }),
+  rec('CS2030', { semesterData: [{ semester: 2 }] }),
+  rec('CS3230', { moduleCredit: '6', prerequisite: 'CS2040' }),
+  rec('CS5000'),
   rec('XX1000', { semesterData: [] }), rec('XX2000', { semesterData: [], title: 'New catalogue title' }),
   rec('XX3000', { semesterData: [] }),
-  // CS4248 removed
 ];
 
 /** @type {string} */
@@ -83,7 +79,6 @@ describe('the issue text', () => {
     expect(issue.body).toContain('Added: CS5000');
     expect(issue.body).toContain('Removed: CS4248');
     expect(issue.body).toMatch(/Last checked 2026-11-16 01:17 UTC/);
-    // The runbook's corpus-only path, which a docs heading can't be renamed out from under.
     expect(issue.body).toContain('"A corpus-only refresh" in `docs/year-refresh/README.md`');
     expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A corpus-only refresh \(NUSMods changed\)$/m);
   });
@@ -141,7 +136,6 @@ describe('the issue text', () => {
     expect(issue.body).toMatch(/01 Sep 2026/);
     expect(issue.body).toMatch(/npm run ops:report -- --month 2026-10/);
     expect(issue.body).not.toMatch(/60 days/);
-    // A revision is checked against the year's source manifest and follows the runbook.
     expect(issue.body).toContain('`data/ng-sources-2026-2027.json`');
     expect(issue.body).toContain('"A mid-year revision" in `docs/year-refresh/README.md`');
     expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A mid-year revision$/m);
@@ -180,7 +174,6 @@ describe('the 45-day note', () => {
   });
 });
 
-/** An in-memory GitHub with the client interface drift.mjs uses. */
 function fakeGitHub() {
   /** @type {{ number: number, title: string, body: string, state: 'open' | 'closed', labels: string[], comments: string[] }[]} */
   const issues = [];
@@ -208,10 +201,6 @@ function fakeGitHub() {
   };
 }
 
-/**
- * A fake api.nusmods.com: this year's moduleInfo.json with an ETag (304 on a match), next year's
- * moduleList.json, each settable per test.
- */
 function fakeNusMods() {
   const state = {
     info: /** @type {{ status: number, body?: unknown, etag?: string }} */ ({ status: 200, body: BEFORE, etag: '"v1"' }),
@@ -259,7 +248,7 @@ describe('the weekly check', () => {
   it('opens one pending issue when NUSMods changes, then keeps it updated, with field counts against the cached copy', async () => {
     const nm = fakeNusMods();
     const gh = fakeGitHub();
-    await weekly(nm, gh, { now: new Date('2026-11-09T01:17:00Z') }); // caches BEFORE
+    await weekly(nm, gh, { now: new Date('2026-11-09T01:17:00Z') });
     nm.state.info = { status: 200, body: AFTER, etag: '"v2"' };
     expect(await weekly(nm, gh)).toMatchObject({ exitCode: 0 });
     expect(gh.issues).toHaveLength(1);
@@ -269,13 +258,11 @@ describe('the weekly check', () => {
     expect(issue.body).toMatch(/\| 2026-11-16 \| `[0-9a-f]{12}` \| \+1 −1 ~3 \|/);
     expect(gh.ensured).toContain(LABELS.pending);
 
-    // A week later NUSMods changes again: the same issue gains a row.
     nm.state.info = { status: 200, body: [...AFTER, rec('CS6000')], etag: '"v3"' };
     await weekly(nm, gh, { now: new Date('2026-11-23T01:17:00Z') });
     expect(gh.issues).toHaveLength(1);
     expect(gh.issues[0].body).toMatch(/\| 2026-11-16 \|[^\n]*\n\| 2026-11-23 \| `[0-9a-f]{12}` \| \+1 −0 ~0 \|/);
 
-    // Unchanged (304): no new row, only the last-checked line.
     await weekly(nm, gh, { now: new Date('2026-11-30T01:17:00Z') });
     expect(gh.issues[0].body).not.toMatch(/\| 2026-11-30 \|/);
     expect(gh.issues[0].body).toMatch(/Last checked 2026-11-30 01:17 UTC/);
@@ -287,7 +274,6 @@ describe('the weekly check', () => {
     nm.state.info = { status: 200, body: AFTER, etag: '"v2"' };
     await weekly(nm, gh);
     expect(gh.issues[0].state).toBe('open');
-    // A refresh ships: src/data-version.json now holds AFTER's version.
     await weekly(nm, gh, { production: (await summarise(AFTER, YEAR, NO_NG)).dataVersion });
     expect(gh.issues[0].state).toBe('closed');
     expect(gh.issues[0].comments.at(-1)).toMatch(/Closing/);
@@ -297,9 +283,7 @@ describe('the weekly check', () => {
     const nm = fakeNusMods();
     const gh = fakeGitHub();
     nm.state.info = { status: 200, body: AFTER, etag: '"v2"' };
-    // Same title and label, no marker (someone's own issue): not the check's.
     await gh.createIssue({ title: 'NUSMods data for 2026-2027 differs from production', body: 'my notes', labels: [LABELS.pending] });
-    // Marker but no label: not found by the label query.
     await gh.createIssue({ title: 'x', body: '<!-- vnm-drift:pending -->', labels: [] });
     await weekly(nm, gh);
     expect(gh.issues).toHaveLength(3);
@@ -315,7 +299,6 @@ describe('the weekly check', () => {
     const ny = gh.issues.filter((i) => i.labels.includes(LABELS.nextYear));
     expect(ny).toHaveLength(1);
     expect(ny[0].body).toContain('<!-- vnm-drift:next-year 2027-2028 -->');
-    // Jacob closes it; the next check opens no second one and reopens nothing.
     await gh.updateIssue(ny[0].number, { state: 'closed' });
     await weekly(nm, gh);
     expect(gh.issues.filter((i) => i.labels.includes(LABELS.nextYear))).toHaveLength(1);
@@ -361,8 +344,6 @@ describe('the weekly check', () => {
   it('warns of a quiet repo itself, once per quiet stretch, since a monthly run can miss days 45 to 60', async () => {
     const nm = fakeNusMods();
     const gh = fakeGitHub();
-    // The last commit lands 2026-09-21: the 10-01 and 11-01 reminders (10 and 41 days) carry no
-    // note, and schedules stop about 11-20. The weekly run on 11-09 (49 days) warns.
     const lastCommit = { sha: 'd'.repeat(40), date: new Date('2026-09-21T00:00:00Z') };
     await weekly(nm, gh, { now: new Date('2026-11-02T01:17:00Z'), lastCommit });
     expect(gh.issues).toHaveLength(0);
@@ -389,12 +370,8 @@ describe('the weekly check', () => {
   });
 });
 
-// NUSMods controls the module codes: an @mention, a link or raw HTML must not reach the pending
-// issue as it came, and a forged `<!-- vnm-drift:state … -->` before the real one must not be what
-// the next run reads.
 describe('NUSMods text in the pending issue', () => {
   const FORGED = { history: [{ date: '1999-01-01', dataVersion: 'forgedforged', comparison: null }] };
-  // No `>` inside the JSON is needed; the marker's own `-->` closes it.
   const EVIL_CODE = `CS9999 @octocat [refresh here](https://evil.example/x) <img src=https://evil.example/p.gif> <!-- vnm-drift:state ${JSON.stringify(FORGED)} -->`;
   const RAW = ['@octocat', '](https://evil.example/x)', '<img', 'evil.example', 'forgedforged'];
   /** @param {ReturnType<typeof fakeNusMods>} nm @param {ReturnType<typeof fakeGitHub>} gh @param {Date} now */
@@ -402,7 +379,7 @@ describe('NUSMods text in the pending issue', () => {
     acadYear: YEAR, cacheDir: join(dir, 'cache'), fetchImpl: nm.fetchImpl, github: gh, now: () => now, ngCourses: NO_NG, runUrl: RUN_URL,
     committed: { dataVersion: '000000000000', sha: null }, log: () => {},
   });
-  /** Every `<!--` in a body, which must be the check's own markers. @param {string} body */
+  /** @param {string} body */
   const comments = (body) => body.match(/<!--[^]*?-->/g) ?? [];
 
   for (const [what, before, after] of /** @type {const} */ ([
@@ -423,7 +400,6 @@ describe('NUSMods text in the pending issue', () => {
       const state = parseState(body);
       expect(state.history.map((h) => h.date)).toEqual(['2026-11-09', '2026-11-16']);
       expect(state.history.every((h) => /^[0-9a-f]{12}$/.test(h.dataVersion))).toBe(true);
-      // A third run reads its own state back, and still writes nothing raw.
       nm.state.info = { status: 200, body: [...after, rec('CS3230')], etag: '"v3"' };
       await weekly(nm, gh, new Date('2026-11-23T01:17:00Z'));
       expect(RAW.filter((r) => gh.issues[0].body.includes(r))).toEqual([]);

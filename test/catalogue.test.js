@@ -1,9 +1,4 @@
 // @ts-check
-// The D1 table `catalogue_only` (migrations/0008_catalogue.sql): the codes in
-// the catalogue with no offering this year, with the title and description a
-// noMatch `not-offered` response names and embeds. Loaded by ingest
-// (scripts/ingest-core.mjs) through GET/POST /admin/catalogue, in D1-only mode
-// too: the table is D1's alone, so no route touches Workers AI or Vectorize.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../scripts/ingest-core.mjs';
@@ -110,7 +105,6 @@ describe('ingest loads catalogue_only', () => {
   });
 
   it('charges its writes to the write budget and stops cleanly before passing it', async () => {
-    // The modules are already loaded (seed), so the catalogue is all this run writes.
     const res = await ingest(rows(300), { writeBudget: 250 });
     expect(res.status).toBe('budget');
     expect(res.rowsCharged).toBeLessThanOrEqual(250);

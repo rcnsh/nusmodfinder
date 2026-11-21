@@ -1,9 +1,4 @@
 // @ts-check
-// No default URL: ingest, verify and `vectors standby` refuse to
-// run without --url or WORKER_URL, and refuse ports 8787 and 8799 (another
-// project's on the dev Mac), before any request. Each writer that does run
-// leaves one run record on success and one on failure. The Worker is a stub
-// fetch; records go to a temp dir.
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -19,17 +14,14 @@ let dir;
 beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'vnm-url-')); seen = new Set(); });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-/** A fetch that fails the test if it is ever called. */
 const noFetch = /** @type {typeof fetch} */ (/** @type {unknown} */ (async (/** @type {string} */ url) => { throw new Error(`no request may be sent, got ${url}`); }));
-/** Files already returned, so records come back in the order they were written, not by name. @type {Set<string>} */
+/** @type {Set<string>} */
 let seen = new Set();
-/** The records written since the last call, in that order (one run each, so at most one per call here). */
 const fresh = async () => {
   const files = (await readdir(join(dir, 'runs')).catch(() => /** @type {string[]} */ ([]))).filter((f) => !seen.has(f));
   for (const f of files) seen.add(f);
   return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(dir, 'runs', f), 'utf8'))));
 };
-/** Every record so far. */
 const records = async () => {
   const files = await readdir(join(dir, 'runs')).catch(() => /** @type {string[]} */ ([]));
   return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(dir, 'runs', f), 'utf8'))));

@@ -1,9 +1,4 @@
 // @ts-check
-// The uptime check (scripts/uptime-check.mjs, ADR 0012 and 0019), its CLI (scripts/uptime.mjs) and
-// the Worker that runs it every 15 minutes (workers/uptime/). Each run GETs /health, one /module/<code> and one /search that
-// must be a cache miss and not degraded; a failure is checked again 90 s later; a pass pings
-// healthchecks.io's HC_UPTIME_URL, two failures ping HC_UPTIME_URL/fail with a one-line reason.
-// A fake site, clock and pinger: nothing here sends a request.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { MODULE_CODE_RE } from '../scripts/lib.mjs';
@@ -17,7 +12,6 @@ const BASE = 'https://site.example';
 const PING = 'https://hc-ping.example/5ec2e7-uuid-never-logged';
 const SECRET_PART = '5ec2e7-uuid-never-logged';
 const CODES = ['AA1001', 'BB2002', 'CC3003'];
-/** The period the fake clock starts in, and 7 s into it (a cron run starts just after the boundary). */
 const PERIOD = 2_000_000;
 const START = PERIOD * PERIOD_MS + 7000;
 
@@ -27,10 +21,8 @@ const START = PERIOD * PERIOD_MS + 7000;
  */
 
 /**
- * The site, answering each attempt's routes as told (the last attempt repeats), on a fake clock
- * that sleep() and each request advance.
  * @param {Attempt[]} attempts
- * @param {{ searchAnswers?: Answer[] }} [o] per-/search answers in order, overriding the attempts'
+ * @param {{ searchAnswers?: Answer[] }} [o]
  */
 function fakeSite(attempts = [{}], o = {}) {
   let clock = START;
@@ -64,7 +56,7 @@ function fakeSite(attempts = [{}], o = {}) {
   return { fetchImpl, sleep, now: () => clock, sent };
 }
 
-/** A pinger that records each ping. @param {{ fail?: boolean, throwWith?: string }} [o] */
+/** @param {{ fail?: boolean, throwWith?: string }} [o] */
 function fakePinger(o = {}) {
   /** @type {{ url: string, body: string | undefined }[]} */
   const pings = [];
@@ -78,7 +70,6 @@ function fakePinger(o = {}) {
 }
 
 /**
- * Runs the check against the fake site.
  * @param {ReturnType<typeof fakeSite>} site
  * @param {ReturnType<typeof fakePinger>} pinger
  * @param {{ argv?: string[], env?: Record<string, string | undefined> }} [o]
@@ -299,7 +290,6 @@ describe('what the check asks for', () => {
 
 describe('the uptime Worker', () => {
   const config = readFileSync(new URL('../workers/uptime/wrangler.jsonc', import.meta.url), 'utf8');
-  /** The config without its comments. */
   const code = config.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
 
   it('runs on the check\'s schedule, every 15 minutes, with no address and no bindings', () => {

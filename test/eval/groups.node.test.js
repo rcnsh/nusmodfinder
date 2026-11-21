@@ -1,6 +1,4 @@
 // @ts-check
-// Duplicate groups from the corpus (eval/lib/groups.mjs) and how scoring uses
-// them. The rebuild check over the full pinned corpus is test/full/groups.node.test.js.
 import { describe, expect, it } from 'vitest';
 import { CorpusMismatchError } from '../../eval/lib/errors.mjs';
 import { buildGroups, groupsFile, loadGroups, serialiseGroups, withCorpusGroups } from '../../eval/lib/groups.mjs';
@@ -58,8 +56,8 @@ describe('buildGroups', () => {
   it('is transitive across both relations, drops singletons, and counts', () => {
     const r = buildGroups([
       m('CS2030', 'Programming Methodology II', 'Java.'),
-      m('CS2030S', 'Programming Methodology II', 'Java, again.'), // variant of CS2030
-      m('TIC2030', 'Programming Methodology II', 'Java, again.'), // cross-listed with CS2030S
+      m('CS2030S', 'Programming Methodology II', 'Java, again.'),
+      m('TIC2030', 'Programming Methodology II', 'Java, again.'),
       m('CS3230', 'Algorithms'),
     ]);
     expect(r.groups).toEqual([['CS2030', 'CS2030S', 'TIC2030']]);
@@ -79,7 +77,7 @@ describe('the committed eval/groups.json', () => {
     expect(f.corpus).toMatchObject({ release: PINNED_RELEASE, moduleInfoSha256: MI });
     expect(f.counts.groups).toBe(f.groups.length);
     expect(f.counts.members).toBe(f.groups.flat().length);
-    expect(new Set(f.groups.flat()).size).toBe(f.counts.members); // no code in two groups
+    expect(new Set(f.groups.flat()).size).toBe(f.counts.members);
     expect(f.groups).toContainEqual(['TR3202I', 'TR3202N', 'TR3202S', 'TR3202T']);
     expect(serialiseGroups(f)).toBe(serialiseGroups(JSON.parse(serialiseGroups(f))));
   });
@@ -114,28 +112,21 @@ describe('withCorpusGroups', () => {
     const plain = qrelsOn(MI);
     const grouped = withCorpusGroups(plain, corpusGroups);
 
-    // Without groups: ideal is TR3202I, TR3202S, X; both internships earn gain.
     const [before] = scoreRun(run(['TR3202I', 'TR3202S', 'X']), queries, plain);
     expect(before.ndcg).toBeCloseTo(1, 12);
     expect(before.p5).toBe(3 / 5);
 
-    // With groups: TR3202S is a duplicate, so it earns nothing and does not count for P@5;
-    // the ideal is one internship (grade 2) and X (grade 1).
     const idcg = 3 / L(2) + 1 / L(3);
     const [after] = scoreRun(run(['TR3202I', 'TR3202S', 'X']), queries, grouped);
     expect(after.ndcg).toBeCloseTo((3 / L(2) + 0 + 1 / L(4)) / idcg, 12);
     expect(after.p5).toBe(2 / 5);
-    // The deduped ranking is ideal.
     const [deduped] = scoreRun(run(['TR3202S', 'X']), queries, grouped);
     expect(deduped.ndcg).toBeCloseTo(1, 12);
-    // MRR counts only a group's first member: a grade-0 sibling ahead takes the group's slot.
     const zero = { ...grouped, queries: { q1: { judgments: { TR3202I: 0, TR3202S: 2, X: 1 } } } };
     expect(scoreRun(run(['TR3202I', 'TR3202S', 'X']), queries, zero)[0].rr).toBe(1 / 3);
   });
 
   it('a returned member that breaks the query\'s constraints is no duplicate for it', () => {
-    // ACC3704 and ACC4702 are one cross-listing (eval/groups.json) at levels 3 and 4. For a
-    // level-4 query ACC3704 is graded 0 by rule; ranked first it must not take ACC4702's slot.
     const queries = [{ id: 'q1', text: 'audit', constraints: { level: 4 } }];
     const qrels = withCorpusGroups({
       version: 'q-test', corpus: { moduleInfoSha256: MI }, queries: { q1: { judgments: { ACC3704: 0, ACC4702: 2 } } },

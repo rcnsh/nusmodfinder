@@ -1,10 +1,4 @@
 // @ts-check
-// The CSV export: public/export.js works the shortlist into the export's document,
-// the same one the print page draws, and public/csv.js writes it as RFC 4180.
-// Each file is read back by a strict reader written apart from the page
-// (rfc4180.node.mjs), over /module answers built from the fixture
-// (shortlist-answers.node.mjs) and synthetic answers where it has no such
-// course.
 import { describe, expect, it } from 'vitest';
 import { EXCEL_HINT, guard, toCsv } from '../../public/csv.js';
 import {
@@ -18,12 +12,9 @@ import { REASONS_FILE, exchange, fixtureOutcome, ngListedOutcome, synthOutcome }
 
 /** @type {import('../../public/shortlist.js').OffListRule[]} */
 const RULES = REASONS_FILE.offListRules;
-/** /facets' ngSources, as the Worker answers them. */
 const SOURCES = REASONS_FILE.sources;
-/** 12 Nov 2026, noon in Singapore. */
 const TODAY = new Date(Date.UTC(2026, 10, 12, 4));
 
-/** The fixture's ng-unscheduled.json EE4407, as /module's 404 detail answers it. */
 const EE4407 = ngListedOutcome('EE4407', {
   title: 'Analog Electronics', description: 'This course builds on the basic concepts in electronics.', faculty: 'College of Design and Engineering',
   department: 'Electrical and Computer Engineering', ngSemesters: [1], workload: { lecture: 2, tutorial: 1, lab: 0.5, project: 1.5, prep: 5, total: 10 },
@@ -31,8 +22,6 @@ const EE4407 = ngListedOutcome('EE4407', {
 });
 
 /**
- * A link's export: its list worked out (shortlist.js) from the fixture's
- * answers, `extra` overriding a code's outcome, then the export's document.
  * @param {string} qs
  * @param {Record<string, any>} [extra]
  * @param {{ rules?: any, sources?: any, nus?: boolean }} [opts]
@@ -47,8 +36,6 @@ function exportOf(qs, extra = {}, { rules = RULES, sources = SOURCES, nus = fals
 }
 
 /**
- * The CSV of a link, read back strictly: the header, the entries' rows as
- * objects keyed by the header, and the label/value rows after the separator.
  * @param {string} qs
  * @param {Record<string, any>} [extra]
  * @param {{ rules?: any, sources?: any }} [opts]
@@ -80,7 +67,6 @@ describe('the CSV: RFC 4180', () => {
     expect(header).toContain('Code');
     expect(header).toContain(DESCRIPTION_LABEL);
     for (const r of records) expect(r).toHaveLength(header.length);
-    // The separator row is padded too: a run of empty fields, not an empty line.
     expect(text).toContain(`\r\n${Array(header.length).fill('""').join(',')}\r\n`);
   });
 
@@ -91,7 +77,6 @@ describe('the CSV: RFC 4180', () => {
   });
 
   it('the formula guard: a field starting with = + - @, a tab or a CR gets a leading apostrophe (SA4101C\'s text)', () => {
-    // SA4101C's description as NUSMods serves it starts with "- " (§1: 4 catalogue courses do).
     const sa = '- Fundamentals of Programming using C# - Object Oriented Programming using C# - User Interface Development with Visual Studio Net and C# - SQL Programming & DBMS';
     const { rows } = csvOf('ng=1&study=ug2&pick=SA4101C.1', { SA4101C: synthOutcome('SA4101C', { description: sa }) });
     expect(rowOf(rows, 'SA4101C')[DESCRIPTION_LABEL]).toBe(`'${sa}`);
@@ -124,7 +109,6 @@ describe('the CSV: each course\'s block', () => {
     expect(r[DESCRIPTION_LABEL]).toMatch(/^This course introduces the necessary skills/);
     expect(r.Prerequisite).toMatch(/^If undertaking an Undergraduate Degree THEN/);
     expect(r["NUS's notes"]).toMatch(/extremely oversubscribed/);
-    // GE2101's quota note in full, with its source and date.
     expect(rowOf(rows, 'GE2101')['Exchange notes']).toMatch(/^Places\. .*\(NG restrictions, updated 31 Aug 2026\)\.$/);
   });
 
@@ -138,7 +122,6 @@ describe('the CSV: each course\'s block', () => {
     expect(rowOf(rows, 'AH3204')['Workload (NUSMods)']).toBe('Lecture 0, tutorial 0, lab 0, project 6, preparation 4 hours a week (10 in all). NUSMods lists no lecture, tutorial or lab hours');
     expect(rowOf(rows, 'ZZ2003')['Workload (NUSMods)']).toBe('Not listed');
     expect(rowOf(rows, 'ZZ2004')['Workload (NUSMods)']).toBe('As NUS lists it: 3-.5-0--0-6.5');
-    // CS3230-like: NUSMods' own total differs from NUS's rate, and is named.
     expect(rowOf(rows, 'ZZ2005')['Estimated study time']).toBe('About 10 hours a week (NUS\'s rate: 2.5 hours a week per unit); NUSMods lists 9 hours a week for this course. NUS states hours a week only; your university\'s own conversion decides credit.');
   });
 
@@ -163,7 +146,6 @@ describe('the CSV: each course\'s block', () => {
     const { rows } = csvOf('ng=1&study=ug2&pick=CS2030.1&alt=CS2113.1');
     expect(rowOf(rows, 'CS2030').Flags).toMatch(/^CS2030 and CS2113: their 2026\/27 exams overlap\./);
     expect(rowOf(rows, 'CS2113').Flags).toMatch(/^CS2030 and CS2113: their 2026\/27 exams overlap\./);
-    // Browse mode (no study level): CS2030S is the same course as CS2030.
     const browse = csvOf('pick=CS2030.1&pick=CS2030S.1').rows;
     expect(rowOf(browse, 'CS2030S')).toMatchObject({ Section: 'Sem 1', Counts: 'Not counted: the same course as CS2030.', 'Exchange status': 'Not checked: no year of study set' });
     expect(rowOf(browse, 'CS2030').Counts).toBe('Counted: exchange status not checked');
@@ -183,13 +165,11 @@ describe('the CSV: grouped by semester, then closed, then not placed', () => {
       [SECTION.closed, 'CS3244'],
       [SECTION.unplaced, 'BL5240'], [SECTION.unplaced, 'CS9999'], [SECTION.unplaced, 'CS2030S'], [SECTION.unplaced, 'ZZ1001'],
     ]);
-    // Off the Sem 1 list: rule E's line.
     expect(rowOf(rows, 'CS3244').Counts).toBe(`Not counted: not on NUS's 2026/27 exchange course list for Sem 1. Courses not on the list “are ${RULE_E}” (the Registrar's course restrictions, rule E).`);
     expect(rowOf(rows, 'CS3244')["NUS's application form"]).toBe('Not on the form: not open in Sem 1');
     expect(rowOf(rows, 'BL5240').Counts).toBe('Not counted: taught only in special terms: this page plans Sem 1 and Sem 2.');
     expect(rowOf(rows, 'CS9999')).toMatchObject({ Title: 'No course with this code', Counts: 'Not counted: no course with this code in 2026/27.', 'Exchange status': 'No course with this code in 2026/27' });
     expect(rowOf(rows, 'ZZ1001')).toMatchObject({ Title: 'Old Programming', [DESCRIPTION_LABEL]: 'Taught before.', Counts: 'Not counted: not offered in 2026/27.' });
-    // An untagged backup.
     expect(rowOf(rows, 'CS2030S')).toMatchObject({ Semester: 'No semester chosen', List: 'Backup', Rank: '2', Counts: 'Not counted: no semester chosen.' });
   });
 

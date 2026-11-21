@@ -1,9 +1,4 @@
 // @ts-check
-// Duplicate groups in /search: after filters and fusion only a
-// duplicate group's first member stays, the others ride along as
-// `variants: [{ code, credits }]`, and the page fills with the next distinct
-// results. The identity check on the fixture: the collapsed list equals
-// the group-first projection of the uncollapsed one (COLLAPSE_GROUPS=off).
 import { beforeAll, describe, expect, it } from 'vitest';
 import groupsFile from './fixtures/groups.json';
 import { parseGroupsFile } from '../src/groups.js';
@@ -18,7 +13,7 @@ const key = (/** @type {string} */ c) => groupOf.get(c) ?? c;
 /** @returns {string[]} */
 const codes = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
-/** The group-first projection of a ranked list. @param {string[]} list */
+/** @param {string[]} list */
 const project = (list) => {
   const seen = new Set();
   return list.filter((c) => (seen.has(key(c)) ? false : (seen.add(key(c)), true)));
@@ -48,7 +43,6 @@ describe('the collapse', () => {
         const off = await callJson(`${path}&topK=50`, { fakes, env: { ...extra, ...OFF } });
         expect(on.status, path).toBe(200);
         const want = project(codes(off.body));
-        // The uncollapsed list at 50 is deep enough when it has 20 distinct groups, or is the whole answer.
         if (want.length < 20 && off.body.count === 50) continue;
         expect(codes(on.body), `${path} ${JSON.stringify(extra)}`).toEqual(want.slice(0, 20));
         if (codes(off.body).slice(0, 20).join() !== codes(on.body).join()) collapsedSomething++;
@@ -140,14 +134,12 @@ describe('the collapse', () => {
     const variants = log.filter((c) => c.sql.includes('WHERE code IN') && !c.sql.includes('title'));
     const hydrate = log.filter((c) => c.sql.includes('WHERE code IN') && c.sql.includes('title'));
     expect(variants).toHaveLength(1);
-    // A variant's code and credits, and the fields localMatchesFilters reads, the constraint fields included.
     expect(variants[0].sql).toContain('SELECT code, credits, level, faculty, semesters, ng, ng_semesters, '
       + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules FROM');
     const listed = body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code));
     for (const c of listed) expect(/** @type {string[]} */ (variants[0].binds), c).toContain(c);
     const hydrated = hydrate.flatMap((c) => /** @type {string[]} */ (c.binds));
     for (const c of codes(body)) expect(hydrated, c).toContain(c);
-    // Every extra row hydrated is a duplicate of a result the page shows.
     for (const c of hydrated.filter((x) => !codes(body).includes(x))) expect(codes(body).map(key), c).toContain(key(c));
   });
 });

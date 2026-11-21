@@ -1,14 +1,4 @@
 // @ts-check
-// Encryption at rest for the holdout and sealed test sets: AES-256-GCM via
-// node:crypto. The key is 32 random bytes, hex, in a file outside the repo
-// ($VNM_HOLDOUT_KEY_FILE, default ~/.config/vnm/holdout.key). It is never
-// printed, logged, or put in an error message.
-//
-// File format: "VNMENC2\n" (8 bytes) | IV (12) | GCM tag (16) | ciphertext.
-// The set name and the file's name without ".enc" are bound as additional
-// authenticated data ("holdout/qrels.json"), so a ciphertext cannot be renamed
-// into another slot (qrels as queries) or copied into another set's directory
-// (holdout files read as the test set or the self-test set).
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { chmod, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -21,13 +11,11 @@ const IV_BYTES = 12;
 const TAG_BYTES = 16;
 export const MANIFEST = 'MANIFEST.json';
 
-/** The key file path: $VNM_HOLDOUT_KEY_FILE or ~/.config/vnm/holdout.key. */
 export function keyFilePath() {
   return process.env.VNM_HOLDOUT_KEY_FILE || join(homedir(), '.config', 'vnm', 'holdout.key');
 }
 
 /**
- * Reads the key. Errors name the path, never the contents.
  * @param {string} [path]
  * @returns {Promise<Buffer>}
  */
@@ -42,10 +30,7 @@ export async function readKey(path = keyFilePath()) {
   return Buffer.from(text, 'hex');
 }
 
-/**
- * Creates a new key file (0600, parent 0700). Refuses to overwrite.
- * @param {string} [path]
- */
+/** @param {string} [path] */
 export async function generateKey(path = keyFilePath()) {
   if (existsSync(path)) throw new Error(`refusing to overwrite the existing key at ${path}`);
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
@@ -66,8 +51,8 @@ function aadFor(file, set) {
 /**
  * @param {Buffer} plaintext
  * @param {Buffer} key
- * @param {string} name logical file name, bound as AAD
- * @param {string} set set name (holdout, test, selftest), bound as AAD
+ * @param {string} name
+ * @param {string} set
  */
 export function encrypt(plaintext, key, name, set) {
   const aad = aadFor(name, set);
@@ -81,8 +66,8 @@ export function encrypt(plaintext, key, name, set) {
 /**
  * @param {Buffer} data
  * @param {Buffer} key
- * @param {string} name logical file name the ciphertext was written under
- * @param {string} set set name the ciphertext was written for
+ * @param {string} name
+ * @param {string} set
  */
 export function decrypt(data, key, name, set) {
   const aad = aadFor(name, set);
@@ -102,7 +87,7 @@ export function decrypt(data, key, name, set) {
 }
 
 /**
- * @param {string} path ends in .enc
+ * @param {string} path
  * @param {unknown} value
  * @param {Buffer} key
  * @param {string} set
@@ -125,11 +110,9 @@ export async function readEncryptedJson(path, key, set) {
 /** @param {Buffer} bytes */
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-/** macOS Finder files (.DS_Store, AppleDouble ._*): git-ignored, never ciphertexts or plaintexts. */
 const isFinderFile = (/** @type {string} */ name) => name === '.DS_Store' || name.startsWith('._');
 
 /**
- * Every *.enc under `dir` (recursive), as paths relative to `dir`.
  * @param {string} dir
  * @returns {Promise<string[]>}
  */
@@ -142,10 +125,7 @@ async function encFiles(dir) {
     .sort();
 }
 
-/**
- * Rewrites `<dir>/MANIFEST.json` with the sha256 of every ciphertext.
- * @param {string} dir
- */
+/** @param {string} dir */
 export async function updateManifest(dir) {
   /** @type {Record<string, string>} */
   const files = {};
@@ -155,8 +135,6 @@ export async function updateManifest(dir) {
 }
 
 /**
- * The manifest's path for `file`, relative to `dir` with "/" separators, or
- * null when `file` is outside `dir`.
  * @param {string} dir
  * @param {string} file
  */
@@ -167,7 +145,6 @@ function manifestName(dir, file) {
 }
 
 /**
- * The `files` map of `<dir>/MANIFEST.json`, or null when there is none.
  * @param {string} dir
  * @returns {Promise<Record<string, string> | null>}
  */
@@ -185,9 +162,6 @@ async function writeManifest(dir, files) {
 }
 
 /**
- * Adds or updates the manifest entries of `paths` only (files under `dir`),
- * creating the manifest if there is none. Unlike updateManifest it never
- * re-hashes other ciphertexts, so a tampered file stays flagged.
  * @param {string} dir
  * @param {string[]} paths
  */
@@ -203,7 +177,6 @@ export async function recordInManifest(dir, paths) {
 }
 
 /**
- * Removes one entry from the manifest (the file itself is the caller's).
  * @param {string} dir
  * @param {string} path
  */
@@ -215,12 +188,9 @@ export async function removeFromManifest(dir, path) {
 }
 
 /**
- * Throws ManifestError unless `<dir>/MANIFEST.json` exists and lists `path`
- * with the sha256 of `bytes` (default: the file's contents): the check
- * `eval:verify` makes, for one file a verdict is about to read.
- * @param {string} dir the set directory
+ * @param {string} dir
  * @param {string} path
- * @param {Buffer} [bytes] the contents already read, so what is checked is what is decrypted
+ * @param {Buffer} [bytes]
  */
 export async function assertInManifest(dir, path, bytes) {
   const files = await manifestFiles(dir);
@@ -233,16 +203,12 @@ export async function assertInManifest(dir, path, bytes) {
 }
 
 /**
- * Checks ciphertexts against the manifest without any key: every listed file
- * exists with its recorded sha256, and no unlisted *.enc exists.
  * @param {string} dir
- * @returns {Promise<string[]>} problems; empty means OK
+ * @returns {Promise<string[]>}
  */
 export async function verifyManifest(dir) {
   const path = join(dir, MANIFEST);
   const actual = await encFiles(dir);
-  // An encrypted-set directory holds only ciphertexts and the manifest: a
-  // plaintext dropped beside them would be committed in the clear.
   /** @type {string[]} */
   const stray = [];
   if (existsSync(dir)) {

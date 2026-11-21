@@ -1,11 +1,4 @@
 // @ts-check
-// `npm run rollback` (scripts/rollback.mjs). The target is `--to <id>` or the
-// deployment before the live one; its commit, data version (and catalogueKey) come from
-// its `deploy/*` tag. D1 is read directly over the REST query (no Worker session, no working
-// tree code), and the rollback refuses unless every tagged field equals D1's, or
-// `--accept-data-mismatch`. Then `wrangler rollback`, a `rollback/*` tag on the target's
-// commit (a failed push is reported, not fatal), and the smoke command. No clean tree and no CI
-// needed. Fake exec and D1 only.
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -24,7 +17,11 @@ const DEPLOYMENTS = JSON.stringify([
   { id: 'd2', created_on: '2026-11-11T23:59:33Z', versions: [{ version_id: PREV, percentage: 100 }] },
   { id: 'd3', created_on: '2026-11-12T10:15:30Z', versions: [{ version_id: LIVE, percentage: 100 }] },
 ]);
-/** A tag's annotation; by default with D1's catalogueKey. @param {string} id @param {string} dv @param {Record<string, string>} [more] */
+/**
+ * @param {string} id
+ * @param {string} dv
+ * @param {Record<string, string>} [more]
+ */
 const tagText = (id, dv, more = { catalogueKey: CATALOGUE_KEY }) => [`deploy ${id.slice(0, 8)}`, `versionId: ${id}`, `dataVersion: ${dv}`, ...Object.entries(more).map(([k, v]) => `${k}: ${v}`)].join('\n\n');
 
 /** @param {Record<string, any>} [over] */
@@ -92,7 +89,6 @@ describe('npm run rollback', () => {
     expect(out).toContain(`npm run smoke -- --expect ${PREV_COMMIT}`);
     expect(records()).toEqual([expect.objectContaining({
       script: 'rollback', outcome: 'ok', versions: expect.objectContaining({ versionId: PREV, previousVersionId: LIVE, dataVersion: DV, catalogueKey: CATALOGUE_KEY }),
-      // The schema row, 6,800 module rows, and the catalogue_only table check and its 2 codes.
       read: [expect.objectContaining({ what: expect.stringMatching(/D1 rows/), actual: 6800 + 1 + 1 + 2 })],
     })]);
   });
@@ -131,7 +127,6 @@ describe('npm run rollback', () => {
     expect(r1.out).toMatch(new RegExp(`catalogueKey.*${CATALOGUE_KEY}.*cat-then0000`, 's'));
     expect(rolledBack(mismatch.calls)).toBeUndefined();
 
-    // D1's catalogue moved since the target deployed (a code added): refused the same way.
     const moved = fakeExec();
     const r2 = await run(moved.exec, { d1: fakeD1({ catalogue: ['AA0999', 'GEQ1000', 'AI5206'] }) });
     expect(r2.code).toBe(1);

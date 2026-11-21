@@ -1,8 +1,4 @@
 // @ts-check
-// The constraint intents, parse step 4: pass A matches the no-exam, S/U,
-// workload and prerequisite phrases leftmost-longest, strips them from the
-// lexical query before any code join, and echoes them in `interpreted`. The dense query is
-// raw or stripped by the variant in force.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { INTENT_VARIANT, INTENT_VARIANTS, compileConstraintPhrases, passA } from '../src/intents.js';

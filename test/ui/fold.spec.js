@@ -1,16 +1,8 @@
 // @ts-check
-// The fold check:
-// at 390×664, on the Sem 1 and the both-semesters results with ACC1701XB among
-// them, the header with "unofficial", the collapsed search bar, and the first
-// entry's code, title and exchange status are all in view without scrolling.
-// After a shared-link load and after a search typed on the first screen, at
-// 390×664 in each project's browser (Chromium and WebKit), and the same eight
-// emulating an iPhone 13 (390×664, touch, 3× pixels). ACC1701XB is the densest entry: three
-// notes in Sem 1. "introductory accounting" shows it as ACC1701XA's "Also as".
 import { devices } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-/** @type {[string, string, string, number][]} label, query, sem ('' for both), stamps */
+/** @type {[string, string, string, number][]} */
 const CASES = [
   ['Sem 1, ACC1701XB first', 'ACC1701XB', '1', 1],
   ['both semesters, ACC1701XB first', 'ACC1701XB', '', 2],
@@ -20,7 +12,7 @@ const CASES = [
 
 /**
  * @param {import('@playwright/test').Page} page
- * @param {number} stamps how many semester stamps the first entry shows
+ * @param {number} stamps
  */
 async function foldHolds(page, stamps) {
   await expect(page.locator('#results > li.card').first()).toBeVisible();
@@ -66,7 +58,6 @@ test.describe('at 390×664', () => {
 });
 
 test.describe('emulating an iPhone 13', () => {
-  // The device's viewport, scale, touch and user agent; the project picks the browser.
   const { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent } = devices['iPhone 13'];
   test.use({ viewport, deviceScaleFactor, isMobile, hasTouch, userAgent });
   for (const [label, q, sem, stamps] of CASES) {
@@ -81,17 +72,10 @@ test.describe('emulating an iPhone 13', () => {
   }
 });
 
-// The fold holds with the
-// shortlist on the page: the cards' toggles, the phone's shortlist button under
-// the form carrying the longest label it can show (two semesters with half
-// units: the fixture has no half-unit course, so the label is set to it), and
-// the restore offer above the list (the device keeps a list, the link has none).
-/** The longest label the shortlist button shows. */
 const LONGEST = 'Sem 1: 22.5 · Sem 2: 21.5 units picked';
 
 /** @param {import('@playwright/test').Page} page @param {string} url */
 async function withShortlist(page, url) {
-  // The device keeps a list once one is edited.
   await page.goto('/?q=CS2113&ng=1&study=ug2&sem=1');
   await page.getByRole('button', { name: 'Shortlist, CS2113', exact: true }).click();
   await expect.poll(() => new URL(page.url()).search).toContain('pick=CS2113.1');

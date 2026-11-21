@@ -1,17 +1,11 @@
 // @ts-check
-// The count log (eval/count-log.md; the self-test set's beside its own ledger): one row per
-// `eval:count` call, and per passing `eval:representatives --route` call. Its `route` column
-// names the ADR 0003 no-look route a count was taken for, which
-// `eval:lock -- --evidence no-look <row>` cites. A row without the column reads as route ''.
 import { existsSync } from 'node:fs';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ledgerRows } from './ledger.mjs';
 
-/** ADR 0003's no-look routes; test/eval/lock.node.test.js ties them to the ADR. */
 export const NO_LOOK_ROUTES = Object.freeze(['representative-only', 'answerable-floor', 'group-first', 'gated-without-a-look']);
 
-/** The route cell of a row written without a route. */
 export const NO_ROUTE = '—';
 
 export const COUNT_LOG_HEADER = `# Count log
@@ -32,8 +26,6 @@ const COLUMNS = ['date', 'set', 'kind', 'run', 'count', 'route'];
  */
 
 /**
- * The log's rows, keyed by the header's column names (a log from before the route column has
- * route ''). Row n of `eval:lock -- --evidence no-look <n>` is the nth element, 1-based.
  * @param {string} text
  * @returns {CountLogRow[]}
  */
@@ -48,10 +40,7 @@ export function countLogRows(text) {
   });
 }
 
-/**
- * Throws unless `route` is undefined or one of NO_LOOK_ROUTES.
- * @param {string | undefined} route
- */
+/** @param {string | undefined} route */
 export function assertRoute(route) {
   if (route !== undefined && !NO_LOOK_ROUTES.includes(route)) {
     throw new Error(`--route must be one of ADR 0003's no-look routes (${NO_LOOK_ROUTES.join(', ')}), got ${JSON.stringify(route)}`);
@@ -59,7 +48,6 @@ export function assertRoute(route) {
 }
 
 /**
- * Appends one row, creating the log with its header if it is missing.
  * @param {string} path
  * @param {Omit<CountLogRow, 'date' | 'route'> & { route?: string }} row
  */

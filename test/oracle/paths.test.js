@@ -1,41 +1,4 @@
 // @ts-check
-// Exchange-mode path tests: over production's corpus (`current` in
-// data/corpus.json, D1 seeded through /admin/ingest) and the production
-// bundle, vocabulary, groups and catalogue, for each
-// of the 15 (sem, study) combinations, every exchange-mode path shows
-// exactly the modules the independent oracle (test/oracle/oracle.mjs)
-// calls open or noted:
-// - set equality per path filter: the lexical filter SQL over every D1 row,
-//   compileMask over every bundle row, the D1 recheck over every row;
-// - the standby (the fake Vectorize holding the bundle's vectors, then the
-//   recheck): no leaks (its recall@50 floor is a fact of the pinned corpus,
-//   asserted in test/full/oracle-pinned.test.js; here it is logged);
-// - pins, duplicate-group variants and a not-offered code's `related`: a code search for
-//   every NG code shows it exactly when the oracle does; no closed variant;
-//   no closed neighbour;
-// - `exchangeBySem`: with no sem, each semester's status on
-//   a shown NG code's card equals the oracle's for that semester;
-// - the year-of-study note (ADR 0007), read from the prerequisite at
-//   request time, is on a card and in /module/:code exactly where the
-//   oracle's own reading of the prerequisite puts it, on the pins, the bundle,
-//   the standby, the mask route and exchangeBySem; it never hides a course;
-// - GRO's level 4000 note (ADR 0007), read from the row's level and
-//   faculty at request time, is on every card and /module/:code entry where
-//   the oracle's own reading (code and faculty) puts it, and nowhere else: the
-//   pins over every NG code, exchangeBySem and every offered code's 15
-//   entries; it never hides a course;
-// - /module/:code's `exchange`, what the shortlist reads, equals
-//   the oracle's (with both notes) for every offered code, NG-listed or not, and for
-//   every NG-listed code with no classes (data/ng-unscheduled.json), whose
-//   404 answers it; a typed one is
-//   never ranked.
-// - the shortlist (public/shortlist.js) over the same answers, at
-//   Sem 1 and Sem 2, each study level and browse mode: a closed case is never
-//   counted, has no form number and carries its stamp (test/shortlist-oracle.js).
-// Its own vitest project and CI job (`npm run test:oracle`), with its own
-// timeout. Skipped without `current` restored (npm run corpus -- restore) and
-// the production bundle; the oracle CI job sets PRODUCTION_CORPUS=1, so a missing
-// one fails there instead, and its guard fails on any skipped test.
 import { env } from 'cloudflare:workers';
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from 'vitest';
 import catalogueFile from 'catalogue-only-data';
@@ -55,7 +18,6 @@ import * as live from './oracle.mjs';
 import { COMBOS, QUERIES, shownCodes as shown } from './shared.js';
 
 const corpus = inject('corpus');
-// The oracle for the corpus's year (test/oracle/oracle.mjs picks it); the live year's without one.
 const { levelNoteOf, oracle, oracleShown, yearNoteOf } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 
 describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () => {
@@ -65,13 +27,15 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
   const shownByOracle = (code, k) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem: k.sem, study: k.study }) !== 'closed';
   /** @param {(typeof COMBOS)[number]} k */
   const oracleSet = (k) => c.modules.filter((m) => shownByOracle(m.code, k)).map((m) => m.code).sort();
-  /** Whether an exchange entry carries the year-of-study note. @param {any} e */
+  /** @param {any} e */
   const hasYear = (e) => (e?.reasons ?? []).some((/** @type {any} */ r) => r.id === 'prereq:year-of-study');
-  /** How many times an exchange entry carries GRO's level 4000 note (once at most). @param {any} e */
+  /** @param {any} e */
   const groCount = (e) => (e?.reasons ?? []).filter((/** @type {any} */ r) => r.id === 'gro:level-4000').length;
   /**
-   * What is wrong with a card's exchange entry against the oracle with both notes, or ''.
-   * @param {NormalisedModule} m @param {any} e @param {1 | 2 | 'any'} sem @param {import('../../src/ng-bit.js').Study} study
+   * @param {NormalisedModule} m
+   * @param {any} e
+   * @param {1 | 2 | 'any'} sem
+   * @param {import('../../src/ng-bit.js').Study} study
    */
   const entryWrong = (m, e, sem, study) => {
     const want = oracleShown(m, { sem, study });
@@ -83,11 +47,9 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
   const fakes = createFakes();
 
   beforeAll(async () => {
-    // ~18k searches each log a line; keep the output to what the tests report.
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     await seed({ modules: c.modules, fakes });
-    // The standby holds the bundle's vectors, so it and the bundle rank in one space.
     const b = denseBundle();
     fakes.vectorize.vectors = new Map(b.codes.map((code, i) => [code, {
       id: code, values: Array.from(b.vectors.subarray(i * b.dims, (i + 1) * b.dims)),
@@ -161,16 +123,12 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
       }
     }
     expect(wrong).toEqual([]);
-    // The year-of-study note reaches real cards: AR4601 and others at a home year below theirs.
     expect(years).toBeGreaterThan(20);
-    // GRO's note reaches real cards: 245 level 4000 NG courses outside Law, each at some undergraduate (sem, study).
     expect(gros).toBeGreaterThan(1000);
   }, 600_000);
 
   it('the year-of-study note is on the bundle, the standby, a vector-only search, the mask route and /module/:code', async () => {
-    // NUS glues keywords to "must" ("DANDmust be Year 4"), so no word boundary before it.
     const yearCodes = c.modules.filter((m) => m.ng && /must\s*be\s*(?:in\s*)?year\s*\d/i.test(m.prerequisite ?? ''));
-    // The 10 NG courses whose prerequisite names a year: 9 handled, EE4204 left alone (its year is an alternative).
     expect(yearCodes.length).toBeGreaterThanOrEqual(10);
     expect(yearCodes.filter((m) => yearNoteOf(m, 'ug1') !== null).length).toBeGreaterThanOrEqual(9);
     /** @type {string[]} */
@@ -232,7 +190,7 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
     /** @type {string[]} */
     const wrong = [];
     let entries = 0;
-    /** Offered codes whose /module answer carries GRO's note somewhere. @type {Set<string>} */
+    /** @type {Set<string>} */
     const groCodes = new Set();
     for (const m of c.modules) {
       const { status, body } = await callJson(`/module/${m.code}`);
@@ -244,8 +202,6 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
         entries++;
       }
     }
-    // GRO's note reaches only offered codes on the NG list. How many is a fact of the
-    // corpus (245 over the pinned one), so it is logged.
     expect(groCodes.size).toBeGreaterThan(0);
     expect([...groCodes].every((code) => moduleOf.get(code)?.ng)).toBe(true);
     const classless = [...unscheduled().values()];

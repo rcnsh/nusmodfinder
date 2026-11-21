@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Splits the gibberish set (eval/dev/gibberish.json) into a derivation half,
-// on which the no-signal threshold τ is derived, and a gate half, on which it
-// is checked. The split is a seeded Fisher–Yates shuffle of the ids in file order
-// (eval/lib/stats.mjs `rng`, the eval's seeded generator); the first
-// floor(n/2) shuffled ids are the derivation half, the rest the gate half.
-// Each half is listed in file order.
-//
-//   node eval/gibberish-split.mjs           # print the split
-//   node eval/gibberish-split.mjs --check   # exit 1 unless the file's split is the seed's
-//   node eval/gibberish-split.mjs --write   # write the split into the file
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO } from './lib/sets.mjs';
@@ -18,7 +8,7 @@ import { rng } from './lib/stats.mjs';
 export const GIBBERISH_PATH = join(REPO, 'eval/dev/gibberish.json');
 
 /**
- * @param {string[]} ids in file order
+ * @param {string[]} ids
  * @param {number} seed
  * @returns {{ derivation: string[], gate: string[] }}
  */

@@ -1,26 +1,16 @@
 // @ts-check
-// What the page says about exchange status: each note in full, with its source;
-// why a typed code is not shown; a partial code that exchange mode empties; and
-// the typed codes past the three that pin. Pure: plain text in, plain text out;
-// test/web/explain.node.test.js.
 import { semLabel } from './format.js';
 
 /**
- * A stored reason, as /search and /module answer it (src/ng-reasons.js).
  * @typedef {{ id: string, kind: string, text: string }} Reason
  * @typedef {'open' | 'note' | 'closed'} Status
  * @typedef {{ sem: number | 'any', study: string, status: Status, reasons: Reason[] }} ExchangeEntry
- *   one of /module/:code's `exchange` entries
- * @typedef {{ name?: unknown, updatedAsAt?: unknown, url?: unknown }} Source /facets' `ngSources` entry
+ * @typedef {{ name?: unknown, updatedAsAt?: unknown, url?: unknown }} Source
  */
 
-/** The reason ids the NG list itself gives (src/ng-bit.js, src/eligibility.js); every other comes from the restrictions, but the year-of-study and level 4000 notes. */
 const NG_LIST_PREFIX = 'ng-list:';
-/** The year-of-study note (src/year-note.js): read from the course's NUS prerequisite, not from either NG list. */
 const PREREQ_PREFIX = 'prereq:';
-/** The level 4000 note (src/level-note.js): GRO's sentence, from NUS Global's page for incoming exchange students. */
 const GRO_PREFIX = 'gro:';
-/** The reasons for a semester NUS hasn't published yet (src/eligibility.js), read from last year's NG list. */
 const UNPUBLISHED_PREFIX = 'ng:';
 const OFF_NG_LIST = 'ng-list:not-listed';
 const NOT_IN_SEM = 'ng-list:not-in-semester';
@@ -29,35 +19,25 @@ const UNPUBLISHED_UNLISTED = 'ng:unpublished-sem-unlisted';
 /** @type {Readonly<Record<string, string>>} */
 const STUDY_ADJ = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
 
-/**
- * "2nd-year exchange students": who a line is about, by study level (plain
- * language: "open to 2nd-year exchange students in Sem 1", not "… in
- * Sem 1 at 2nd year").
- * @param {string} study
- */
+/** @param {string} study */
 export const studyPhrase = (study) => (STUDY_ADJ[study] ? `${STUDY_ADJ[study]} exchange students` : 'exchange students');
 
-/** "2nd-year": the study level as an adjective, '' for none. @param {string} study */
+/** @param {string} study */
 export const studyAdj = (study) => STUDY_ADJ[study] ?? '';
 
-/** @param {string | number} sem 1 or 2 */
+/** @param {string | number} sem */
 const otherSem = (sem) => (String(sem) === '1' ? 2 : 1);
 
-/** @param {string | number} sem '' (or 'any') for both semesters */
+/** @param {string | number} sem */
 const semPhrase = (sem) => (sem === '' || sem === 'any' ? 'in either semester' : `in ${semLabel(sem)}`);
 
 /**
- * The source a reason comes from, with its "updated as at" date when /facets
- * gave one: "NG list, updated 01 Sep YYYY" or "NG restrictions, …"; the
- * year-of-study note cites the course's NUS prerequisite, the level 4000
- * note GRO's page.
- * @param {string} id the reason id
- * @param {Source[] | null | undefined} sources /facets' `ngSources`, or null when it failed
+ * @param {string} id
+ * @param {Source[] | null | undefined} sources
  */
 export function sourceNote(id, sources) {
   if (id.startsWith(PREREQ_PREFIX)) return 'NUS prerequisite';
   if (id.startsWith(GRO_PREFIX)) return 'GRO, Incoming Exchange Students';
-  // The text names last year's list itself; this year's list for the semester isn't out, so no date.
   if (id.startsWith(UNPUBLISHED_PREFIX)) return 'NG list';
   const restrictions = !id.startsWith(NG_LIST_PREFIX);
   const label = restrictions ? 'NG restrictions' : 'NG list';
@@ -66,11 +46,7 @@ export function sourceNote(id, sources) {
   return date ? `${label}, updated ${date}` : label;
 }
 
-/**
- * Whether a semester's reasons ask the student to confirm with NUS first (kind `ask`: a
- * semester NUS hasn't published), so its stamp says "To confirm", never "Open".
- * @param {number | { kind?: string }[] | undefined} notes
- */
+/** @param {number | { kind?: string }[] | undefined} notes */
 const asksToConfirm = (notes) => Array.isArray(notes) && notes.some((r) => r?.kind === 'ask');
 
 /** @param {Status} status @param {{ kind?: string }[]} [reasons] */
@@ -81,12 +57,10 @@ export function statusText(status, reasons) {
 }
 
 /**
- * A semester's status as its stamp says it: "Sem 1 · Open, with 2
- * notes", or, where two stamps sit side by side, "Sem 1 · Open, 2 notes".
  * @param {Status} status
- * @param {number | string} sem 1, 2, or 'any' (no semester chosen)
- * @param {number | { kind?: string }[]} notes the semester's notes, or how many it has
- * @param {boolean} [short] the both-semesters card's shorter form
+ * @param {number | string} sem
+ * @param {number | { kind?: string }[]} notes
+ * @param {boolean} [short]
  */
 export function stampText(status, sem, notes, short = false) {
   const where = sem === 'any' || sem === '' ? 'Either semester' : semLabel(sem);
@@ -105,18 +79,12 @@ const NOTE_LEADS = Object.freeze({
   fee: 'Fee.', closed: 'Not open.', year: 'Year of study.', supply: 'Places.', ask: 'To confirm.',
 });
 
-/**
- * The lead-in word a note starts with on the card and in the detail ("Places."
- * for a quota), so a student can scan what each condition is about.
- * @param {string} kind the reason's kind (src/ng-reasons.js)
- */
+/** @param {string} kind */
 export const noteLead = (kind) => NOTE_LEADS[kind] ?? 'Note.';
 
 /**
- * A note in full. The `semester` note is worded as what to do; "the
- * other semester" is named.
  * @param {Reason} r
- * @param {number | string} sem the semester the note is about: 1, 2, or 'any'
+ * @param {number | string} sem
  */
 export function noteText(r, sem) {
   const s = String(sem);
@@ -130,7 +98,6 @@ export function noteText(r, sem) {
 }
 
 /**
- * A note with its source: "Limited quota (NG restrictions, updated 31 Aug YYYY)."
  * @param {Reason} r
  * @param {number | string} sem
  * @param {Source[] | null | undefined} sources
@@ -140,18 +107,14 @@ export function reasonLine(r, sem, sources) {
 }
 
 /**
- * Whether a level or credits echo (one number, or a list) names a row's value.
  * @param {unknown} echo
  * @param {unknown} v
  */
 export const echoHas = (echo, v) => (Array.isArray(echo) ? echo : [echo]).some((x) => String(x) === String(v));
 
 /**
- * The filters a course fails, as clauses ("it isn't offered in Sem 1"). In
- * exchange mode the NG list decides the semester, not NUSMods' timetable
- * (src/search.js localMatchesFilters), so the semester is never blamed there.
- * @param {{ semesters?: unknown, level?: unknown, credits?: unknown, faculty?: unknown }} m /module/:code's row
- * @param {Record<string, unknown>} filters /search's `filters` echo
+ * @param {{ semesters?: unknown, level?: unknown, credits?: unknown, faculty?: unknown }} m
+ * @param {Record<string, unknown>} filters
  * @returns {string[]}
  */
 export function filterMisses(m, filters) {
@@ -165,15 +128,12 @@ export function filterMisses(m, filters) {
 }
 
 /**
- * Why a typed code is not shown, from its own stored reasons at the
- * chosen semester and year. Never a result card: exchange mode never shows a
- * course the student can't take.
  * @param {{
  *   code: string, sem: string, study: string, exchange: ExchangeEntry[] | null | undefined,
  *   sources: Source[] | null | undefined,
  *   module?: { semesters?: unknown, level?: unknown, credits?: unknown, faculty?: unknown },
  *   filters?: Record<string, unknown>,
- * }} a `sem` '' for both semesters; `study` '' outside exchange mode
+ * }} a
  */
 export function hiddenCodeLine({ code, sem, study, exchange, sources, module, filters }) {
   const entries = Array.isArray(exchange) ? exchange : [];
@@ -193,8 +153,6 @@ export function hiddenCodeLine({ code, sem, study, exchange, sources, module, fi
   if (ids.length === 1 && ids[0] === NOT_IN_SEM && other && other.status !== 'closed') {
     return `${code} is open to exchange students only in ${semLabel(otherSem(sem))} (${sourceNote(NOT_IN_SEM, sources)}).`;
   }
-  // On the list only for the other semester, and closed there too: say first that
-  // both are closed, then each semester's reasons, so the first never reads as "switch semesters".
   if (ids.includes(NOT_IN_SEM) && other?.status === 'closed' && other.reasons.length) {
     const here1 = here.reasons.map((r) => (r.id === NOT_IN_SEM
       ? `the NG list offers it in ${semLabel(otherSem(sem))} only (${sourceNote(NOT_IN_SEM, sources)}).`
@@ -207,15 +165,7 @@ export function hiddenCodeLine({ code, sem, study, exchange, sources, module, fi
 }
 
 /**
- * The stamp a hidden typed code carries in the hidden-codes box, from the same
- * stored reasons hiddenCodeLine says in full: "Not on the
- * NG list for Sem 1" (on it for the other semester only), "Not for exchange
- * students" (not on the NG list), "Not open in Sem 1" (closed for another reason), or "Outside your
- * filters" (exchange mode allows it; another filter hides it). `switchTo`: the
- * other semester, when the student chose one and the course is open to them
- * there, so the page can offer to switch; else ''.
  * @param {{ sem: string, study: string, exchange: ExchangeEntry[] | null | undefined }} a
- *   `sem` '' for both semesters; `study` '' outside exchange mode
  * @returns {{ text: string, switchTo: string }}
  */
 export function hiddenCodeStamp({ sem, study, exchange }) {
@@ -234,11 +184,9 @@ export function hiddenCodeStamp({ sem, study, exchange }) {
   return { text: `Not open in ${semLabel(sem)}`, switchTo };
 }
 
-/** The stamp a typed code not offered this academic year carries (a catalogue-only code). */
 export const NOT_OFFERED_STAMP = 'Not this year';
 
 /**
- * A catalogue-only code (`notOffered`, or a whole-query `not-offered` noMatch).
  * @param {string} code
  * @param {string | null} [title]
  */
@@ -247,9 +195,6 @@ export function notOfferedLine(code, title = null) {
 }
 
 /**
- * The typed codes the hidden-codes box lists as not offered: /search's
- * `notOffered`, less the code a whole-query noMatch already names, whose
- * sentence says it once (`not-offered`, and `ng-unscheduled`).
  * @param {unknown} notOffered
  * @param {{ reason?: unknown, code?: unknown } | null | undefined} noMatch
  * @returns {string[]}
@@ -259,64 +204,39 @@ export function boxNotOffered(notOffered, noMatch) {
   return (Array.isArray(notOffered) ? notOffered.map(String) : []).filter((c) => c !== named);
 }
 
-/** "CS32" → "CS32xx": a partial code, padded to four digits. @param {string} prefix */
+/** @param {string} prefix */
 export function prefixLabel(prefix) {
   const digits = prefix.match(/\d+$/)?.[0] ?? '';
   return digits ? `${prefix}${'x'.repeat(Math.max(0, 4 - digits.length))}` : prefix;
 }
 
-/**
- * A partial code exchange mode empties. With one semester chosen and
- * the other's results unknown or present, the chosen semester (the page offers
- * the other with a button when it has results); with both chosen, or the other
- * empty too, either semester. Never "loosen a filter": the filter is
- * eligibility.
- * @param {{ prefix: string, sem: string, study: string, otherHasResults: boolean | null }} a
- */
+/** @param {{ prefix: string, sem: string, study: string, otherHasResults: boolean | null }} a */
 export function partialCodeLine({ prefix, sem, study, otherHasResults }) {
   const where = sem && otherHasResults !== false ? semPhrase(sem) : semPhrase('');
   return `No ${prefixLabel(prefix)} course is open to ${studyPhrase(study)} ${where}.`;
 }
 
-/** /search pins at most this many typed codes (src/query-intent.js MAX_PINS). */
 export const MAX_PINS = 3;
-/** /search reads at most this many typed codes (src/query-intent.js MAX_CODES). */
 const MAX_CODES = 10;
 
-/**
- * The code-shaped words typed, in order, upper-cased, once each; letters and
- * digits split by one space are one code, as /search joins them (`cs 3244`).
- * The server also checks each prefix against the catalogue, which the page
- * can't; unpinnedLine only asks this when three codes already pinned.
- * @param {string} query
- */
+/** @param {string} query */
 export function typedCodes(query) {
   const seen = [...query.matchAll(/\b([A-Za-z]{1,4}) ?(\d{4}[A-Za-z0-9]{0,5})\b/g)].map((m) => `${m[1]}${m[2]}`.toUpperCase());
   return [...new Set(seen)].slice(0, MAX_CODES);
 }
 
-/** The code-shaped words in a query, as typedCodes finds them. */
 const CODE_WORD = /\b[A-Za-z]{1,4} ?\d{4}[A-Za-z0-9]{0,5}\b/g;
 
-/**
- * Whether a query is course codes and nothing else (separators aside): "CS2030
- * CS3244", "cs 3244, ma1521". A partial code ("CS32") is not.
- * @param {string} query
- */
+/** @param {string} query */
 export function codesOnly(query) {
   return typedCodes(query).length > 0 && query.replace(CODE_WORD, '').replace(/[\s,;+&/]+/g, '') === '';
 }
 
 /**
- * The count line for a query of course codes only: "20 courses
- * shown: CS2030, then 19 other matches". The typed codes named are those
- * pinned at the top: the leading entries that hold a code /search
- * pinned (`interpreted.pin`), as the entry or as its other code, in the order
- * typed. A typed code shown lower, unpinned, is one of the other matches.
  * @param {string} query
  * @param {any[]} results
- * @param {string[]} pinned /search's `interpreted.pin`
- * @returns {{ count: string, rest: string }} `count` in bold, then `rest`
+ * @param {string[]} pinned
+ * @returns {{ count: string, rest: string }}
  */
 export function codesCount(query, results, pinned) {
   const typed = typedCodes(query);
@@ -337,12 +257,6 @@ export function codesCount(query, results, pinned) {
 const andList = (codes) => (codes.length < 2 ? codes.join('') : `${codes.slice(0, -1).join(', ')} and ${codes[codes.length - 1]}`);
 
 /**
- * Only the first MAX_PINS typed codes offered this year pin; a later
- * one that passes the filters is neither pinned nor hidden, so it may not
- * appear. /search's `interpreted.pin` holds every offered code up to three, so
- * with fewer pinned no offered code was left out: null. Else, when another
- * typed code (not one reported as not offered) exists, the rule, and the
- * typed codes neither shown nor explained.
  * @param {string} query
  * @param {{ pinned: string[], hidden: string[], notOffered: string[], shown: Set<string> }} known
  */

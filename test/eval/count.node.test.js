@@ -1,11 +1,4 @@
 // @ts-check
-// `npm run eval:count`: the custodian-only count tool. It prints one integer, logs each call in
-// eval/count-log.md, and is not a look: the ledger never reads the count log,
-// and a count-log row in the ledger is refused as tampering.
-// Every test runs the tool from a temporary shared clone, so the holdout and
-// test sets' fixed ledger and count log are the clone's, never this
-// checkout's. Sets are built here from dev-derived synthetic data with a
-// throwaway key; no real holdout file is read.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -50,7 +43,6 @@ beforeAll(async () => {
   clone = join(tmp, 'clone');
   expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
   expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
-  // The code under test is this checkout's working tree.
   for (const p of ['eval/cli.mjs', 'eval/count.mjs', 'eval/lib', 'eval/groups.json', 'eval/holdout-ledger.md', 'eval/count-log.md', 'scripts']) {
     await rm(join(clone, p), { recursive: true, force: true });
     if (existsSync(join(REPO, p))) await cp(join(REPO, p), join(clone, p), { recursive: true });
@@ -63,7 +55,6 @@ const cloneCountLog = () => join(clone, 'eval', 'count-log.md');
 beforeEach(async () => {
   await cp(join(REPO, 'eval', 'holdout-ledger.md'), cloneLedger());
   await rm(cloneCountLog(), { force: true });
-  // The committed log's header, without its real rows: each test starts from an empty log.
   if (existsSync(join(REPO, 'eval', 'count-log.md'))) {
     const log = await readFile(join(REPO, 'eval', 'count-log.md'), 'utf8');
     const header = log.slice(0, log.indexOf('|---|'));
@@ -72,10 +63,6 @@ beforeEach(async () => {
   }
 });
 
-/**
- * As gate-rules.node.test.js: 12 answerable, 4 tagged `noanswer` (the first with a grade-2
- * code, so answerable: 13 primary answerable, 3 no-answer), 4 unscored.
- */
 async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + TAGGED + UNSCORED);
@@ -110,7 +97,6 @@ const runOf = (d, variant, ranker, codes) => ({
   docs: {},
 });
 
-/** The candidate empties 2 answerable, 1 unscored and 2 tagged queries, and errors on 1 more answerable one. */
 const emptying = (/** @type {Derived} */ d) => {
   const c = Object.fromEntries(Object.entries(d.ranked).map(([id, x]) => [id, [...x]]));
   for (const id of [...d.answerable.slice(0, 2), d.unscored[0], ...d.tagged.slice(0, 2)]) c[id] = [];
@@ -150,7 +136,6 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(r.code).toBe(0);
     expect(r.stdout).toBe(`${ANSWERABLE + 1}\n`);
     expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'test', 'count: answerable', '—', String(ANSWERABLE + 1), '—']]);
-    // Not a look: the ledger is byte-for-byte unchanged.
     expect(await readFile(cloneLedger(), 'utf8')).toBe(ledgerBefore);
     expect(await looks(cloneLedger(), 'test')).toBe(looksBefore);
   });
@@ -163,7 +148,6 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(r.stdout).toBe('4\n');
     expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: emptied-untagged', 'cand', '4', '—']]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
-    // A second call appends a second row.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'base']).stdout).toBe('0\n');
     expect((await rowsOf(cloneCountLog())).map((c) => c[3])).toEqual(['cand', 'base']);
   });
@@ -171,14 +155,12 @@ describe('eval:count prints one integer and logs the call', () => {
   it('--holdout --lists-differing --run --baseline: queries whose stored lists (status and codes, in order) differ between the two runs', async () => {
     const { dir, d } = await encSet('holdout-differing', 'holdout');
     const looksBefore = await looks(cloneLedger(), 'holdout');
-    // cand empties 5 lists and errors on a 6th; a reorder alone also counts.
     const r = count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'cand', '--baseline', 'base']);
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
     expect(r.stdout).toBe('6\n');
     expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: lists-differing', 'cand vs base', '6', '—']]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
-    // A run against itself, and a byte-identical copy under another name: 0.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'base', '--baseline', 'base']).stdout).toBe('0\n');
     const same = runOf(d, 'same', { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) }, d.ranked);
     const swapped = runOf(d, 'swapped', { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) }, d.ranked);
@@ -197,10 +179,8 @@ describe('eval:count prints one integer and logs the call', () => {
     const looksBefore = await looks(cloneLedger(), 'holdout');
     const [first, second, third] = d.answerable;
     const ranker = { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) };
-    // ACC1701XB, XC and XD are one group-v1 group (ACC1701A…XD); NGN2001F and G another.
     const repBase = runOf(d, 'repbase', ranker, { ...d.ranked, [first]: ['ACC1701XB', 'CS3244', 'NGN2001F'], [second]: ['ACC1701XD', 'CS3244'] });
     const repSwap = runOf(d, 'repswap', ranker, { ...d.ranked, [first]: ['ACC1701XC', 'CS3244', 'NGN2001G'], [second]: ['ACC1701XA', 'CS3244'] });
-    // Group order changed in one list, a group dropped in another, an error in a third.
     const regroup = runOf(d, 'regroup', ranker, { ...d.ranked, [first]: ['CS3244', 'ACC1701XC', 'NGN2001G'], [second]: ['ACC1701XA'] });
     regroup.results[third] = { status: 500, codes: [] };
     for (const r of [repBase, repSwap, regroup]) await writeEncryptedJson(join(dir, 'runs', `run-${r.variant}.json.enc`), r, key, 'holdout');
@@ -210,7 +190,6 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
     expect(r.stdout).toBe('0\n');
-    // Without --by-group the same pair differs in both swapped lists.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'repswap', '--baseline', 'repbase']).stdout).toBe('2\n');
     expect(byGroup('regroup').stdout).toBe('3\n');
     expect(await rowsOf(cloneCountLog())).toEqual([
@@ -304,7 +283,6 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     await writeEncryptedJson(join(dir, 'runs', 'run-other.json.enc'), other, key, 'holdout');
     await updateManifest(dir);
     await refused(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'other'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
-    // Either side of a --lists-differing pair.
     await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'other', '--baseline', 'base'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
     await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'cand', '--baseline', 'other'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
   });
@@ -335,7 +313,6 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     for (const r of [a, b]) await writeEncryptedJson(join(dir, 'runs', `run-${r.variant}.json.enc`), r, key, 'holdout');
     await updateManifest(dir);
     await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--by-group', '--run', 'othera', '--baseline', 'otherb'], /^eval: holdout count failed \(CorpusMismatchError\); details withheld\n$/);
-    // Without --by-group the pair counts: the groups are not read.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'othera', '--baseline', 'otherb']).stdout).toBe('0\n');
   });
 });
@@ -361,12 +338,10 @@ describe('a count is never a look', () => {
     await expect(assertLookAllowed(cloneLedger(), 'holdout', 12, { repo: clone })).resolves.toBe(before);
   });
 
-  // The tool writes the log on its first count, so a checkout may have none yet.
   it.skipIf(!existsSync(join(REPO, 'eval', 'count-log.md')))('the committed count log is a separate file from the ledger, with its own header', async () => {
     const log = await readFile(join(REPO, 'eval', 'count-log.md'), 'utf8');
     expect(log).toMatch(/^# Count log\n/);
     expect(log).toContain('| date | set | kind | run | count |');
-    // Only count rows: one with no `count: ` kind would be a look row in the wrong file.
     for (const row of ledgerRows(log)) expect(row[2]).toMatch(/^count: /);
   });
 });

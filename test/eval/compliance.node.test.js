@@ -1,12 +1,4 @@
 // @ts-check
-// The compliance rule (`--change-kind compliance`), on a synthetic
-// set built here (test/eval/compliance-set.node.mjs): pure checks of the
-// rule, then the CLI end to end, on the encrypted `selftest` set with a
-// throwaway key (the holdout's verdict path: verdict, Δ lines and counts
-// only; a parse mismatch, a reference parsing nothing, missing constraint
-// fields or a missing parse record spend no look) and on an open set (the
-// dev path, with per-query detail). The real reference parse (tag parse-reference) runs
-// over the synthetic corpus's vocabulary.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -49,9 +41,6 @@ const fresh = (set) => syntheticSet(set, { ranker: { base: rankerAt(SHIPPED_PIN,
 /** @typedef {ReturnType<typeof fresh>} Synthetic */
 
 /**
- * Writes the synthetic set to a directory: encrypted (bound to `selftest`,
- * manifested) or plain (an open `fixture`-layout set). corpus.json is plain
- * either way, as a set's corpus is public.
  * @param {string} name
  * @param {{ encrypted: boolean, tweak?: (s: Synthetic) => void }} o
  */
@@ -87,7 +76,10 @@ const report = (dir, extra = ['--change-kind', 'compliance']) => node(CLI, ['rep
 const ledgerOf = async (dir) => (existsSync(join(dir, 'ledger.md')) ? ledgerRows(await readFile(join(dir, 'ledger.md'), 'utf8')) : []);
 /** @param {string} cls */
 const withheld = (cls) => `eval: selftest run failed (${cls}); details withheld\n`;
-/** No query id, query text or code of the set in `out`. @param {string} out @param {Synthetic} s */
+/**
+ * @param {string} out
+ * @param {Synthetic} s
+ */
 const assertNoLeak = (out, s) => { for (const x of s.secrets) expect(out.includes(x), `output names ${x}`).toBe(false); };
 
 describe('the rule, pure', () => {
@@ -132,13 +124,10 @@ describe('the rule, pure', () => {
       source: { reference: 'test', vocabularySha256: 'x', fields: 'test', lib: 'test', runTextSha256: /** @type {any} */ (s.cand.corpus).textSha256, fieldsSha256: /** @type {any} */ (s.cand.corpus).constraintFieldsSha256 },
     };
     const r = applyComplianceRule({ queries: s.querySet.queries, qrels: s.qrels, base: s.base, cand: s.cand, sources });
-    // syn-p1: the two relevant documents with a real prerequisite count for nothing, so the
-    // compliant list is ideal (nDCG 1) and the baseline's (which ranks them first) is not.
     const i = s.querySet.queries.findIndex((q) => q.id === 'syn-p1');
     expect(r.scores.cand[i].ndcg).toBeCloseTo(1, 12);
     expect(r.scores.base[i].ndcg).toBeLessThan(1);
     expect(Object.keys(r.detail.removed['syn-p1'].removed).sort()).toEqual([codeOf('syn-p1', 0), codeOf('syn-p1', 3)]);
-    // syn-p2 (exchange, sem 1): the sem-1 exam and the closed course are removed; a sem-2 exam is fine.
     expect(r.detail.removed['syn-p2'].removed).toEqual({ [codeOf('syn-p2', 0)]: 'exam', [codeOf('syn-p2', 2)]: 'exchange' });
     expect(r.cmp.overall.ndcg.delta).toBeGreaterThan(0);
     expect(r.raw.overall.ndcg.delta).toBeLessThan(0);
@@ -147,7 +136,6 @@ describe('the rule, pure', () => {
     expect(r.identity).toEqual({ queries: 12, differing: [] });
     expect(r.newErrors).toEqual([]);
 
-    // A query whose every relevant document fails its constraint is unscored, not a zero.
     const q2 = structuredClone(s.qrels);
     q2.queries['syn-p1'].judgments[codeOf('syn-p1', 1)] = 0;
     q2.queries['syn-p1'].judgments[codeOf('syn-p1', 2)] = 0;
@@ -200,7 +188,6 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(lines[4]).toBe('scored queries: 15 primary, 1 constraint block · unscored queries: 0 · parsed queries: 4');
     const rows = await ledgerOf(dir);
     expect(rows.map((c) => [c[3], c[5], c[8]])).toEqual([['cand', 'pass', 'compliance']]);
-    // The same runs fail the general rule, which scores removed ineligible documents as loss.
     const general = report(dir, ['--change-kind', 'general']);
     expect(general.stdout).toMatch(/^holdout verdict: FAIL · rule general/m);
   });
@@ -212,7 +199,6 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(r.out).toBe(withheld('ParseMismatchError'));
     assertNoLeak(r.out, s);
     expect(existsSync(join(dir, 'ledger.md'))).toBe(false);
-    // A candidate that parses an unparsed query is a mismatch too.
     const { dir: d2 } = await makeSet('mismatch-extra', { encrypted: true, tweak: (x) => { /** @type {any} */ (x.cand.intents)['syn-u01'].exam = 0; } });
     expect(report(d2).out).toBe(withheld('ParseMismatchError'));
     expect(existsSync(join(d2, 'ledger.md'))).toBe(false);
@@ -244,7 +230,6 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     assertNoLeak(r1.out, none.s);
     expect(existsSync(join(none.dir, 'ledger.md'))).toBe(false);
 
-    // Both runs return a code the corpus does not have.
     const fields = await makeSet('no-fields', { encrypted: true, tweak: (x) => { x.base.results['syn-u03'].codes.push('ZZ99X9'); x.cand.results['syn-u03'].codes.push('ZZ99X9'); } });
     expect(report(fields.dir).out).toBe(withheld('ConstraintFieldsError'));
     expect(existsSync(join(fields.dir, 'ledger.md'))).toBe(false);
@@ -266,7 +251,6 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     await writeFile(join(dir, 'corpus.json'), JSON.stringify(corpus));
     const before = await readFile(join(dir, 'ledger.md'), 'utf8');
     expect(report(dir).out).toBe(withheld('CorpusMismatchError'));
-    // A changed title (the reference's vocabulary) is refused too.
     corpus.modules[0].text = 'something else';
     await writeFile(join(dir, 'corpus.json'), JSON.stringify(corpus));
     expect(report(dir).out).toBe(withheld('CorpusMismatchError'));
@@ -298,9 +282,6 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(m.stdout).toMatch(/^holdout verdict: FAIL · rule compliance/m);
     assertNoLeak(m.out, moved.s);
 
-    // syn-p2 as an exact-code query whose second relevant document is graded 1: the baseline's
-    // rank 1 (grade 2 on the raw qrels) has a sem-1 exam, so the compliant candidate drops it
-    // and its rank 1 is graded 1. No loss on the filtered qrels; a regression on the raw ones.
     const exactTweak = (/** @type {Synthetic} */ x) => {
       /** @type {any} */ (x.querySet.queries.find((q) => q.id === 'syn-p2')).shapes = ['code-exact'];
       x.qrels.queries['syn-p2'].judgments[codeOf('syn-p2', 1)] = 1;
@@ -310,11 +291,10 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(e.stdout).toMatch(/^holdout verdict: FAIL · rule compliance/m);
     assertNoLeak(e.out, exact.s);
     expect(await ledgerOf(exact.dir)).toHaveLength(1);
-    // The open path shows it is the raw-qrels exact-code check, and only it, that fails.
     const open = await makeSet('exact-code-open', { encrypted: false, tweak: exactTweak });
     const o = node(CLI, ['report', '--set', 'fixture', '--set-dir', open.dir, '--run', 'cand', '--baseline', 'base', '--change-kind', 'compliance']);
     expect(o.stdout.split('\n').filter((l) => l.startsWith('  [FAIL]'))).toEqual(['  [FAIL] no exact-code regression (raw qrels) — 1 exact-code queries lost their rank-1 hit']);
-  }, 30_000); // four report subprocesses: past 5 s on a cold checkout under the full suite
+  }, 30_000);
 
   it('an empty constraint block is a recorded vacuous pass', async () => {
     const { dir, s } = await makeSet('vacuous', { encrypted: true, tweak: (x) => { /** @type {any} */ (x.querySet.queries.find((q) => q.id === 'syn-p4')).shapes = ['topical']; } });
@@ -373,7 +353,6 @@ describe('the open-set path (dev and the fixture)', () => {
 
   it('the screen reuses existing runs and reports the gate and the explicit-params diagnostic', async () => {
     const { dir, s } = await makeSet('screen', { encrypted: false });
-    // The screen's run names; the diagnostic's baseline carries the explicit params.
     await writeFile(join(dir, 'runs', 't-cand.json'), JSON.stringify({ ...s.cand, variant: 't-cand', config: { ...s.cand.config, vocabulary: { sha256: 'none' } } }));
     await writeFile(join(dir, 'runs', 't-pin.json'), JSON.stringify({ ...s.base, variant: 't-pin' }));
     await writeFile(join(dir, 'runs', 't-pin-explicit.json'), JSON.stringify({ ...s.cand, intents: undefined, variant: 't-pin-explicit', config: { ...s.base.config, explicit: 'reference-3h' } }));
@@ -382,7 +361,6 @@ describe('the open-set path (dev and the fixture)', () => {
     expect(r.stdout).toMatch(/^gate \(dev\): PASS · rule compliance$/m);
     expect(r.stdout).toMatch(/^diagnostic: candidate vs the baseline run with the parsed constraints as explicit params/m);
     expect(r.stdout).toMatch(/^diagnostic: reported, no gate$/m);
-    // The rule passes but the candidate run's vocabulary is not the reference's: the screen fails.
     expect(r.stdout).toMatch(/^dev screen \(fixture\): FAIL · compliance rule pass · vocabulary DIFFERENT/m);
     expect(r.code).toBe(1);
     const diag = JSON.parse(await readFile(join(dir, 'json', 't-diagnostic.json'), 'utf8'));

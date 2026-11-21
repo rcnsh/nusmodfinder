@@ -1,13 +1,4 @@
 // @ts-check
-// The 2026/27 overlay: how each transcribed rule of the restrictions PDF (the `transcription`
-// data/ng-sources-2026-2027.json names) matches NUSMods fields, per the interpretations register
-// (its `register`), and the year's facts beside it: the PDF-heading → NUSMods name maps,
-// the dual-coded twins, the compulsory LLB courses and the rules the register decides.
-//
-// The builder reads it through data/ng-sources-2026-2027.json's `overlay`. Two entries carry a
-// role instead of being found by id (docs/year-refresh/overlay.md): `self-funded-list` (filled
-// from the self-funded programmes list) and `off-list-rule` (rule E, the page's line for courses
-// off the list). The builder fails if either role is missing or appears twice.
 
 /** @typedef {import('../../src/eligibility.js').Study} Study */
 /** @typedef {import('../../src/eligibility.js').RuleMatch} RuleMatch */
@@ -16,7 +7,6 @@
 /** @type {Study[]} */ const UG12 = ['ug1', 'ug2'];
 /** @type {Study[]} */ const UG4_GRAD = ['ug4', 'grad'];
 
-// PDF department headings -> NUSMods `department` (register: "Department map").
 export const DEPT = /** @type {const} */ ({
   cls: 'Centre for Language Studies', chinese: 'Chinese Studies', cnm: 'Communications and New Media', econ: 'Economics',
   elts: 'English,Ling.andTheatre Studies', geog: 'Geography', hist: 'History', js: 'Japanese Studies', malay: 'Malay Studies',
@@ -36,25 +26,14 @@ export const FAC = /** @type {const} */ ({
   sph: 'SSH School of Public Health', lkyspp: 'LKY School of Public Policy', iss: 'NUS-ISS', scale: 'Cont and Lifelong Education', tli: 'Logistics Inst-Asia Pac',
 });
 
-// Dual-coded Architecture pairs, linked by preclusion (register C4): a code
-// rule on one applies to its twin.
 export const TWINS = /** @type {Record<string, string>} */ ({ AR4220: 'AR5221', AR4321: 'AR5321', AR4601: 'AR5601' });
 
-// Compulsory LLB courses (restrictions §5 "See HERE"), transcribed from
-// law-compulsory-llb-courses.png. None is on the NG list (sources.md).
 export const LAW_COMPULSORY = ('LC1001A LC1001B LC1001C LC1001D LC1001E LC1001F LC1001H LC1002A LC1002B LC1002C LC1002D LC1002E ' +
   'LC1002F LC1002G LC1002H LC1003 LC1004 LC1016 LC2009 LC1025 LC2018 LC2008A LC2008C LC2008D LC2008E LC2008F LC2008G ' +
   'LC2008H LC2007 LC2013 LC2006A LC2006B LC2006C LC2006D LC2006E LC2006F LC2006G LC2006H LC2010A LC2010B LC2010C ' +
   'LC2010E LC2010F LC2010H LC2004 LC2012 LC3001A LC2017').split(' ');
 
 /**
- * One output rule per entry: `codes: true` takes the transcribed codes. An
- * entry `{ info }` records the rule as `info` (no eligibility effect), with the
- * register row that says why. An info rule about courses off the
- * exchange list also gets `offList`, the scope its quote states (departments
- * and levels, or a faculty, matched on a row's fields, never by code prefix;
- * `{}` for every course); its entry then carries the quote as `text` and that
- * scope, which build-ng-reasons.mjs passes to /facets as `offListRules`.
  * @typedef {{ suffix?: string, role?: string, effect: 'closed' | 'note' | 'open', note?: string, studies?: Study[], codes?: boolean,
  *   match?: RuleMatch, reason: string }} Part
  * @typedef {{ departments?: string[], faculties?: string[], levels?: number[] }} OffListScope
@@ -66,7 +45,7 @@ export const OVERLAY = {
   'A-public-health': [{ effect: 'closed', match: { faculties: [FAC.sph], levels: [5, 6] }, reason: 'Public Health graduate courses are not open to exchange students.' }],
   'A-nursing': [{ effect: 'closed', match: { departments: [DEPT.nursing] }, reason: 'Nursing courses are not open to exchange students.' }],
   'A-iss': [{ effect: 'closed', match: { faculties: [FAC.iss] }, reason: 'Institute of Systems Science courses are not open to exchange students.' }],
-  'A-self-funded': [{ effect: 'closed', role: 'self-funded-list', match: { codes: [] /* filled from the self-funded list */ }, reason: 'Courses in NUS self-funded programmes are not open to exchange students.' }],
+  'A-self-funded': [{ effect: 'closed', role: 'self-funded-list', match: { codes: [] }, reason: 'Courses in NUS self-funded programmes are not open to exchange students.' }],
   'A-fee': { info: 'applies only after an exceptional approval of a closed course' },
   'B-suffix-x': [{ effect: 'closed', codes: true, reason: 'This X-suffix course is not open to exchange students.' }],
   'C-urop-fass': [{ effect: 'closed', match: { faculties: [FAC.fass], titleRe: '\\bUROPS?\\b|Undergraduate Research Opportunit' }, reason: 'Undergraduate research courses (UROP) in Arts & Social Sciences are not open to exchange students.' }],
@@ -241,7 +220,6 @@ export const OVERLAY = {
   '12-tli-closed': [{ effect: 'closed', match: { faculties: [FAC.tli] }, reason: 'Logistics Institute courses are not open to exchange students.' }],
 };
 
-// Rules the register decides rather than a transcribed rule.
 /** @type {{ id: string, effect: 'open', match: RuleMatch, reason: string, cite: string }[]} */
 export const DECIDED = [
   { id: 'Q1c-ar-dual-coded', effect: 'open', match: { codes: Object.values(TWINS) }, cite: 'register C4: dual-coded pairs',

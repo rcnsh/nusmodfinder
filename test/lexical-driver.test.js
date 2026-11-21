@@ -1,10 +1,4 @@
 // @ts-check
-// The filter-driven plan in src/lexical.js walks the index of the most
-// selective filter. Without sqlite_stat1, SQLite picks among equality indexes
-// by creation order, so with two or more filters it would drive from
-// idx_modules_credits (credits=4: 5,081 rows on the full corpus) instead of,
-// say, faculty=Computing (315). The plan does not depend on the data here
-// (no stat1), so the fixture database shows the same choice as the full one.
 import { env } from 'cloudflare:workers';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -16,7 +10,6 @@ import { fixture, seed } from './helpers.js';
 /** @typedef {import('../src/search.js').FilterEcho} FilterEcho */
 /** @typedef {import('../src/lexical.js').FilterKey} FilterKey */
 
-/** The index each filter drives through (0001, 0003, 0006). */
 const INDEX = {
   faculty: 'idx_modules_faculty', ng: 'idx_modules_ng', level: 'idx_modules_level',
   credits: 'idx_modules_credits',
@@ -57,9 +50,8 @@ describe('facets row counts', () => {
     try {
       await put(old);
       expect(await loadFilterCounts(env.DB, new Trace())).toBeNull();
-      await put(facets); // POST /admin/facets after the deploy
+      await put(facets);
       expect(await loadFilterCounts(env.DB, new Trace())).toEqual(parseFilterCounts(facets));
-      // Found counts are cached: a later row change is not re-read.
       await put(old);
       expect(await loadFilterCounts(env.DB, new Trace())).toEqual(parseFilterCounts(facets));
     } finally {
@@ -115,11 +107,9 @@ describe('chooseDriver', () => {
   it('under ng, sem picks the allow-mask bit (never a sem column) and the bit is never an index driver', () => {
     /** @type {FilterEcho} */
     const echo = { sem: 1, level: 4, credits: 4, faculty: 'Computing', ng: true, study: 'ug2' };
-    // bitOf(1, 'ug2') = 1 << 1
     expect(filterSql(echo, 'faculty').clauses).toEqual(['+m.level = ?', '+m.credits = ?', 'm.faculty = ?', '+m.ng = 1', '(+m.ng_allow & 2) != 0']);
     expect(filterSql(echo).clauses).toEqual(['m.level = ?', 'm.credits = ?', 'm.faculty = ?', 'm.ng = 1', '(+m.ng_allow & 2) != 0']);
     expect(filterSql({ ng: true, study: 'grad' }).clauses).toEqual(['m.ng = 1', '(+m.ng_allow & 16384) != 0']);
-    // No study (which /search answers 400) is closed, not unfiltered.
     expect(filterSql({ ng: true }).clauses).toEqual(['m.ng = 1', '(+m.ng_allow & 0) != 0']);
     expect(chooseDriver({ sem: 3, ng: true, study: 'ug2' }, null)).toBe('ng');
   });
@@ -147,7 +137,6 @@ describe('the filter-driven plan', () => {
     expect(await plan({ faculty: 'Computing', credits: 4 })).toEqual(['SEARCH m USING INDEX idx_modules_credits (credits=?)']);
   });
 
-  /** Every multi-filter shape, each filter in turn as the driver. */
   const SHAPES = /** @type {FilterEcho[]} */ ([
     { faculty: 'Computing', credits: 4 }, { credits: 4, level: 5 }, { faculty: 'Computing', level: 4 },
     { level: 1, ng: true }, { credits: 4, ng: true }, { faculty: 'Computing', ng: true }, { sem: 3, credits: 4 },

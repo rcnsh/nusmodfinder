@@ -1,9 +1,4 @@
 // @ts-check
-// src/vocabulary.js: the corpus vocabulary, surface tokens by the FTS
-// tokenisation (queryTokens) with document frequency, plus the FTS index terms
-// those tokens make, so a prefix term's fate is decided without a D1 query.
-// Also the vocabulary files: the committed fixture vocabulary is current, and
-// the committed production vocabulary is versioned with the production bundle.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -107,9 +102,7 @@ describe('nearestTerm', () => {
   });
 
   it('breaks a distance tie by the higher df, then the lexicographically smaller term', () => {
-    // `xases` is 1 from bases (df 2), cases (df 2) and vases (df 2): smallest wins.
     expect(nearestTerm(v, 'xases', 1)).toBe('bases');
-    // `basess` is 1 from bases only.
     expect(nearestTerm(v, 'basess', 1)).toBe('bases');
   });
 

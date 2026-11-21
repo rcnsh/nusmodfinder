@@ -1,17 +1,4 @@
 // @ts-check
-// Duplicate groups for scoring:
-// only the first member of a group to appear earns gain (metrics.mjs). The
-// groups are built from public corpus fields only, never from qrels or judge
-// grades, so they apply equally to every set (dev, holdout, test).
-//
-// The rule is groups-v1 in src/groups.js, one rule for eval and product,
-// over the offered modules of the pinned corpus (code, title, description as
-// scripts/lib.mjs `normalise()` returns them).
-//
-// eval/groups.json is the committed output (`npm run eval:groups`, checked by
-// `npm run eval:groups -- --check` and test/full/groups.node.test.js). The
-// harness merges it into the qrels at scoring time (`withCorpusGroups`) and
-// refuses it when it was built from another corpus.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CorpusMismatchError } from './errors.mjs';
@@ -52,7 +39,7 @@ export function groupsFile(modules, corpus) {
   };
 }
 
-/** The file's bytes: one group per line, so diffs stay readable. @param {GroupsFile} f */
+/** @param {GroupsFile} f */
 export function serialiseGroups(f) {
   const { groups, ...head } = f;
   const body = groups.map((g) => `  ${JSON.stringify(g)}`).join(',\n');
@@ -60,7 +47,6 @@ export function serialiseGroups(f) {
 }
 
 /**
- * Reads and validates a groups file.
  * @param {string} [path]
  * @returns {Promise<GroupsFile>}
  */
@@ -73,11 +59,6 @@ export async function loadGroups(path = GROUPS_PATH) {
 }
 
 /**
- * The qrels to score with: the committed corpus groups added to whatever
- * groups the qrels carry (metrics.mjs `qrelsFor` joins overlapping groups).
- * Throws CorpusMismatchError when the groups were built from another corpus
- * than the qrels were judged on (the runs are checked against the qrels by
- * `assertSameCorpus`). The error names hashes only, never qrels content.
  * @param {import('./metrics.mjs').Qrels} qrels
  * @param {GroupsFile} groups
  * @returns {import('./metrics.mjs').Qrels}
@@ -93,8 +74,6 @@ export function withCorpusGroups(qrels, groups) {
 }
 
 /**
- * Code -> group key (the group's first member) for a groups file's groups. A
- * code in no group has no entry: it is its own group.
  * @param {string[][]} groups
  * @returns {Map<string, string>}
  */
@@ -106,8 +85,7 @@ export function groupIndex(groups) {
 }
 
 /**
- * A ranked list as its sequence of group keys: two lists with the same
- * sequence differ at most in which member stands for each group.
- * @param {string[]} codes @param {Map<string, string>} index
+ * @param {string[]} codes
+ * @param {Map<string, string>} index
  */
 export const groupKeys = (codes, index) => codes.map((c) => index.get(c) ?? c);

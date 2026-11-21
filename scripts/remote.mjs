@@ -1,36 +1,10 @@
 // @ts-check
-// Runs one command against production D1, Vectorize and Workers AI through a
-// fresh `wrangler dev --remote` session (scripts/remote-session.mjs):
-//
-//   npm run remote -- [--port <n>] <command…>
-//   npm run remote -- ingest --d1-only
-//   npm run remote -- verify --pre-deploy
-//   npm run remote -- vectors standby
-//
-// `ingest`, `verify` and `vectors` run scripts/<name>.mjs with this Node; any
-// other command runs as given, without a shell. The command gets WORKER_URL
-// (the session) and INGEST_SECRET (a one-off), and VNM_REMOTE_TARGET for its
-// own run record. The session stops when the command ends, whatever its exit
-// code, which this passes through. This replaces the old runbook's `.dev.vars`
-// swap: nothing here reads or writes `.dev.vars`.
-//
-// Writes one run record (script `remote`): the port, each try, the command,
-// its exit code. The command writes its own.
-//
-// Signals: a Ctrl-C reaches the command from the terminal, and the session
-// stays up while the command stops cleanly (ingest records its in-flight
-// mutations). A SIGTERM sent to this pid alone is passed on to the command.
-// A second signal, or a SIGHUP, stops the session and the command at once.
-//
-// Exit codes: the command's; 1 when the session never answered; 2 on a usage
-// error; 130/143/129 on SIGINT/SIGTERM/SIGHUP.
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SESSION_TARGET, reservedPortError, withRemoteSession } from './remote-session.mjs';
 import { startRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-/** Commands that name a script in scripts/. */
 export const SCRIPTS = ['ingest', 'verify', 'vectors'];
 
 /**
@@ -74,9 +48,8 @@ export async function main(argv, deps = {}) {
 
   const run = startRun('remote', { target: SESSION_TARGET, args: argv, dir: runsDir });
   run.detail('command', SCRIPTS.includes(args[0]) ? args : [cmd, ...rest]);
-  // A crash still leaves the record; signals are the session's (deferred to the command).
   const unguard = run.guardExit(process, { signals: false });
-  /** The command, once started, so a signal can reach it. @type {import('node:child_process').ChildProcess | null} */
+  /** @type {import('node:child_process').ChildProcess | null} */
   let command = null;
   /** @type {NodeJS.Signals[]} */
   const signals = [];
@@ -84,7 +57,6 @@ export async function main(argv, deps = {}) {
   /** @param {NodeJS.Signals} sig @param {'deferred' | 'stopping'} phase */
   const onSignal = (sig, phase) => {
     signals.push(sig);
-    // A Ctrl-C already reached the command from the terminal; a SIGTERM may have come to this pid only.
     if (command && command.exitCode === null && (phase === 'stopping' || sig === 'SIGTERM')) command.kill(phase === 'stopping' ? 'SIGKILL' : sig);
   };
   try {

@@ -64,9 +64,6 @@ describe('treeHash', () => {
 });
 
 /**
- * Every module a file loads: import declarations, `export … from`, and
- * literal dynamic imports. A dynamic import of anything but a string literal
- * is returned as `<dynamic>`, which no overlay can satisfy.
  * @param {string} text
  * @returns {string[]}
  */
@@ -96,7 +93,7 @@ describe('the overlaid runner works with any ranker ref', () => {
     for (const file of RUNNER.filter((f) => /\.m?js$/.test(f))) {
       for (const spec of moduleSpecifiers(await readFile(join(REPO, file), 'utf8'))) {
         expect(spec, `${file} has a non-literal dynamic import`).not.toBe('<dynamic>');
-        if (!spec.startsWith('.')) continue; // packages and cloudflare:* come from the HEAD install
+        if (!spec.startsWith('.')) continue;
         const target = normalize(join(dirname(file), spec)).split('\\').join('/');
         if (target.startsWith('src/')) expect(`${file} -> ${target}`).toBe(`${file} -> src/index.js`);
         else expect(RUNNER, `${file} imports ${target}, which the workspace does not overlay`).toContain(target);

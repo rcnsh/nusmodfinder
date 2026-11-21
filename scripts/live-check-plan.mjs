@@ -1,9 +1,4 @@
 // @ts-check
-// What scripts/live-check.mjs (the page's live checks) does, before it sends
-// anything: its arguments, and the seeded draw of the codes it checks, from
-// the production-normalised modules (or the fixture, for the local UI server).
-// Node only and pure but for loading the modules, so test/live-check.node.test.js
-// runs it; the browser half is live-check.mjs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bitOf, STUDIES } from '../src/ng-bit.js';
@@ -13,11 +8,8 @@ import { productionCorpus } from './corpus-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const PRODUCTION_URL = 'https://nusmodfinder.rcn.sh';
-/** Requests start at least this far apart. */
 export const GAP_MS = 4_000;
 const PER_STRATUM = 4;
-
-// ---------- arguments ----------
 
 /**
  * @param {string[]} argv
@@ -46,9 +38,7 @@ export function parseArgs(argv) {
   };
 }
 
-// ---------- the draw ----------
-
-/** mulberry32: a small seeded generator, so the draw is the same on every run. @param {number} seed */
+/** @param {number} seed */
 export function rng(seed) {
   let a = seed >>> 0;
   return () => {
@@ -61,7 +51,6 @@ export function rng(seed) {
 }
 
 /**
- * `n` items in a seeded order (sorted by code first, so the input order doesn't matter).
  * @template {{ code: string }} T
  * @param {T[]} list
  * @param {number} n
@@ -81,20 +70,20 @@ const NOT_LISTED = 'ng-list:not-listed';
 const NOT_IN_SEM = 'ng-list:not-in-semester';
 
 /**
- * A normalised module's stored reason ids at an allow-mask bit (bitOf), as
- * /module answers them (src/ng-reasons.js exchangeAt): a course off the NG
- * list stores none and reads as "not listed".
- * @param {any} m @param {number} bit
+ * @param {any} m
+ * @param {number} bit
  * @returns {string[]}
  */
 const rulesAt = (m, bit) => {
   const rules = typeof m.ngRules === 'string' ? JSON.parse(m.ngRules) : m.ngRules;
   return rules?.[String(Math.log2(bit))] ?? (m.ng ? [] : [NOT_LISTED]);
 };
-/** Whether the stored mask opens the course at a bit (bitOf). @param {any} m @param {number} bit */
+/**
+ * @param {any} m
+ * @param {number} bit
+ */
 const allowedAt = (m, bit) => (Number(m.ngAllow ?? 0) & bit) !== 0;
 
-/** The detail strata, in draw order; a code goes to the first stratum it fits. */
 export const STRATA = Object.freeze(/** @type {const} */ ([
   ['exams in two semesters', (/** @type {any} */ m) => [1, 2].every((s) => (m.examDates ?? []).some((/** @type {any} */ e) => e.sem === s))],
   ['cohort-only prerequisite', (/** @type {any} */ m) => m.prereqCohortOnly === true],
@@ -103,7 +92,6 @@ export const STRATA = Object.freeze(/** @type {const} */ ([
 ]));
 
 /**
- * 20 codes for the detail check: 4 from each stratum, then 4 plain ones (in none of them).
  * @param {any[]} modules
  * @param {() => number} r
  * @returns {{ stratum: string, m: any }[]}
@@ -120,12 +108,6 @@ export function drawDetails(modules, r) {
   return out;
 }
 
-/**
- * The three kinds of closed code, so each kind of explanation is seen live,
- * each with the stamp the page must give it at semester `sem` (fixed here, so
- * a live /module answer that lost its reasons can't pass by being explained
- * the same wrong way on both sides).
- */
 export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
   ['not on the NG list', (/** @type {string[]} */ ids) => ids.includes(NOT_LISTED), () => 'Not for exchange students'],
   ['on the NG list for the other semester only', (/** @type {string[]} */ ids) => ids.length === 1 && ids[0] === NOT_IN_SEM, (/** @type {1 | 2} */ sem) => `Not on the NG list for Sem ${sem}`],
@@ -133,11 +115,6 @@ export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
 ]));
 
 /**
- * 3 closed codes (one of each kind) at a drawn semester and year of study, and
- * 1 partial code exchange mode empties there. Closed means closed by the
- * independent oracle (test/oracle/oracle.mjs) and by the stored bit. Each
- * closed code says the stamp it must show and whether the other semester is
- * open to the student (so "Switch to Sem N" must show), by the same two.
  * @param {any[]} modules
  * @param {() => number} r
  */
@@ -179,13 +156,10 @@ export function drawHidden(modules, r) {
 }
 
 /**
- * The modules drawn from: production's corpus (`current`) normalised as ingest does,
- * or the fixture the local UI server holds.
  * @param {'production' | 'fixture'} corpus
  * @returns {Promise<any[]>}
  */
 export async function loadModules(corpus) {
   if (corpus === 'fixture') return JSON.parse(readFileSync(`${ROOT}test/fixtures/corpus.json`, 'utf8')).modules;
-  // `current` (data/corpus.json), never the .data/cache download.
   return (await productionCorpus()).modules;
 }

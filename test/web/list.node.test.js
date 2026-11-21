@@ -1,8 +1,4 @@
 // @ts-check
-// public/list.js: the shortlist's half of the URL. `pick` and
-// `alt` repeated in rank order, each `CODE.S` or an untagged `CODE`, then `ay`,
-// `inv` and `view`; the caps (20 a tagged semester, 40 in all); and every edit
-// the view makes, as pure functions of the list.
 import { describe, expect, it } from 'vitest';
 import {
   MAX_ENTRIES, MAX_PER_SEM, add, emptyList, entryValue, hasEntry, makeOther, move, parseList, remove, restore, setInvite, setSem, tagFor, withYear,
@@ -10,7 +6,7 @@ import {
 import { parseState, urlFor } from '../../public/state.js';
 
 const parse = (/** @type {string} */ qs) => parseList(new URLSearchParams(qs));
-/** The URL a link settles to: its state and its list, as the page writes them. @param {string} qs */
+/** @param {string} qs */
 const round = (qs) => {
   const params = new URLSearchParams(qs);
   return urlFor(parseState(params), parseList(params).list, '/').replace(/^\/\??/, '');
@@ -45,7 +41,6 @@ describe('the list in the URL', () => {
     const { list, dropped } = parse('pick=CS2030.1&pick=cs2030.2&alt=CS2030&alt=GE2101.1&alt=GE2101.2');
     expect(values(list)).toEqual({ pick: ['CS2030.1'], alt: ['GE2101.1'] });
     expect(dropped).toBe(3);
-    // A pick later in the URL than its backup still wins: picks are read first.
     expect(values(parse('alt=CS2030.1&pick=CS2030.2').list)).toEqual({ pick: ['CS2030.2'], alt: [] });
   });
 
@@ -55,18 +50,15 @@ describe('the list in the URL', () => {
     expect(one.list.pick).toHaveLength(MAX_PER_SEM);
     expect(one.dropped).toBe(1);
     expect(one.list.pick.at(-1)?.code).toBe('AB1019');
-    // 20 in Sem 1, 20 in Sem 2, then one untagged: the 41st is over 40.
     const all = parse([...codes(20, '.1'), ...Array.from({ length: 20 }, (_, i) => `alt=CD${2000 + i}.2`), 'alt=EF3000'].join('&'));
     expect(all.list.pick.length + all.list.alt.length).toBe(MAX_ENTRIES);
     expect(all.dropped).toBe(1);
-    // A code dropped at the cap stays dropped: its later duplicates are dropped too.
     const twenty = codes(20, '.1').join('&');
     for (const tail of ['pick=CS2030.1&alt=CS2030.2', 'pick=CS2030.1&pick=CS2030.2']) {
       const p = parse(`${twenty}&${tail}`);
       expect([...p.list.pick, ...p.list.alt].some((e) => e.code === 'CS2030'), tail).toBe(false);
       expect(p.dropped, tail).toBe(2);
     }
-    // Untagged entries count only towards 40.
     expect(parse(Array.from({ length: 41 }, (_, i) => `pick=AB${1000 + i}`).join('&')).list.pick).toHaveLength(40);
   });
 
@@ -129,7 +121,6 @@ describe('edits (the shortlist view makes them)', () => {
     expect(values(ok(move(list, 'B1002', -1))).pick).toEqual(['B1002.2', 'A1001.1']);
     expect(move(list, 'A1001', -1)).toEqual({ ok: false, why: 'A1001 is already first' });
     expect(move(list, 'B1002', 1)).toEqual({ ok: false, why: 'B1002 is already last' });
-    // The first backup is first in its own list, whatever the picks above it.
     expect(move(start(), 'C1003', -1)).toEqual({ ok: false, why: 'C1003 is already first' });
   });
 

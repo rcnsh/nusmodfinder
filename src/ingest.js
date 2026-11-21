@@ -1,18 +1,4 @@
 // @ts-check
-// Admin routes used by scripts/ingest.mjs, scripts/verify.mjs and
-// scripts/vectors.mjs: /admin/hashes, /admin/ingest, /admin/delete,
-// /admin/facets, /admin/vectorize, /admin/verify, /admin/vectors and
-// /admin/catalogue (D1's catalogue_only).
-//
-// D1-only mode (runbook step 4): `?d1Only=1` on /admin/ingest
-// and /admin/delete writes D1 and nothing else, with no getByIds, AI.run or
-// Vectorize call. The vectors reach Vectorize later, from the sha-checked
-// bundle, through /admin/vectors (runbook step 8).
-//
-// Embedding runs here rather than in the ingest script so no Cloudflare API
-// token has to exist on disk; the script streams batches in over HTTP and the
-// Worker uses its own AI, Vectorize and D1 bindings. The routes do not exist
-// unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
 import { CATALOGUE_ROWS_SQL, adminHashes, d1Query, storedCatalogueKey, verifiedCatalogueHash } from './admin-hashes.js';
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
@@ -27,7 +13,7 @@ import { base64ToFloat32, float32ToBase64, suGrading } from './vector-bundle.js'
  *   semesters: number[], workload: string | null, prerequisite: string | null,
  *   preclusion: string | null, acadYear: string, text: string, textHash: string,
  *   ng: boolean, ngSemesters?: number[],
- * }} IngestModule One module as posted by scripts/ingest.mjs.
+ * }} IngestModule
  */
 
 /**
@@ -41,45 +27,22 @@ function ingestGuard(request, env) {
   return null;
 }
 
-/**
- * The index binding as the async-mutation (post-beta) API it is: upsert and
- * deleteByIds answer `{ mutationId }` and describe() reports
- * processedUpToMutation. `wrangler types` declares the binding with the beta
- * `VectorizeIndex` type, which has neither.
- * @param {Env} env
- */
+/** @param {Env} env */
 const vectorize = (env) => /** @type {Vectorize} */ (/** @type {unknown} */ (env.VECTORIZE));
 
-/**
- * When Vectorize accepted a mutation, by Cloudflare's clock: read just after
- * upsert/deleteByIds resolves (a Worker's clock advances only on I/O, so this
- * is the time that call returned), never before it. The mutation was stamped
- * at or before this instant, so once describe().processedUpToDatetime is
- * later than it, a later mutation has been processed and, mutations being
- * processed in order, this one too (scripts/ingest-core.mjs waitForMutation).
- * The same clock as processedUpToDatetime, so the ingest machine's clock never
- * enters the comparison.
- */
 const acceptedAt = () => Date.now();
 
-/** Vectorize getByIds is asked for at most this many ids per call. */
 const GET_BY_IDS_CHUNK = 20;
-/** Most codes one /admin/delete call takes. */
 const DELETE_LIMIT = 100;
-/** Most vectors /admin/verify compares, per call. */
 const VERIFY_SAMPLE_LIMIT = 100;
-/** Most vectors one /admin/vectors call upserts or deletes (the binding's upsert limit). */
 export const VECTORS_LIMIT = 1000;
-/** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
 
 
-/** @param {Request} request whether the call asks for the D1-only mode */
+/** @param {Request} request */
 const d1OnlyOf = (request) => new URL(request.url).searchParams.get('d1Only') === '1';
 
 /**
- * The `modules` rows for `codes`, by code, read in statements of at most 100
- * parameters, batched.
  * @param {D1Database} db
  * @param {string[]} codes
  * @returns {Promise<{ rows: Map<string, import('./rowhash.js').ModuleRow>, results: D1Result[] }>}
@@ -96,18 +59,13 @@ async function rowsFor(db, codes) {
   return { rows: new Map(results.flatMap((r) => r.results).map((r) => [r.code, r])), results };
 }
 
-/**
- * Sums D1 meta over the results of one batch or statement.
- * @param {D1Result[]} results
- */
+/** @param {D1Result[]} results */
 const metaOf = (results) => ({
   rows_read: results.reduce((n, r) => n + (r.meta?.rows_read ?? 0), 0),
   rows_written: results.reduce((n, r) => n + (r.meta?.rows_written ?? 0), 0),
 });
 
 /**
- * GET /admin/hashes: src/admin-hashes.js computes the body from two reads, so the
- * deploy guard can compute the same over D1's REST query.
  * @param {Request} request
  * @param {Env} env
  */
@@ -118,7 +76,6 @@ export async function handleHashes(request, env) {
 }
 
 /**
- * Vectorize getByIds over any number of ids.
  * @param {Env} env
  * @param {string[]} ids
  */
@@ -132,23 +89,6 @@ async function getVectors(env, ids) {
 }
 
 /**
- * POST /admin/ingest `{ modules: [...] }` (at most 100). With `?d1Only=1`
- * (runbook step 4) it writes the D1 rows and nothing else: no getByIds, no
- * AI.run, no Vectorize upsert, so `embedded` is 0 and `mutationId` null.
- * Otherwise each module may carry
- * `reembed: false` (scripts/ingest-core.mjs: its text_hash is unchanged, only
- * the row changed): its stored vector values are re-upserted with the new
- * metadata instead of being embedded again, but only if the stored vector says
- * it embeds this text (`metadata.textHash` equals the module's) and has the
- * index's dimensions. Otherwise (no vector, a vector from before textHash was
- * stored, or one Vectorize has not yet replaced with a newer embedding) it is
- * embedded after all, so stale values are never written back over a pending
- * upsert of new ones. Vectorize first, then one D1 batch writing every
- * column plus the row_hash computed here from exactly the bound values.
- * Answers `{ upserted, embedded, reused, mutationId, sentAt, meta: { rows_read, rows_written } }`;
- * ingest sums `meta.rows_written` against its write budget. `sentAt` is this
- * Worker's Date.now() once Vectorize has accepted the mutation (see
- * acceptedAt).
  * @param {Request} request
  * @param {Env} env
  */
@@ -197,8 +137,6 @@ export async function handleIngest(request, env) {
     const mutation = await vectorize(env).upsert(batch.map((m) => ({
       id: m.code,
       values: /** @type {VectorizeVector['values']} */ (values.get(m.code)),
-      // level/credits are `number | null` (lib.mjs normalise) but Vectorize metadata
-      // types exclude null; written as they always have been.
       metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (storedVectorMetadata(m)),
     })));
     mutationId = mutation.mutationId;
@@ -210,11 +148,9 @@ export async function handleIngest(request, env) {
 }
 
 /**
- * The D1 half of /admin/ingest: one batch writing every column plus the
- * row_hash computed here from exactly the bound values.
  * @param {Env} env
  * @param {IngestModule[]} batch
- * @param {{ embedded: number, mutationId: string | null, sentAt: number | null, d1Only?: boolean }} done what the Vectorize half did
+ * @param {{ embedded: number, mutationId: string | null, sentAt: number | null, d1Only?: boolean }} done
  */
 async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
   try {
@@ -235,22 +171,6 @@ async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
 }
 
 /**
- * POST /admin/delete `{ codes: [...] }` (at most 100): removes modules that
- * left the corpus, in three steps:
- *  1. D1: clear the rows' text_hash ('', NOT NULL) and row_hash, so if a later
- *     step fails and the module comes back to the corpus, ingest sees no
- *     matching hash and re-embeds it rather than skipping it as unchanged with
- *     its vector gone. 1 row written per code; no index or FTS
- *     trigger covers either column.
- *  2. Vectorize deleteByIds.
- *  3. D1 DELETE. If it fails, the row is still in D1, so the next run plans
- *     its delete again; deleting from D1 first would orphan the vector,
- *     invisible to a plan built from D1's codes.
- * Answers `{ deleted, codes, mutationId, sentAt, meta }`; meta covers both D1
- * statements; sentAt as for /admin/ingest.
- * With `?d1Only=1` (runbook step 4) only step 3 runs: the D1 rows are deleted
- * and their codes returned, for runbook step 8's deleteByIds. No Vectorize
- * call, so `mutationId` is null.
  * @param {Request} request
  * @param {Env} env
  */
@@ -294,7 +214,6 @@ export async function handleDelete(request, env) {
     return upstream('vectorize', err);
   }
   try {
-    // RETURNING, not meta.changes: changes also counts the FTS trigger's writes.
     const res = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare(
       `DELETE FROM modules WHERE code IN (${marks}) RETURNING code`).bind(...codes).all());
     return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId, sentAt, meta: metaOf([cleared, res]) });
@@ -304,7 +223,6 @@ export async function handleDelete(request, env) {
 }
 
 /**
- * GET /admin/vectorize: the index's describe(), for ingest's mutation wait.
  * @param {Request} request
  * @param {Env} env
  */
@@ -318,23 +236,11 @@ export async function handleVectorizeInfo(request, env) {
   }
 }
 
-/** Metadata as compared by verify: keys sorted, null and absent alike. @param {Record<string, unknown> | undefined} m */
+/** @param {Record<string, unknown> | undefined} m */
 const canonicalMetadata = (m) => JSON.stringify(Object.fromEntries(
   Object.entries(m ?? {}).filter(([, v]) => v !== null && v !== undefined).sort(([a], [b]) => (a < b ? -1 : 1))));
 
 /**
- * POST /admin/verify `{ sampleSize?: number, sample?: string[], returnValues?: boolean, preDeploy?: boolean }`:
- * the D1 half of `npm run verify`. Reads every row once, recomputes its row_hash from the
- * stored columns, and compares Vectorize metadata (getByIds, textHash
- * included) with what the row implies for a sample of at most 100 codes (random unless `sample` names
- * them). The vector id listing comes from wrangler (scripts/verify.mjs).
- * - `returnValues`: each sampled vector's values come back as base64 float32
- *   (`sample.values`), so the script can compare them with the bundle's bits.
- * - `preDeploy` (runbook step 5, `npm run verify -- --pre-deploy`): no
- *   Vectorize call at all. Answers the row_hash check plus every row's code,
- *   text and row hashes and filter fields (`rows`), for the comparison with
- *   the manifest and the bundle, and D1's `catalogueKey` for the
- *   comparison with the bundled catalogue file.
  * @param {Request} request
  * @param {Env} env
  */
@@ -374,7 +280,6 @@ export async function handleVerify(request, env) {
     }
     return json({
       codes: [...byCode.keys()],
-      // verify --pre-deploy compares it with the bundled catalogue file's.
       catalogueKey: catalogue.key,
       rowHash: { checked: rows.results.length, drift: rowHashDrift, missing: missingRowHash },
       rows: rows.results.map((r) => {
@@ -385,7 +290,6 @@ export async function handleVerify(request, env) {
           examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
           workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
           ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null, examDates: f.examDates ?? [],
-          // verify --pre-deploy checks the year files against it.
           acadYear: r.acad_year,
         };
       }),
@@ -419,8 +323,7 @@ export async function handleVerify(request, env) {
     const v = vectors.get(code);
     if (!v) { if (row) missingVectors.push(code); continue; }
     if (body?.returnValues === true && v.values) values[code] = float32ToBase64(/** @type {ArrayLike<number>} */ (v.values));
-    if (!row) continue; // an extra vector: the id listing reports it
-    // textHash included: a vector whose values embed another text drifts.
+    if (!row) continue;
     const expected = storedVectorMetadata(fieldsFromRow(row));
     if (canonicalMetadata(v.metadata) !== canonicalMetadata(expected)) {
       metadataDrift.push({ code, expected, actual: v.metadata ?? null });
@@ -435,20 +338,6 @@ export async function handleVerify(request, env) {
 }
 
 /**
- * POST /admin/vectors (runbook step 8): brings the Vectorize
- * standby level with the bundle.
- * - `{ ids: string[], values: string }`: upserts at most 1,000 vectors.
- *   `values` is base64 little-endian float32, ids.length × 384 of them, read
- *   by scripts/vectors.mjs from the sha-checked bundle asset, never from this
- *   Worker's own bundle (the fixture, in a dev session). Each vector gets its
- *   full metadata from its D1 row (storedVectorMetadata, the new textHash
- *   included), so an upsert never wipes the filter properties. Refuses, with
- *   nothing written, ids that D1 does not hold.
- * - `{ deleteIds: string[] }`: deleteByIds for at most 1,000 codes that D1 no
- *   longer holds (runbook step 4's D1-only deletions). Refuses any code D1
- *   still holds.
- * Answers `{ upserted | deleted, mutationId, sentAt, meta }`; no D1 write,
- * no neuron.
  * @param {Request} request
  * @param {Env} env
  */
@@ -497,7 +386,6 @@ export async function handleVectors(request, env) {
     const { mutationId } = await vectorize(env).upsert(ids.map((id, i) => ({
       id,
       values: Array.from(values.subarray(i * EMBEDDING_DIMS, (i + 1) * EMBEDDING_DIMS)),
-      // level/credits may be null; written as /admin/ingest writes them.
       metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (
         storedVectorMetadata(fieldsFromRow(/** @type {import('./rowhash.js').ModuleRow} */ (read.rows.get(id))))),
     })));
@@ -507,11 +395,6 @@ export async function handleVectors(request, env) {
   }
 }
 
-// Guarded: rebuilds the precomputed facet row. Called by the ingest script once
-// the corpus has finished loading. An optional body `{ ngList: { updatedAsAt,
-// source, count } }` (from data/ng-courses-*.json) is stored as meta('ng_list')
-// first, so /facets reports the NG list date from the file itself. Admin
-// reads and writes go to the primary (env.DB), never a replica.
 /**
  * @param {Request} request
  * @param {Env} env
@@ -555,17 +438,9 @@ export async function handleFacetsRebuild(request, env) {
   }
 }
 
-/** Most catalogue rows one POST /admin/catalogue upserts, and codes it deletes. */
 export const CATALOGUE_LIMIT = 100;
 
 /**
- * GET /admin/catalogue: `{ ok, rows: { code: rowHash } }`, what D1
- * `catalogue_only` holds (migration 0008), so ingest writes only changed rows.
- * Each rowHash is recomputed from the row's columns (src/admin-hashes.js
- * verifiedCatalogueHash): null when the stored row_hash is not it, so ingest
- * rewrites a row changed behind its hash.
- * `ok: false` and `rows: null` when the table does not exist: ingest refuses
- * before any write.
  * @param {Request} request
  * @param {Env} env
  */
@@ -585,10 +460,6 @@ export async function handleCatalogueHashes(request, env) {
 }
 
 /**
- * POST /admin/catalogue `{ upsert?: [{ code, title, description, acadYear }], delete?: [codes] }`,
- * at most 100 of each: one D1 batch, with each row's hash computed here from
- * exactly the bound values. D1 only, so `?d1Only=1` changes nothing.
- * Answers `{ upserted, deleted, meta: { rows_read, rows_written } }`.
  * @param {Request} request
  * @param {Env} env
  */

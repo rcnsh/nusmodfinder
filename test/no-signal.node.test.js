@@ -1,8 +1,4 @@
 // @ts-check
-// The no-signal check's vocabulary half: `parsed.noSignal`
-// is true iff no code, prefix or GE route fired, and no pre-correction token
-// has df > 0 or, at 4+ letters, an FTS prefix match. The dense half (the top
-// exact cosine below τ) is /search's (test/search-no-signal.test.js).
 import { describe, expect, it } from 'vitest';
 import { buildIntentContext, parseQuery } from '../src/query-intent.js';
 import { buildVocabulary, parseVocabulary } from '../src/vocabulary.js';
@@ -39,7 +35,6 @@ describe('parsed.noSignal', () => {
   it('a 4+ letter token with an FTS prefix match is a signal; a shorter one is not', () => {
     expect(noSignal('psych')).toBe(false);
     expect(noSignal('envi')).toBe(false);
-    // `psy` prefixes psychology but has 3 letters.
     expect(noSignal('psy')).toBe(true);
   });
 
@@ -65,7 +60,6 @@ describe('parsed.noSignal', () => {
 describe('the τ candidates', () => {
   it('are the 90th and 95th nearest-rank percentiles and the maximum, each + 1e-6, distinct, ascending', () => {
     const xs = Array.from({ length: 20 }, (_, i) => 0.5 + i / 100);
-    // n = 20: ⌈0.9·20⌉ = 18th smallest, ⌈0.95·20⌉ = 19th, max = 20th.
     expect(noSignalCandidates([...xs].reverse())).toEqual([xs[17], xs[18], xs[19]].map((x) => x + 1e-6));
     expect(noSignalCandidates([0.4, 0.4, 0.4])).toEqual([0.4 + 1e-6]);
   });

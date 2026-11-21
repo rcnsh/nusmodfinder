@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Two transcriptions of the restrictions PDF, compared (docs/year-refresh/brief-transcription.md).
-//
-//   node scripts/transcription-diff.mjs <a.json> <b.json>
-//       the facts each holds that the other doesn't: (code, pattern or school) × kind × students
-//       × levels, and title differences on the same code
-//   node scripts/transcription-diff.mjs <new.json> --map-to <last-year.json>
-//       proposes last year's rule id for each new rule whose normalised quote matches one of last
-//       year's (within the same section and department when the quote alone is ambiguous), and
-//       lists the renamed, new and dropped rules for review. Ids then stay stable across years,
-//       so the overlay and the register carry over.
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -22,7 +12,7 @@ import { parseArgs } from 'node:util';
 /** @param {TRule} r */
 const lv = (r) => (r.scope?.levels ?? []).join('/') || '-';
 
-/** (code | pattern | school, kind, students, levels) → the rules that state it. @param {TRule[]} rs */
+/** @param {TRule[]} rs */
 export function facts(rs) {
   /** @type {Map<string, string[]>} */
   const m = new Map();
@@ -60,13 +50,12 @@ export function diffTranscriptions(A, B) {
   return { shared: [...fa.keys()].filter((k) => fb.has(k)).length, sizeA: fa.size, sizeB: fb.size, onlyA: onlyA.map((k) => ({ fact: k, rules: fa.get(k) })), onlyB: onlyB.map((k) => ({ fact: k, rules: fb.get(k) })), titleDiffs };
 }
 
-/** A quote reduced to its words, for matching across transcribers and years. @param {string | undefined} q */
+/** @param {string | undefined} q */
 export const normaliseRuleQuote = (q) => (q ?? '').toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[^a-z0-9]+/g, ' ').trim();
 
 /**
- * Last year's id for each new rule, by quote.
- * @param {TRule[]} last last year's transcription's rules
- * @param {TRule[]} next the new transcription's rules
+ * @param {TRule[]} last
+ * @param {TRule[]} next
  */
 export function mapIds(last, next) {
   const where = (/** @type {TRule} */ r) => `${r.section}|${r.department ?? ''}`;

@@ -1,22 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The module groups: groups-v1 (src/groups.js) over the corpus each Worker
-// searches, versioned with that corpus's bundle the way the vocabulary is
-// (scripts/build-vocabulary.mjs):
-//
-//   node scripts/build-groups.mjs --corpus production
-//       data/groups.json, the Worker's (src/group-data.js): the corpus
-//       `npm run ingest` writes, `current` in data/corpus.json. Refused unless its row count and data version
-//       are the production bundle's in data/vectors.json. `vectors.mjs build
-//       --corpus production` rewrites it with the bundle.
-//   node scripts/build-groups.mjs --corpus fixture
-//       test/fixtures/groups.json, from the fixture corpus (vitest.config.mjs
-//       aliases it for the Worker tests).
-//   add --check to rebuild in memory and exit 1 if the committed file differs.
-//
-// The pinned groups are never committed here: vitest.config.mjs builds them for
-// test/full and the query suite (pinnedGroupsPath), and every eval run writes its
-// own from the run corpus (eval/runner/run.mjs). They equal eval/groups.json's.
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -28,14 +11,12 @@ import { loadPinnedCorpus } from './pinned-corpus.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-/** The committed groups modules, repo-relative. */
 export const OUTPUTS = Object.freeze({
   production: 'data/groups.json',
   fixture: 'test/fixtures/groups.json',
 });
 
 /**
- * The groups file's bytes for the modules of a corpus.
  * @param {import('../src/groups.js').GroupInput[] & NormalisedModule[]} modules
  * @param {import('../src/groups.js').GroupsCorpus} corpus
  */
@@ -57,17 +38,12 @@ export async function build(corpus) {
   return groupsBytes(modules, 'production');
 }
 
-/**
- * Writes the production groups for the modules the production bundle was just
- * built from (scripts/vectors.mjs build --corpus production).
- * @param {NormalisedModule[]} modules
- */
+/** @param {NormalisedModule[]} modules */
 export async function writeProductionGroups(modules) {
   await writeFile(join(ROOT, OUTPUTS.production), await groupsBytes(modules, 'production'));
   return OUTPUTS.production;
 }
 
-/** The pinned groups as a file (.data/groups/, git-ignored), rebuilt if absent or stale. */
 export async function pinnedGroupsPath() {
   const bytes = await build('pinned');
   const path = join(ROOT, '.data/groups/groups-pinned.json');

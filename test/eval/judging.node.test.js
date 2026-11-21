@@ -1,6 +1,4 @@
 // @ts-check
-// Judging (eval/lib/judging.mjs): pre-grading, batches, repeats,
-// packets, validation, collection, adjudication, merge, drift, calibration.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -33,7 +31,6 @@ const QUERIES = Array.from({ length: 14 }, (_, i) => ({
   narrative: { relevant: `rel ${i + 1}`, partial: `part ${i + 1}`, notRelevant: `not ${i + 1}` },
 }));
 
-/** A pool: q-01 (sem 1 + NG) has one sem-2-only and one non-NG candidate. */
 function makePool() {
   return {
     schema: 'vnm-eval-pool/1', set: 'dev', queriesVersion: 'test-v1', seed: 1, depth: 10, sourceRuns: 3,
@@ -54,7 +51,6 @@ const makeRound = (over = {}) => buildRound({
   judges: { A: 'judge-a', B: 'judge-b' }, seed: 7, batchSize: 4, createdAt: '2026-11-04T00:00:00Z', ...over,
 });
 
-/** Grades for every item of a slot: f(queryId, code, kind) -> grade. */
 function gradeAll(/** @type {any} */ round, /** @type {string} */ slot, /** @type {(q: string, c: string) => number} */ f) {
   for (const [id, it] of Object.entries(round.items)) {
     const item = /** @type {import('../../eval/lib/judging.mjs').Item} */ (it);
@@ -140,7 +136,6 @@ describe('buildRound', () => {
     for (const id of all) expect(id).toMatch(/^i[0-9a-z]{6}$/);
     for (const s of round.batches.A.flatMap((b) => b.sections)) expect(Number.isInteger(s.seed)).toBe(true);
     expect(makeRound()).toEqual(round);
-    // A and B see the same pairs in different orders.
     const orderOf = (/** @type {'A' | 'B'} */ slot) => round.batches[slot].flatMap((b) => b.sections.flatMap((s) => s.items.map((id) => round.items[id].code)));
     expect(orderOf('A')).not.toEqual(orderOf('B'));
     expect(makeRound({ seed: 8 }).batches.A).not.toEqual(round.batches.A);
@@ -187,7 +182,6 @@ describe('renderJudgePacket', () => {
 
   it('shows no query id, shape, persona, prerequisite, rule-graded pair, rank, score or system', () => {
     for (const q of QUERIES) expect(packet).not.toContain(q.id);
-    // The fixed instructions mention "variants" (of a course code); the rest of the packet must not.
     const body = packet.replace(verbatimBlock(JUDGING, 'judge-instructions'), '').replace(verbatimBlock(JUDGING, 'judge-examples'), '');
     for (const word of ['topical', 'code-exact', 'P-SECRET', 'SECRET-PREREQ', 'RUL9901', 'RUL9902', 'rank', 'score', 'variant', 'hybrid', 'lexical', 'vector', 'judge-a', 'judge-b']) {
       expect(body.toLowerCase()).not.toContain(word.toLowerCase());
@@ -221,7 +215,6 @@ describe('validateSectionOutput', () => {
   it('an unknown id, named only when it looks like an id', () => {
     expect(v({ ...good, izzzzzz: { grade: 1, rationale: 'x' } })).toEqual(['unknown item id "izzzzzz"']);
     expect(v({ ...good, 'SECRET text here': 1 })).toEqual(['unknown item id (a key that is not an item id)']);
-    // Words a judge used as keys (they may quote an encrypted query) are never printed.
     expect(v({ ...good, management: 1, in: 2 })).toEqual(['unknown item id (a key that is not an item id)', 'unknown item id (a key that is not an item id)']);
   });
   it('grades outside {0,1,2}', () => {
@@ -259,12 +252,10 @@ describe('collectOutputs', () => {
     expect(r1.problems.some((p) => p.endsWith(': file missing'))).toBe(true);
     for (const id of s1.items) expect(store[id]).toEqual({ grade: 1, rationale: 'ok' });
     expect(s2.items.some((id) => store[id])).toBe(false);
-    // The judge fixes S02; S01's file is gone (cleaned) but its grades stay.
     files[s2.id] = answer(s2.items);
     delete files[s1.id];
     collectOutputs(batches, store, (_b, s) => files[s] ?? null, 'A');
     for (const id of [...s1.items, ...s2.items]) expect(store[id]).toBeTruthy();
-    // An invalid rewrite drops the section's grades.
     files[s1.id] = 'not json';
     const r3 = collectOutputs(batches, store, (_b, s) => files[s] ?? null, 'A');
     expect(r3.problems).toContain(`A b01/${s1.id}: not valid JSON`);
@@ -344,7 +335,6 @@ describe('adjudication', () => {
     expect(p2).toMatch(/- Grader 1: grade [012]: "r CS/);
     expect(p2).toMatch(/- Grader 2: grade [012]: "r CS/);
     expect(p2).not.toMatch(/judge-a|judge-b|\bA\b:|\bB\b:/);
-    // Both orders occur.
     expect(new Set(Object.values(adj.items).map((i) => i.first))).toEqual(new Set(['A', 'B']));
   });
 });
@@ -391,7 +381,6 @@ describe('finalJudgments and mergeQrels', () => {
     const { grades } = qrelsFor(q, 'q-02', 1);
     expect(grades.get('CS200')).toBe(2);
     expect(grades.get('CS201')).toBe(1);
-    // Incremental: a second round merged onto the first bumps the version and keeps groups.
     const base = { ...q, groups: [['CS100', 'CS101']], version: 'qrels-dev-v3', queries: {} };
     const q2 = mergeQrels(round, { base });
     expect(q2.version).toBe('qrels-dev-v4');
@@ -425,7 +414,7 @@ describe('sampleDrift', () => {
   });
   it('samples round(5%) of non-rule pairs, at least one, deterministically', () => {
     const s = sampleDrift(qrels, { seed: 1 });
-    expect(s).toHaveLength(2); // round(0.05 × 31)
+    expect(s).toHaveLength(2);
     expect(s.some((p) => p.code === 'R1')).toBe(false);
     expect(sampleDrift(qrels, { seed: 1 })).toEqual(s);
     expect(sampleDrift({ version: 'v', queries: { b: qrels.queries.b } }, { seed: 1 })).toEqual([{ queryId: 'b', code: 'N1', grade: 2 }]);
@@ -440,7 +429,6 @@ describe('calibration', () => {
     expect(allocate([90, 9, 1], 10, [90, 9, 1], 1)).toEqual([8, 1, 1]);
   });
 
-  /** Qrels over QUERIES: grade = k % 3 for 8 codes each, plus a rule pair. */
   const qrels = /** @type {any} */ ({
     version: 'qrels-dev-v1',
     queries: Object.fromEntries(QUERIES.map((q, i) => [q.id, {
@@ -481,7 +469,6 @@ describe('calibration', () => {
     expect(header).toContain('your_grade');
     expect(rows).toHaveLength(9);
     expect(csv).not.toMatch(/agreed|slot|rationale/);
-    // Jacob agrees with A everywhere; leaves one row blank.
     const gi = header.indexOf('your_grade'), qi = header.indexOf('query_id'), ci = header.indexOf('code');
     rows.forEach((r, i) => { r[gi] = i === 0 ? '' : String(qrels.queries[r[qi]].judgments[r[ci]].grade); });
     const { graded, blank } = readCalibration(toCsv([header, ...rows]));
@@ -509,17 +496,13 @@ describe('calibration', () => {
     const run = (/** @type {Record<string, string[]>} */ r) => /** @type {any} */ ({ variant: 'x', results: Object.fromEntries(Object.entries(r).map(([k, codes]) => [k, { status: 200, codes }])), docs: {} });
     const base = run({ 'q-01': ['CS100', 'CS101'], 'q-02': ['CS200'] });
     const cand = run({ 'q-01': ['CS101', 'CS100'], 'q-02': ['CS201'] });
-    // Under A: q-01 grades CS100 0, CS101 1 -> cand puts the 1 first: Δ > 0.
     const underA = ndcgDelta(base, cand, q, qrelsUnder(qrels, 'A'));
     expect(underA.delta).toBeGreaterThan(0);
-    // A human who thinks CS100 is the 2 and CS101 a 0 reverses the sign on the subset.
     const subset = new Map([[pairKey('q-01', 'CS100'), 2], [pairKey('q-01', 'CS101'), 0]]);
     const human = ndcgDelta(base, cand, q, qrelsUnder(qrels, 'human', subset));
     expect(human.n).toBe(1);
     expect(human.delta).toBeLessThan(0);
-    // The subset under A keeps only those pairs.
     expect(Object.keys(qrelsUnder(qrels, 'A', subset).queries['q-01'].judgments)).toEqual(['CS100', 'CS101']);
-    // scoreRun accepts every re-graded qrels.
     expect(() => scoreRun(base, q, qrelsUnder(qrels, 'B'))).not.toThrow();
   });
 });
@@ -564,7 +547,6 @@ describe('single-judge rounds', () => {
     expect(f.size).toBe(14 * 8 + 2);
     expect(f.get(pairKey('q-01', 'RUL9901'))).toMatchObject({ grade: 0, source: 'rule' });
     expect(f.get(pairKey('q-02', 'CS200'))).toEqual({ grade: 2, source: 'judged', judges: { 'judge-a': { slot: 'A', grade: 2, rationale: 'r CS200' } } });
-    // An ungraded planted repeat does not block; an ungraded new item does.
     const rep = Object.entries(round.items).find(([, i]) => i.kind === 'repeat');
     delete round.grades.A[/** @type {any} */ (rep)[0]];
     expect(() => finalJudgments(round)).not.toThrow();
@@ -589,7 +571,6 @@ describe('single-judge rounds', () => {
     expect(qrelsFor(q, 'q-02', 1).grades.get('CS201')).toBe(0);
     expect(isRuleJudgment(q.queries['q-02'].judgments.CS200)).toBe(false);
     expect(isRuleJudgment(q.queries['q-01'].judgments.RUL9901)).toBe(true);
-    // Rule pairs stay out of the drift sample; judged pairs are in it.
     expect(sampleDrift(q, { seed: 1, rate: 1 })).toHaveLength(14 * 8);
   });
 });
@@ -613,7 +594,6 @@ describe('dropJudge', () => {
     expect(round.items).toEqual(aItems);
     expect(round.dropped).toEqual([{ slot: 'B', judge: 'judge-b', reason: 'owner decision: one judge', at: '2026-11-04T01:00:00Z' }]);
     expect(isSingleJudge(round)).toBe(true);
-    // A's collected outputs still validate against the same item ids.
     const answer = (/** @type {string[]} */ ids) => JSON.stringify(Object.fromEntries(ids.map((id) => [id, { grade: 1, rationale: 'ok' }])));
     const r = collectOutputs(round.batches.A, round.grades.A, (b, s) => answer(/** @type {any} */ (round.batches.A.find((x) => x.id === b)).sections.find((/** @type {any} */ x) => x.id === s).items), 'A');
     expect(r.problems).toEqual([]);

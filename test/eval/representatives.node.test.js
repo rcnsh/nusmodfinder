@@ -1,7 +1,4 @@
 // @ts-check
-// The semester representative's open-set check (eval/lib/representatives.mjs):
-// only representatives change, each to a member offered in the semester the
-// request named where the baseline's was not.
 import { describe, expect, it } from 'vitest';
 import { groupIndex, groupKeys } from '../../eval/lib/groups.mjs';
 import { compareRepresentatives, requestSemester } from '../../eval/lib/representatives.mjs';
@@ -87,13 +84,11 @@ describe('eval:representatives', () => {
       await mkdir(join(dir, 'runs'));
       const run = (/** @type {string} */ code, /** @type {string} */ sha) => JSON.stringify({ config, queries: { sha256: sha }, corpus: { moduleInfoSha256: 'c0' }, results: { q1: { status: 200, codes: [code] } } });
       const cli = () => spawnSync(process.execPath, [join(REPO, 'eval/representatives.mjs'), '--set', 'fixture', '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { encoding: 'utf8' });
-      // Made when q1 asked for Sem 2: F (Sem 2) -> G (Sem 1) is a bad swap there.
       await writeFile(join(dir, 'runs', 'base.json'), run('NGN2001F', 'old'));
       await writeFile(join(dir, 'runs', 'cand.json'), run('NGN2001G', 'old'));
       const stale = cli();
       expect(stale.status).toBe(1);
       expect(stale.stderr).toMatch(/not made on the fixture set's current queries/);
-      // On the current queries the same swap is right for Sem 1.
       const { createHash } = await import('node:crypto');
       const sha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
       await writeFile(join(dir, 'runs', 'base.json'), run('NGN2001F', sha));

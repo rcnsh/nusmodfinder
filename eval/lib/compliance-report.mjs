@@ -1,11 +1,4 @@
 // @ts-check
-// The compliance rule's open-set report (dev and the fixture).
-// The same rule as the holdout's verdict path (lib/compliance.mjs, gate.mjs
-// `complianceGate`), with the per-query detail an open set may print. With
-// `gate: false` it is the explicit-params diagnostic: the candidate against
-// the baseline sent the parsed constraints as explicit params; reported, never
-// a verdict.
-// Never called for an encrypted set (the CLI prints complianceVerdictOnly).
 import { applyComplianceRule } from './compliance.mjs';
 import { gateFor } from './gate.mjs';
 import { byShape, summarise } from './metrics.mjs';
@@ -25,7 +18,7 @@ const signed = (x) => (Number.isFinite(x) ? `${x >= 0 ? '+' : ''}${x.toFixed(3)}
  *   sources: import('./compliance.mjs').RuleSources,
  *   gate?: boolean,
  *   change?: import('./gate.mjs').Change,
- * }} o `qrels` with the corpus groups joined
+ * }} o
  */
 export function devComplianceReport(o) {
   if (o.set.encrypted) throw new Error('the compliance rule\'s open report is for dev and the fixture only');

@@ -1,6 +1,4 @@
 // @ts-check
-// `npm run ops:requests` prints live-call totals from the run records. Fake
-// records in a temp dir.
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

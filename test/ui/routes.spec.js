@@ -1,6 +1,4 @@
 // @ts-check
-// Static assets in front of the Worker: `/` is the page from
-// public/, and every API path still reaches the Worker.
 import { expect, test } from '@playwright/test';
 
 test('/ and the page files are static assets, with no x-app-version (GET /health is the trace)', async ({ request }) => {

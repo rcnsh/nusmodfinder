@@ -1,7 +1,4 @@
 // @ts-check
-// Shared by the query-suite tests (test/query-suite/*.node.test.js, test/full/query-suite-corpus.node.test.js):
-// the suite and gibberish files, the suite's row counts, the `interpreted` schema,
-// and the near-duplicate check against dev.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO } from '../../eval/lib/sets.mjs';
@@ -9,13 +6,11 @@ import { REPO } from '../../eval/lib/sets.mjs';
 export const SUITE_PATH = join(REPO, 'test/query-suite/queries.json');
 export const GIBBERISH_PATH = join(REPO, 'eval/dev/gibberish.json');
 export const NEEDS_EMBEDDING_PATH = join(REPO, 'test/query-suite/needs-embedding.txt');
-/** Where the suite's and gibberish set's query embeddings go once embedded (eval cache format). */
 export const SUITE_EMBEDDINGS_PATH = join(REPO, 'test/query-suite/embeddings.json');
 
 /** @returns {any} */
 export const readJson = (/** @type {string} */ path) => JSON.parse(readFileSync(path, 'utf8'));
 
-/** The suite's rows: row key → number of items. */
 export const ROW_COUNTS = Object.freeze({
   'space-code': 5,
   'code-vs-level': 3,
@@ -39,19 +34,20 @@ export const ROW_COUNTS = Object.freeze({
   guard: 29,
 });
 
-/** The keys of `interpreted`, the parse the Worker echoes for a query. */
 export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
 
-/** The only dev texts allowed into the suite, and the row each belongs to. */
 export const ALLOWED_DEV = Object.freeze({ 'd-024': 'no-exam', 'd-079': 'ge-in-longer', 'd-022': 'ge-in-longer', 'd-016': 'unrouted-code-in-longer' });
 
-/** Lower-case, every non-alphanumeric run to one space. @param {string} s */
+/** @param {string} s */
 export const normalise = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 /** @param {string} s */
 const tokenSet = (s) => new Set(normalise(s).split(' ').filter(Boolean));
 
-/** Token Jaccard. @param {string} a @param {string} b */
+/**
+ * @param {string} a
+ * @param {string} b
+ */
 export function jaccard(a, b) {
   const A = tokenSet(a);
   const B = tokenSet(b);
@@ -62,18 +58,14 @@ export function jaccard(a, b) {
 }
 
 /**
- * Near-duplicate: equal after normalising (with or without spaces), or a token
- * Jaccard of at least 0.5.
- * @param {string} a @param {string} b
+ * @param {string} a
+ * @param {string} b
  */
 export const nearDuplicate = (a, b) => normalise(a) === normalise(b)
   || normalise(a).replace(/ /g, '') === normalise(b).replace(/ /g, '')
   || jaccard(a, b) >= 0.5;
 
-/**
- * Every text the suite carries: item texts, typo clean forms, constraint references.
- * @param {any[]} items
- */
+/** @param {any[]} items */
 export function suiteTexts(items) {
   /** @type {{ id: string, text: string, field: string }[]} */
   const out = [];
@@ -85,5 +77,5 @@ export function suiteTexts(items) {
   return out;
 }
 
-/** The dev query set (open; read for the near-duplicate check only). @returns {{ id: string, text: string }[]} */
+/** @returns {{ id: string, text: string }[]} */
 export const devQueries = () => readJson(join(REPO, 'eval/dev/queries.json')).queries;

@@ -1,8 +1,4 @@
 // @ts-check
-// The pinned upstream snapshot production was built from (release asset
-// PINNED_RELEASE below). Read straight from .data/ and checked against
-// the pinned hash; never via fetchAcadYearFile, which falls back to fetching
-// api.nusmods.com when the file is missing.
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -31,11 +27,7 @@ export function sha256(bytes) {
  * }} PinnedCorpus
  */
 
-/**
- * Loads and normalises the pinned snapshot. Throws if the file is missing or
- * its sha256 is not the pinned one.
- * @returns {Promise<PinnedCorpus>}
- */
+/** @returns {Promise<PinnedCorpus>} */
 export async function loadPinnedCorpus() {
   /** @type {Buffer} */
   let raw;

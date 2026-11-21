@@ -1,16 +1,4 @@
 // @ts-check
-// /search's additive,
-// ranking-neutral fields on the fixture.
-// - `hiddenPins`: every typed offered code (up to 10, not only the 3 pinned)
-//   whose row the filters remove. A code with no row, or a pin skipped because
-//   its duplicate group's member is already shown, is never listed.
-// - `notOffered`: every typed catalogue-only code, from the parse (no read).
-// - `exchangeBySem`: under ng=1 with no sem, each result's status and reasons
-//   for Sem 1 and Sem 2 at the request's study level, from the stored row.
-// - `examDates`: each result's exams, as /module/:code answers them.
-// - `reviews`: each result's review scores from data/reviews.json, null when it has none.
-// The whole-corpus check of exchangeBySem against the oracle is
-// test/oracle/paths.test.js.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
@@ -35,8 +23,6 @@ beforeAll(async () => {
 
 describe('hiddenPins', () => {
   it('lists each typed code the filters remove, in query order, each for its own reason, past the 3 pins', async () => {
-    // ug2, Sem 1: CS3244 is on the NG list for Sem 2 only; CS1010S is not on it. CS1010S is the
-    // 4th offered code, so it is never pinned, and is still reported.
     expect(mod('CS3244')).toMatchObject({ ng: true, ngSemesters: [2] });
     expect(mod('CS1010S')).toMatchObject({ ng: false });
     const { status, body } = await callJson('/search?q=CS1010%20CS3244%20CS2030%20CS1010S&ng=1&study=ug2&sem=1', { fakes });
@@ -58,7 +44,6 @@ describe('hiddenPins', () => {
   });
 
   it('never lists a pin skipped because its group\'s member already shows', async () => {
-    // CS1010 and CS1010S are one duplicate group: CS1010 stands for it, CS1010S is its variant.
     const { body } = await callJson('/search?q=CS1010%20CS1010S', { fakes });
     expect(codes(body)[0]).toBe('CS1010');
     expect(body.results[0].variants.map((/** @type {any} */ v) => v.code)).toContain('CS1010S');
@@ -77,7 +62,6 @@ describe('hiddenPins', () => {
   });
 
   it('follows the filters the pins follow: the constraint intents, not the parse\'s level window', async () => {
-    // exam=0: CS3244 has exams, so it is hidden; PC3270 has none.
     const exam = await callJson('/search?q=CS3244%20PC3270&exam=0', { fakes });
     expect(exam.body.hiddenPins).toEqual(['CS3244']);
     expect(codes(exam.body)[0]).toBe('PC3270');

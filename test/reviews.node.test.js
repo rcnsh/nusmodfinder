@@ -1,6 +1,4 @@
 // @ts-check
-// scripts/reviews.mjs: which comments count and how a course's numbers are made
-// (ADR 0018), and the committed data/reviews.json's shape.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CODE_RE, HALF_LIFE, MODEL, OUT, SCHEMA_ID, aggregate, codeOf, namedYear, postsByCourse, reviewYear } from '../scripts/reviews.mjs';
@@ -81,7 +79,6 @@ describe('aggregate', () => {
       scored({ id: 'dup', overall: 5 }),
       scored({ id: 'q', is_review: false }),
     ], postOf, 26);
-    // AY26 weighs 1, AY20 weighs 0.5^(6/HALF_LIFE) = 0.25: (5 + 0.25) / 1.25 = 4.2.
     expect(HALF_LIFE).toBe(3);
     expect(r).toEqual({ n: 2, latest: 'AY26/27', overall: 4.2, workload: 2, difficulty: null, teaching: null });
   });

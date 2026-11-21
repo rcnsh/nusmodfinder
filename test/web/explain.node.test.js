@@ -1,9 +1,4 @@
 // @ts-check
-// public/explain.js: the sentences the page
-// writes about exchange status. Each exchange note in full (the `semester` one
-// as an action), each hidden typed code with its own stored reasons and their
-// sources, a partial code exchange mode empties, and the typed codes past the
-// three that pin.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -13,15 +8,13 @@ import {
 import { GRO_LEVEL4, levelNote } from '../../src/level-note.js';
 
 const reasonsFile = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/ng-reasons.json', import.meta.url)), 'utf8'));
-/** /facets' `ngSources`, as the Worker serves them (src/ng-reasons.js NG_SOURCES). */
 const SOURCES = reasonsFile.sources;
 /** @param {string} id */
 const reason = (id) => ({ id, kind: reasonsFile.reasons[id].kind, text: reasonsFile.reasons[id].text });
 
 /**
- * A /module `exchange` array for one study level from (status, reason ids) per semester.
  * @param {string} study
- * @param {Record<string, [import('../../public/explain.js').Status, string[]]>} bySem keys 1, 2, any
+ * @param {Record<string, [import('../../public/explain.js').Status, string[]]>} bySem
  * @returns {import('../../public/explain.js').ExchangeEntry[]}
  */
 function exchange(study, bySem) {
@@ -35,7 +28,6 @@ describe('sources and statuses', () => {
     expect(sourceNote('ng-list:not-listed', SOURCES)).toBe('NG list, updated 01 Sep 2026');
     expect(sourceNote('ng-list:nusmods-semester-differs', SOURCES)).toBe('NG list, updated 01 Sep 2026');
     expect(sourceNote('D-grad-levels-closed-exchange', SOURCES)).toBe('NG restrictions, updated 31 Aug 2026');
-    // /facets down: the source still, without a date.
     expect(sourceNote('2-biz-major', null)).toBe('NG restrictions');
     expect(sourceNote('ng-list:not-listed', [])).toBe('NG list');
   });
@@ -115,7 +107,6 @@ describe('hiddenCodeLine (each hidden typed code, with its own stored reasons)',
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['open', []], any: ['open', []] });
     expect(hiddenCodeLine({ code: 'CS3244', sem: '1', study: 'ug2', exchange: ex, sources: SOURCES }))
       .toBe('CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).');
-    // Noted, not only open, in the other semester still counts as open there.
     const noted = exchange('ug2', { 1: ['note', ['1-geog-quota']], 2: ['closed', ['ng-list:not-in-semester']], any: ['note', ['1-geog-quota']] });
     expect(hiddenCodeLine({ code: 'GE2101', sem: '2', study: 'ug2', exchange: noted, sources: SOURCES }))
       .toBe('GE2101 is open to exchange students only in Sem 1 (NG list, updated 01 Sep 2026).');
@@ -152,7 +143,6 @@ describe('hiddenCodeLine (each hidden typed code, with its own stored reasons)',
     const mod = { code: 'X', semesters: [1], level: 2, credits: 4, faculty: 'Computing' };
     expect(filterMisses(mod, { sem: 1, level: 2, credits: 4, faculty: 'Computing' })).toEqual([]);
     expect(filterMisses(mod, { sem: 2, faculty: 'Science' })).toEqual(["it isn't offered in Sem 2", 'it is in Computing']);
-    // In exchange mode the NG list decides the semester, not NUSMods' timetable (src/search.js localMatchesFilters).
     expect(filterMisses({ ...mod, level: 1 }, { sem: 2, ng: true, study: 'ug2', level: 2 })).toEqual(['it is a level 1000 course']);
   });
 });
@@ -160,7 +150,6 @@ describe('hiddenCodeLine (each hidden typed code, with its own stored reasons)',
 describe('boxNotOffered: the typed codes the hidden-codes box lists as not offered', () => {
   it('leaves out the code a whole-query noMatch already names, for not-offered and ng-unscheduled alike', () => {
     expect(boxNotOffered(['EE4407'], { reason: 'not-offered', code: 'EE4407' })).toEqual([]);
-    // Otherwise the page says EE4407 twice, once as "isn't offered this academic year".
     expect(boxNotOffered(['EE4407'], { reason: 'ng-unscheduled', code: 'EE4407' })).toEqual([]);
     expect(boxNotOffered(['EE4438', 'CS1001'], { reason: 'ng-unscheduled', code: 'EE4438' })).toEqual(['CS1001']);
   });
@@ -188,7 +177,6 @@ describe('notOfferedLine and the partial-code empty state', () => {
   it('one semester, the other has results: names the chosen semester (the page adds the button)', () => {
     expect(partialCodeLine({ prefix: 'CS32', sem: '1', study: 'ug2', otherHasResults: true }))
       .toBe('No CS32xx course is open to 2nd-year exchange students in Sem 1.');
-    // Not known yet (the other semester is still being checked): the chosen semester.
     expect(partialCodeLine({ prefix: 'CG32', sem: '2', study: 'ug1', otherHasResults: null }))
       .toBe('No CG32xx course is open to 1st-year exchange students in Sem 2.');
   });
@@ -221,7 +209,6 @@ describe('typed codes past the three that pin (/search says nothing about a 4th 
     expect(unpinnedLine('CS2030 CS3244 CS1010 CS2113', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown })).toBe(RULE);
     expect(unpinnedLine('CS2030 CS3244 CS1010 CS2104 CS2113', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown: new Set(['CS2030', 'CS1010']) }))
       .toBe(`${RULE} CS2104 and CS2113 are not in these results: search for each on its own.`);
-    // A code typed with a space, as /search joins it.
     expect(unpinnedLine('CS1010 CS2030 CS2104 cs 3244', { pinned: ['CS1010', 'CS2030', 'CS2104'], hidden: [], notOffered: [], shown: new Set(['CS1010', 'CS2030', 'CS2104']) }))
       .toBe(`${RULE} CS3244 is not in these results: search for it on its own.`);
   });
@@ -250,7 +237,6 @@ describe('the stamp on a hidden typed code, and its switch', () => {
     expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: closedBoth })).toEqual({ text: 'Not open in Sem 1', switchTo: '' });
     const openIn2 = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange']], 2: ['note', ['2-biz-major']] });
     expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: openIn2 })).toEqual({ text: 'Not open in Sem 1', switchTo: '2' });
-    // Only in the other semester, but closed there too: no switch.
     const onlyOther = exchange('ug2', { 2: ['closed', ['ng-list:not-in-semester']], 1: ['closed', ['D-grad-levels-closed-exchange']] });
     expect(hiddenCodeStamp({ sem: '2', study: 'ug2', exchange: onlyOther })).toEqual({ text: 'Not on the NG list for Sem 2', switchTo: '' });
   });
@@ -302,14 +288,12 @@ describe('the count line for a query of course codes only', () => {
   });
 
   it('a typed code that is not pinned, shown lower as an ordinary match, is not named as if it led the list', () => {
-    // Six typed codes; the first three pin; PF3210 (the 4th) ranked 20th as an ordinary match.
     const results = [r('AR3101'), r('AR4601'), r('AR3223'), ...Array.from({ length: 16 }, (_, i) => r(`XX${1000 + i}`)), r('PF3210')];
     expect(codesCount('AR3101 AR4601 AR3223 PF3210 PF3208 RE4701', results, ['AR3101', 'AR4601', 'AR3223']))
       .toEqual({ count: '20 courses', rest: ' shown: AR3101, AR4601, AR3223, then 17 other matches' });
   });
 
   it('a pinned code is named only if its entry is at the top: a pin the filters hid is not named', () => {
-    // CS3244 pins but the filters hide it (it is in `interpreted.pin`, not in the results); MA1521 ranks 2nd unpinned.
     expect(codesCount('CS2030 CS3244 MA1521', [r('CS2030'), r('MA1521'), r('A')], ['CS2030', 'CS3244', 'MA1521']))
       .toEqual({ count: '3 courses', rest: ' shown: CS2030, MA1521, then 1 other match' });
     expect(codesCount('CS2030 CS3244', [r('A'), r('CS2030')], ['CS3244']))

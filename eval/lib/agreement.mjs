@@ -1,17 +1,7 @@
 // @ts-check
-// Inter-rater agreement for two raters grading the same units 0/1/2 (judge A
-// vs judge B, a human vs a judge). Pure functions; no I/O.
-// - raw agreement: share of units with equal grades;
-// - Cohen's κ, generic weights; quadratic-weighted κ over {0,1,2}; binary κ
-//   at grade ≥ 1 (relevant vs not);
-// - Krippendorff's α with the ordinal metric, two coders, no missing values.
-// A statistic whose chance term is zero (both raters use one and the same
-// category, or every value is one category) is undefined: NaN with
-// `degenerate: true`. Empty input gives NaN.
 
 export const GRADES = [0, 1, 2];
 
-/** Rounding noise can leave −0 (printed "-0.000"); report it as 0. */
 const noNegativeZero = (/** @type {number} */ x) => (Math.abs(x) < 1e-15 ? 0 : x);
 
 /**
@@ -37,8 +27,6 @@ export function rawAgreement(a, b) {
  */
 
 /**
- * Weighted Cohen's κ = 1 − Σ w·O / Σ w·E, with O the observed and E the
- * chance-expected joint proportions.
  * @param {number[]} a
  * @param {number[]} b
  * @param {{ categories: number[], weight: (i: number, j: number) => number }} options
@@ -72,7 +60,6 @@ export function cohenKappa(a, b, { categories, weight }) {
 }
 
 /**
- * Quadratic-weighted κ over grades 0..2: weight (i − j)² / 4.
  * @param {number[]} a
  * @param {number[]} b
  */
@@ -82,7 +69,6 @@ export function quadraticKappa(a, b) {
 }
 
 /**
- * Unweighted κ on relevant (grade ≥ threshold) vs not.
  * @param {number[]} a
  * @param {number[]} b
  * @param {number} [threshold]
@@ -93,13 +79,9 @@ export function binaryKappa(a, b, threshold = 1) {
 }
 
 /**
- * Krippendorff's α, ordinal metric, two coders and no missing values:
- * α = 1 − (n − 1)·Σ o_ck δ²_ck / Σ n_c n_k δ²_ck, with o the coincidence
- * matrix (each unit adds both ordered pairs), n_c its margins, n = Σ n_c and
- * δ²_ck = (Σ_{g=c..k} n_g − (n_c + n_k)/2)².
  * @param {number[]} a
  * @param {number[]} b
- * @param {number[]} [categories] ordered
+ * @param {number[]} [categories]
  * @returns {Statistic}
  */
 export function krippendorffOrdinal(a, b, categories = GRADES) {
@@ -157,10 +139,7 @@ export function agreementBlock(a, b) {
   };
 }
 
-/**
- * Every metric overall and per shape (a unit counts in each of its query's shapes).
- * @param {{ a: number, b: number, shapes?: string[] }[]} units
- */
+/** @param {{ a: number, b: number, shapes?: string[] }[]} units */
 export function agreementReport(units) {
   const shapes = [...new Set(units.flatMap((u) => u.shapes ?? []))].sort();
   const of = (/** @type {typeof units} */ us) => agreementBlock(us.map((u) => u.a), us.map((u) => u.b));

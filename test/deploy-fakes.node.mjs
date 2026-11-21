@@ -1,8 +1,4 @@
 // @ts-check
-// Fakes shared by the deploy tests (deploy, preflight, rollback, d1:restore): a git, gh
-// and wrangler exec answered from a table, GitHub's push runs, and production D1 behind the
-// real D1 REST client (scripts/d1-rest.mjs) with a fake fetch. Nothing here reaches GitHub,
-// Cloudflare or the repo's remote.
 import { CATALOGUE_ROWS_SQL, CATALOGUE_TABLE_SQL, HASHES_SQL, REQUIRED_TRIGGERS } from '../src/admin-hashes.js';
 import { boundTuple, catalogueKey, catalogueRowHash, dataVersion, ROW_COLUMNS, rowHash } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
@@ -10,7 +6,6 @@ import { d1RestClient } from '../scripts/d1-rest.mjs';
 
 export const SHA = '0123456789abcdef0123456789abcdef01234567';
 export const SHORT = '0123456';
-/** The commit the live version's tag names (the back-filled `b0834844`'s). */
 export const LIVE_SHA = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
 export const LIVE_TAG = 'deploy/20261111T235933Z-b0834844';
 export const VERSION = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
@@ -18,12 +13,9 @@ export const PREVIOUS = 'b0834844-f6fd-4bb9-838d-a45927c195fb';
 export const SHIM = '/repo/.data/vectors/vec-production-abc-emb.js';
 export const NOW = new Date('2026-11-12T10:15:30Z');
 export const TAG = 'deploy/20261112T101530Z-9b1c2d3e';
-/** A token the tests look for in every output: it must never appear. */
 export const TOKEN = 'cf-token-NEVER-PRINT-ME-0123456789';
 
 /**
- * A `modules` row as /admin/ingest writes it: every ROW_COLUMNS column and the row_hash of exactly
- * those values (src/rowhash.js), so the guard's recomputation agrees with it.
  * @param {{ code: string, title: string, description: string, textHash: string, credits?: number }} m
  * @returns {Promise<import('../src/rowhash.js').ModuleRow & { row_hash: string }>}
  */
@@ -37,17 +29,15 @@ export async function d1Row({ code, title, description, textHash, credits = 4 })
   return /** @type {any} */ ({ ...Object.fromEntries(ROW_COLUMNS.map((c, i) => [c, tuple[i]])), row_hash: await rowHash(fields) });
 }
 
-/** D1 as runbook step 4 left it, and the production bundle built for it. */
 export const D1_MODULES = Object.freeze([
   await d1Row({ code: 'CS1010S', title: 'Programming Methodology', description: 'd1', textHash: 't1' }),
   await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2' }),
 ]);
 export const DV = await dataVersion(D1_MODULES.map((m) => ({ code: m.code, rowHash: m.row_hash })));
 export const KEY = await rowsKey(D1_MODULES.map((m) => ({ code: m.code, textHash: m.text_hash })));
-/** D1's catalogue_only codes, and the bundled catalogue file built with them. */
 export const CATALOGUE = /** @type {const} */ (['AA0999', 'GEQ1000']);
 export const CATALOGUE_KEY = await catalogueKey([...CATALOGUE]);
-/** The bundled catalogue file, as deploy's `catalogue` dep reads it. @param {readonly string[]} [codes] */
+/** @param {readonly string[]} [codes] */
 export const catalogueOf = (codes = CATALOGUE) => async () => ({ codes: [...codes] });
 
 /** @param {Partial<{ corpus: string, sha256: string, dataVersion: string, rowsKey: string }>} [o] */
@@ -61,8 +51,8 @@ export const bundleOf = (o = {}) => async () => {
 };
 
 /**
- * One GitHub Actions run as `GET /repos/…/actions/runs` lists it.
- * @param {string} name @param {Partial<{ id: number, status: string, conclusion: string | null, head_sha: string, run_number: number }>} [o]
+ * @param {string} name
+ * @param {Partial<{ id: number, status: string, conclusion: string | null, head_sha: string, run_number: number }>} [o]
  */
 export const ghRun = (name, o = {}) => ({
   id: o.id ?? 101, name, event: 'push', head_sha: o.head_sha ?? SHA, head_branch: 'main',
@@ -78,15 +68,10 @@ export const TAG_FETCH = 'git fetch --quiet --force origin +refs/tags/deploy/*:r
 export const TAG_LIST = 'git for-each-ref --format=%(refname:short)%09%(*objectname) refs/tags/deploy refs/tags/rollback';
 export const STATUS_KEY = 'git status --porcelain --untracked-files=all --ignore-submodules=none';
 
-/** `wrangler deployments status --json` with `id` at 100%. @param {string} id */
+/** @param {string} id */
 export const statusJson = (id) => JSON.stringify({ id: 'dep-1', created_on: '2026-11-11T23:59:33Z', versions: [{ version_id: id, percentage: 100 }] });
 
-/**
- * A fake exec answering git, gh and wrangler from a table; records every call. `git tag` and
- * `git push` answer `over.tag` / `over.push` (ok by default); wrangler subcommands answer
- * `over.check`, `over.upload`, `over.status`, `over.promote`, `over.triggers`.
- * @param {Record<string, { code?: number, stdout?: string } | ((args: string[]) => { code?: number, stdout?: string })>} [over]
- */
+/** @param {Record<string, { code?: number, stdout?: string } | ((args: string[]) => { code?: number, stdout?: string })>} [over] */
 export function fakeExec(over = {}) {
   /** @type {Record<string, any>} */
   const table = {
@@ -130,7 +115,6 @@ export function fakeExec(over = {}) {
   return { exec, calls };
 }
 
-/** What 0006+ looks like to schemaStatus (src/admin-hashes.js). */
 export const HEALTHY_SCHEMA = {
   version: '10', fts: "CREATE VIRTUAL TABLE modules_fts USING fts5(code, title, description, content='modules', content_rowid='rowid')",
   trig: 'CREATE TRIGGER modules_fts_update AFTER UPDATE ON modules BEGIN INSERT INTO modules_fts(modules_fts, rowid) VALUES (\'delete\', old.rowid); END',
@@ -138,9 +122,6 @@ export const HEALTHY_SCHEMA = {
 };
 
 /**
- * Production D1 behind the real REST client: a fake fetch answers the schema query and the
- * hashes query from `modules`, catalogue_only from `catalogue` (null: no table), and any SQL in
- * `extra` (by exact text), with `rows_read` in meta.
  * @param {{ modules?: readonly Record<string, unknown>[], rowsRead?: number, extra?: Record<string, Record<string, unknown>[]>,
  *   status?: number, token?: string, catalogue?: readonly string[] | null }} [o]
  */

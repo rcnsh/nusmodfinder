@@ -1,9 +1,4 @@
 // @ts-check
-// scripts/extract-ng.py keeps only the target
-// year's sections. NUS prepends new sections, so an April PDF can hold Sem 1 of the next year above
-// Sem 2 of this one. Run over fake text with --from-text (no pypdf, no real PDF), the extractor
-// drops the other year's section and names it, fails on a published semester with no section,
-// a section with no rows, and a section for a semester the manifest marks unpublished.
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -18,7 +13,11 @@ const Y = DEFAULT_ACAD_YEAR;
 const [A, B] = Y.split('-');
 const [, C] = nextYear(Y).split('-');
 
-/** A section heading as the NG list prints it. @param {number} s @param {string} first @param {string} second */
+/**
+ * @param {number} s
+ * @param {string} first
+ * @param {string} second
+ */
 const heading = (s, first, second) => `For Semester ${s} of AY${first}/${second} (${s === 1 ? 'August' : 'January'} ${s === 1 ? first : second} intake)`;
 
 /** @type {string} */
@@ -26,7 +25,10 @@ let dir;
 beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'vnm-extract-ng-')); });
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
-/** Runs the extractor over `pages` (form-feed separated). @param {string[]} pages @param {string[]} args */
+/**
+ * @param {string[]} pages
+ * @param {string[]} args
+ */
 function run(pages, args) {
   const text = join(dir, 'pages.txt');
   writeFileSync(text, pages.join('\f'));

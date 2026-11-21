@@ -1,15 +1,10 @@
 // @ts-check
-// What a visitor sees on
-// the local stack. The no-JavaScript sentence on the first screen at 390×664; the year line, with
-// its clause for applicants, at 390, 768 and 1024 px in the set-up, results and shortlist views;
-// the footer's restrictions and privacy links; /favicon.ico from assets; and the 404 page and the
-// privacy note under axe in both themes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_ACAD_YEAR } from '../../public/year.js';
 import { axeViolations, settled } from './support.mjs';
 
-/** 'YYYY-YYYY' → 'YYYY/YY'. @param {string} ay */
+/** @param {string} ay */
 const label = (ay) => `${ay.slice(0, 4)}/${ay.slice(7, 9)}`;
 const NEXT = `${Number(DEFAULT_ACAD_YEAR.slice(0, 4)) + 1}-${Number(DEFAULT_ACAD_YEAR.slice(5, 9)) + 1}`;
 const RESTRICTIONS = JSON.parse(readFileSync(new URL(`../../data/ng-sources-${DEFAULT_ACAD_YEAR}.json`, import.meta.url), 'utf8'))

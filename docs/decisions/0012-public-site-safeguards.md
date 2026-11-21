@@ -45,3 +45,32 @@ describing the system as it is.
 - The uptime check costs about 290 requests and 3 neurons a day ([docs/cost.md](../cost.md)).
 - A rate-limited visitor sees a plain sentence and a retry time; traffic spread over many
   addresses is not limited (ADR 0004's rules are what protect the daily neurons).
+
+## In the code
+**Logging**
+- The `search` log line (`src/search.js`) records only whether `faculty` was set, never its
+  value, since it is free text a client controls; the query is cut to `LOGGED_QUERY_CHARS` (100).
+
+**Text a link or another site controls** ([docs/page.md](../page.md) has `quoteUser`'s rules)
+- `quoteUser`/`echoText` (`public/format.js`) collapse a run of quote marks into one apostrophe,
+  since `''` reads as a double quote, so a crafted link can't close the page's quote and add a
+  sentence in the site's voice. `parseState` (`public/state.js`) drops what `/search` would reject
+  (a faculty over 60 characters or holding a hidden character), so a mangled link still shows a
+  page and never becomes a chip.
+- `public/messages.js`'s `cross_site` sentence tells the student to search on this site, not to
+  try again: `/search` refuses a search from another site's page every time.
+
+**The drift check** (`scripts/drift.mjs`, `.github/workflows/drift.yml`)
+- It computes production's data version offline with the function CI uses (`corpusDataVersion`
+  over HEAD's NG files), so a match with `src/data-version.json` means production holds NUSMods'
+  data without reading D1. The workflow reads NUSMods' public API and writes issues, nothing else:
+  no Cloudflare or live-site call, and no secret but the run's own `GITHUB_TOKEN`.
+- NUSMods controls the codes and text the issue quotes, so the check neutralises @mentions, links
+  and raw HTML before writing it, and reads its state only from the last
+  `<!-- vnm-drift:state … -->` marker (`STATE_RE`), so a forged marker placed before the real one is
+  not what the next run reads.
+
+**Tests**
+- Tests over production's current data pin no count that follows NUSMods (the ng-unscheduled
+  entries, the prefix count); such a count changes with every refresh, so they check the data
+  against its builder instead.

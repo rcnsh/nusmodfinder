@@ -1,80 +1,24 @@
 // @ts-check
-// The gate a ranking change must pass. Takes a Comparison from metrics.mjs `compare()` (candidate vs
-// the currently shipped ranker, same queries, same qrels) and a declaration
-// of the change, and returns a verdict with every check that produced it.
-//
-// Per change:
-//   dev     no exact-code regression, and ΔnDCG@10 BCa 95% lower bound > 0, OR (the change declares target
-//           shapes, each target's ΔnDCG@10 > 0, and overall ΔnDCG@10 >= 0).
-//           Tripwire on target shapes only: a target whose one-sided 95% upper
-//           bound on ΔnDCG@10 is below 0 (a confident regression) fails.
-//           A target whose every query moved by exactly 0 passes it.
-//   holdout ΔnDCG@10 >= 0 and ΔP@5 >= 0 (point estimates); no exact-code
-//           regression; judged@10 = 100% for both runs.
-//   cutoff  For a change whose purpose is the no-answer cutoff, the trade-off
-//           rule replaces the Δ rules on both sets: correct-empty gain >= 0.25
-//           and answerable ΔnDCG@10 >= -0.01. Dev applies it as the screen;
-//           holdout governs. Because it is looser than the Δ rules, it is
-//           not taken on the operator's word: `assertTruncation` refuses a
-//           candidate whose result list for any query is neither the
-//           baseline's nor a prefix of it (a cutoff truncates; it never
-//           reorders or adds).
-//   test    On the sealed test set (the final measurement against eval-v0):
-//           BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0; judged@10 = 100%.
-//   no-loss            (dev screen only) ΔnDCG@10 >= 0, point
-//                      estimate, over the primary set less any `exempt` ids.
-//                      Exempt ids leave only that figure: every other check
-//                      (errors, exact-code, query count) is on the full set.
-//   answerable-floor   (dev screen only) ΔnDCG@10 >= -0.01 over the
-//                      primary answerable set.
-//   compliance         (dev screen and holdout, never the test
-//                      set) on constraint-filtered qrels (lib/compliance.mjs):
-//                      ΔnDCG@10 >= 0 and ΔP@5 >= 0 over the primary set's
-//                      scored queries; the constraint block's ΔnDCG@10 >= 0,
-//                      a recorded vacuous pass when it has no scored query;
-//                      compliance 100%; every unparsed query's top 10 equal
-//                      to the baseline's. No new errors, judged@10 and the
-//                      exact-code check read the raw qrels.
-//
-// Every gate fails a candidate with more errored (non-200) queries than its
-// baseline ("no new errors"), and needs at least RULES.minQueries primary
-// answerable queries ("insufficient queries" otherwise). When the verdict
-// rests on a smaller comparison, that comparison has its own floor: a cutoff
-// verdict needs RULES.minNoAnswerQueries no-answer queries, and the dev
-// targeted route needs RULES.minTargetQueries distinct answerable queries
-// across the target shapes (otherwise only the CI route can pass). A CI-based
-// check never passes on a degenerate interval (stats.mjs: one query, or every
-// delta equal), and a target-shape tripwire over fewer than
-// RULES.minShapeQueriesForCi queries falls back to "point estimate >= 0".
 
 import { CutoffError, GateRuleError } from './errors.mjs';
 
-/** Tolerance for "point estimate >= 0" so float summation noise cannot flip a verdict. */
 const EPS = 1e-12;
 
 export const RULES = Object.freeze({
   judgedRequired: 1,
   cutoffMinCorrectEmptyGain: 0.25,
   cutoffMaxNdcgLoss: 0.01,
-  /** answerable-floor: the largest answerable ΔnDCG@10 loss allowed. */
   floorMaxNdcgLoss: 0.01,
-  /** Fewer primary answerable queries than this and no gate can pass. */
   minQueries: 10,
-  /** Fewer no-answer queries than this and a cutoff verdict cannot pass. */
   minNoAnswerQueries: 3,
-  /** Fewer distinct answerable target-shape queries than this and the targeted route cannot pass. */
   minTargetQueries: 3,
-  /** Below this many queries a shape tripwire uses the point estimate, not a CI. */
   minShapeQueriesForCi: 3,
 });
 
-/** Change kinds that screen on dev only: no holdout or test verdict uses them. */
 export const DEV_ONLY_KINDS = Object.freeze(['no-loss', 'answerable-floor']);
-/** Every change kind `--change-kind` takes. */
 export const CHANGE_KINDS = Object.freeze(['general', 'cutoff', 'compliance', ...DEV_ONLY_KINDS]);
 
 /**
- * `exempt` (no-loss only, dev only): ids left out of the no-loss comparison.
  * @typedef {{ kind?: 'general' | 'cutoff' | 'compliance' | 'no-loss' | 'answerable-floor', targetShapes?: string[], exempt?: string[] }} Change
  * @typedef {{ name: string, pass: boolean, detail: string }} Check
  * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[], rule?: string }} Verdict
@@ -94,10 +38,7 @@ function sufficientCheck(cmp) {
   };
 }
 
-/**
- * A CI lower bound above 0, never on a degenerate interval.
- * @param {import('./stats.mjs').Interval} ci
- */
+/** @param {import('./stats.mjs').Interval} ci */
 const lowerAboveZero = (ci) => !ci.degenerate && ci.lower > 0;
 
 /** @param {import('./stats.mjs').Interval} ci */
@@ -156,8 +97,6 @@ function cutoffChecks(cmp) {
 }
 
 /**
- * The dev-only kinds' decisive check. `noLoss` is the comparison without the
- * exempt ids, used for the no-loss ΔnDCG@10 and its n only.
  * @param {Comparison} cmp
  * @param {Change} change
  * @param {Comparison} [noLoss]
@@ -189,16 +128,12 @@ function devKindCheck(cmp, change, noLoss = cmp) {
 const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 'pass' : 'fail', checks });
 
 /**
- * Dev screen for one change. Every check reads `cmp`, the full comparison;
- * `noLoss` (no-loss with `exempt` ids: the comparison without them) feeds the
- * no-loss ΔnDCG@10 alone.
  * @param {Comparison} cmp
  * @param {Change} [change]
  * @param {Comparison} [noLoss]
  * @returns {Verdict}
  */
 export function devGate(cmp, change = {}, noLoss = cmp) {
-  // Exact-code check on dev too: the holdout has a single exact-code query.
   const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
   if (change.kind && DEV_ONLY_KINDS.includes(change.kind)) return verdict('dev', [...checks, devKindCheck(cmp, change, noLoss)]);
@@ -207,7 +142,6 @@ export function devGate(cmp, change = {}, noLoss = cmp) {
   const ndcg = cmp.overall.ndcg;
   const ciPass = lowerAboveZero(ndcg.bca);
   const missing = targets.filter((t) => !cmp.shapes[t]?.ndcg);
-  // Distinct answerable queries across the targets (a query may carry several shapes).
   const targetN = new Set(targets.flatMap((t) => /** @type {any} */ (cmp.shapes[t])?.members ?? [])).size;
   const targetedPass = targets.length > 0 && missing.length === 0
     && targetN >= RULES.minTargetQueries
@@ -226,11 +160,8 @@ export function devGate(cmp, change = {}, noLoss = cmp) {
     if (!s?.ndcg) {
       checks.push({ name, pass: false, detail: 'no answerable queries with this shape' });
     } else if (s.n < RULES.minShapeQueriesForCi) {
-      // Too few queries for an interval: fall back to the point estimate.
       checks.push({ name, pass: s.ndcg.delta >= -EPS, detail: `n ${s.n} < ${RULES.minShapeQueriesForCi}: point estimate ΔnDCG@10 ${f(s.ndcg.delta)} >= 0` });
     } else if (s.ndcg.bca.degenerate && Math.abs(s.ndcg.delta) <= EPS) {
-      // Every query moved by exactly 0 (a degenerate interval at 0): no change
-      // is no regression (ADR 0003).
       checks.push({ name, pass: true, detail: `n ${s.n}: every query's ΔnDCG@10 is 0 (degenerate interval at 0: no change, no regression)` });
     } else {
       /** @type {import('./stats.mjs').Interval} */
@@ -246,8 +177,6 @@ export function devGate(cmp, change = {}, noLoss = cmp) {
 }
 
 /**
- * Holdout verdict for one change. The CLI prints only `verdict` and the
- * overall Δ lines, never `checks` details that name queries.
  * @param {Comparison} cmp
  * @param {Change} [change]
  * @returns {Verdict}
@@ -263,24 +192,18 @@ export function holdoutGate(cmp, change = {}) {
 }
 
 /**
- * What the compliance rule adds to a filtered comparison (lib/compliance.mjs
- * `applyComplianceRule`): the raw-qrels comparison and the counts its own
- * checks read. Counts only, never ids.
  * @typedef {{
  *   raw: Comparison,
  *   block: { n: number, delta: number },
  *   compliance: { queries: number, violations: number },
  *   identity: { queries: number, differing: number },
  *   newErrors: number,
- * }} ComplianceChecks `newErrors`: queries the candidate errors on where the baseline answered 200
+ * }} ComplianceChecks
  */
 
-/** The ledger's rule cell when the constraint block had no scored query. */
 export const VACUOUS_BLOCK_RULE = 'compliance (constraint block vacuous)';
 
 /**
- * The compliance rule, the same on dev and the holdout. `cmp`
- * is the comparison on constraint-filtered qrels.
  * @param {string} set
  * @param {Comparison} cmp
  * @param {ComplianceChecks} c
@@ -307,7 +230,6 @@ export function complianceGate(set, cmp, c) {
 }
 
 /**
- * The sealed test set: the shipped ranker vs eval-v0.
  * @param {Comparison} cmp
  * @returns {Verdict}
  */
@@ -322,11 +244,7 @@ export function testSetGate(cmp) {
 }
 
 /**
- * The rule a verdict applies, as printed and recorded in the ledger:
- * `test-set`, `cutoff`, `no-loss`,
- * `answerable-floor`, `targeted: <shape,...>` or `general`.
- * Shape names are cut to [A-Za-z0-9._-].
- * @param {string} set dev | holdout | test
+ * @param {string} set
  * @param {Change} [change]
  */
 export function ruleOf(set, change = {}) {
@@ -337,9 +255,6 @@ export function ruleOf(set, change = {}) {
 }
 
 /**
- * Throws CutoffError unless, for every query, the candidate's result has the
- * baseline's status and its codes are the baseline's or a prefix of them.
- * The message counts queries and names none.
  * @param {import('./metrics.mjs').RunFile} base
  * @param {import('./metrics.mjs').RunFile} cand
  */
@@ -358,12 +273,10 @@ export function assertTruncation(base, cand) {
 }
 
 /**
- * The gate for a set; the verdict carries the rule it applied (`ruleOf`).
- * @param {string} set dev | holdout | test (anything else is screened as dev)
+ * @param {string} set
  * @param {Comparison} cmp
  * @param {Change} [change]
- * @param {{ noLoss?: Comparison, compliance?: ComplianceChecks }} [options] `noLoss`, the comparison without no-loss's exempt ids (dev only);
- *   `compliance`, the compliance rule's checks (`cmp` is then on filtered qrels)
+ * @param {{ noLoss?: Comparison, compliance?: ComplianceChecks }} [options]
  * @returns {Verdict}
  */
 export function gateFor(set, cmp, change = {}, options = {}) {

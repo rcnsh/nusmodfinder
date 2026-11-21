@@ -1,10 +1,4 @@
 // @ts-check
-// scripts/deploy.mjs: the preflight (test/preflight.node.test.js covers each check), then the
-// guard over D1's REST query endpoint, the upload with the commit as its tag,
-// the startup gate, the intent record (the previous version id), the promote, an annotated
-// `deploy/*` tag pushed before `wrangler triggers deploy`, and one run record on every exit
-// path. git, gh and wrangler are a fake exec, D1 is the real REST client over a fake fetch, the
-// bundle is injected: nothing here deploys, reads D1 or touches the repo's remote.
 import { EventEmitter } from 'node:events';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -18,7 +12,7 @@ import {
   bundleOf, catalogueOf, fakeD1, fakeExec, ghRun, runsBody,
 } from './deploy-fakes.node.mjs';
 
-/** Each test's run records, in a temp dir. @type {string} */
+/** @type {string} */
 let runsDir;
 beforeEach(() => { runsDir = mkdtempSync(join(tmpdir(), 'vnm-deploy-runs-')); });
 afterEach(() => { rmSync(runsDir, { recursive: true, force: true }); });
@@ -56,7 +50,10 @@ async function runDeploy(exec, o = {}) {
 const ranWrangler = (/** @type {string[][]} */ calls) => calls.some((c) => c[0] === 'npx' && c[2] !== 'check');
 const wrangler = (/** @type {string[][]} */ calls) => calls.filter((c) => c[0] === 'npx');
 const promoted = (/** @type {string[][]} */ calls) => calls.some((c) => c[2] === 'versions' && c[3] === 'deploy');
-/** The index of the first call matching. @param {string[][]} calls @param {(c: string[]) => boolean} p */
+/**
+ * @param {string[][]} calls
+ * @param {(c: string[]) => boolean} p
+ */
 const at = (calls, p) => calls.findIndex(p);
 
 describe('npm run deploy', () => {
@@ -126,18 +123,14 @@ describe('npm run deploy', () => {
     expect(code).toBe(0);
     expect(d1Reads).toBe(1);
     expect(wrangler(calls)).toEqual([
-      // One argv entry: wrangler reads a separate `--alias …` as its own (unknown) flag.
       ['npx', 'wrangler', 'check', 'startup', '--outfile', STARTUP_PROFILE, `--args=--alias vectors-bundle:${SHIM}`],
       ['npx', 'wrangler', 'versions', 'upload', '--tag', SHORT, '--message', `${SHORT} feat(search): add Server-Timing`, '--alias', `vectors-bundle:${SHIM}`],
       ['npx', 'wrangler', 'deployments', 'status', '--json'],
       ['npx', 'wrangler', 'versions', 'deploy', `${VERSION}@100%`, '--yes', '--message', `${SHORT} feat(search): add Server-Timing`],
-      // The Custom Domain (ADR 0009): `versions deploy` leaves routes alone.
       ['npx', 'wrangler', 'triggers', 'deploy'],
     ]);
     expect(out).toContain('startup 21 ms');
     expect(out).toContain(`version ${VERSION} (tag ${SHORT}) is live`);
-    // The schema check reads 1 row in the fake, the hashes 6,800.
-    // The schema row, 6,800 module rows, and the catalogue_only table check and codes.
     expect(out).toMatch(new RegExp(`guard: 2 modules, ${6800 + 1 + 1 + CATALOGUE.length} D1 rows read`));
     expect(out).toContain(`previous version ${PREVIOUS}`);
   });
@@ -248,9 +241,7 @@ describe('npm run deploy', () => {
 describe('the guard over the D1 REST query', () => {
   it('refuses when D1 does not hold the bundle\'s texts or the committed data version, or cannot be read', async () => {
     const otherText = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, text_hash: 'old' } : m));
-    // Rows written by ingest, but not the committed ones: only the data version differs.
     const otherRow = [D1_MODULES[0], await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2', credits: 5 })];
-    // A column changed behind its row_hash.
     const behind = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, credits: 99 } : m));
     for (const [d1, msg] of /** @type {const} */ ([
       [() => fakeD1({ modules: otherText }).client, 'rowsKey'],
@@ -316,7 +307,6 @@ describe('the guard over the D1 REST query', () => {
     expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion', 'rowHashes', 'catalogueKey', 'catalogueRows']);
     expect(GUARD_CHECKS.find((c) => c.name === 'dataVersion')?.field).toBe('dataVersion');
     expect(GUARD_CHECKS.find((c) => c.name === 'catalogueKey')?.field).toBe('catalogueKey');
-    // D1 against itself: rollback runs them too, and they add nothing to the tag.
     expect(GUARD_CHECKS.filter((c) => c.integrity).map((c) => [c.name, c.field])).toEqual([['rowHashes', undefined], ['catalogueRows', undefined]]);
     expect(KEY).toMatch(/^[0-9a-f]{64}$/);
   });
@@ -395,10 +385,8 @@ describe('the clean-tree exemption and the run record', () => {
       const r = records().find((x) => !seen.has(JSON.stringify(x)));
       seen.add(JSON.stringify(r));
       expect(r, JSON.stringify(over)).toMatchObject({ script: 'deploy', outcome, exitCode });
-      // A failed upload never learns its version id; every later exit has it.
       if (outcome !== 'refused' && exitCode !== 3) expect(r.versions.versionId).toBe(VERSION);
     }
-    // A throw after the upload.
     const thrown = fakeExec({ promote: () => { throw new Error('wrangler vanished'); } });
     await expect(runDeploy(thrown.exec)).rejects.toThrow('wrangler vanished');
     expect(records().find((x) => !seen.has(JSON.stringify(x)))).toMatchObject({ outcome: 'failed', message: expect.stringContaining('wrangler vanished'), versions: { versionId: VERSION } });

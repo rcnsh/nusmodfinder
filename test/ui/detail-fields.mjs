@@ -1,35 +1,15 @@
 // @ts-check
-// The fields of an open detail, shared by the CI spec
-// (test/ui/detail-fields.spec.js, every fixture code) and the live check
-// (scripts/live-check.mjs, 20 drawn production codes), so both read the page the
-// same way and expect the same things:
-// - the head: the code and title;
-// - the description;
-// - prerequisites and preclusions: the cohort-only line, NUS's text, or "No … listed";
-// - each exam in Singapore time, or "No final exam listed";
-// - the workload, or "Workload not listed" (NUS's raw text when it isn't the 5-number form);
-// - exchange availability per semester: the all-years table outside exchange
-//   mode, a status per year and semester;
-// - the NUSMods link.
-// Expected values come from a normalised module (scripts/lib.mjs's shape: the
-// fixture corpus, or the production modules) through the page's own pure
-// formatters and /module's workload rule; NUS's prerequisite and preclusion
-// texts are compared with the module's (spacing aside, which the page
-// restores); and each year and semester's status is the independent exchange
-// oracle's (test/oracle/oracle.mjs). So a field the page leaves out, or one
-// it fills from the wrong course, is a problem.
 import { examLines, prereqView, workloadText } from '../../public/format.js';
 import { STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
 import { oracleShown } from '../oracle/oracle.mjs';
 
-/** The detail's years of study, in the all-years table's order. */
 export const YEARS = Object.freeze(['1st year', '2nd year', '3rd year', '4th year or later', 'Graduate']);
 const STATUSES = Object.freeze(['open', 'note', 'closed']);
 
 /** @param {unknown} s */
 const squash = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
-/** NUS's text without any spacing, which the page restores (format.js cleanPrereq). @param {unknown} s */
+/** @param {unknown} s */
 const bare = (s) => String(s ?? '').replace(/\s+/g, '');
 
 /**
@@ -37,7 +17,6 @@ const bare = (s) => String(s ?? '').replace(/\s+/g, '');
  *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
  *   exams: string[], workload: string, exchange: { year: string, statuses: string[] }[], nusmods: string,
  * }} DetailExpected
- *   `prereqText`, `preclText`: NUS's text with no whitespace, '' when there is none
  * @typedef {{
  *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
  *   exams: string[], workload: string, exchange: { year: string, statuses: (string | null)[] }[], nusmods: string | null,
@@ -45,7 +24,6 @@ const bare = (s) => String(s ?? '').replace(/\s+/g, '');
  */
 
 /**
- * What the detail must say for a normalised module.
  * @param {any} m
  * @returns {DetailExpected}
  */
@@ -66,9 +44,6 @@ export function detailExpected(m) {
 }
 
 /**
- * Waits for a code's detail to be open and loaded (`?q=CODE&open=CODE`), then
- * reads every detail field from it. Rejects if the entry or the detail never
- * appears, or the detail failed to load.
  * @param {import('@playwright/test').Page} page
  * @param {string} code
  * @param {number} [timeout]
@@ -106,7 +81,6 @@ export async function readDetail(page, code, timeout = 15_000) {
 }
 
 /**
- * Every way the detail falls short of a full detail for this module: [] when it holds.
  * @param {DetailFound} got
  * @param {DetailExpected} want
  * @returns {string[]}

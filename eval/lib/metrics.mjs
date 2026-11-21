@@ -1,40 +1,13 @@
 // @ts-check
-// Retrieval metrics over a run file and a qrels file. Pure functions; no I/O.
-// Rules:
-// - nDCG@10, gain 2^g - 1, log2(rank + 1) discount. Duplicate-group aware:
-//   only the first member of a group to appear in the ranking earns gain, and
-//   the ideal ranking holds one document per group (its best grade). A
-//   returned document breaking the query's hard constraints belongs to no
-//   group for that query (groups ignore level, semester, NG, credits, faculty).
-// - P@5: group-first documents with grade >= 1 in the top 5, divided by 5.
-// - MRR@10: 1 / rank of the first group-first document with grade >= 1.
-// - Unjudged documents count as grade 0; judged@10 coverage is reported.
-// - The no-answer set (ADR 0003): a query is no-answer
-//   iff it is tagged (a NO_ANSWER_TAGS shape, or `noAnswerByRule` for
-//   non-existent codes) AND no judged document has grade >= 1. The judges'
-//   grades are the ground truth; the tag is necessary, not sufficient. A query
-//   with a grade->=1 document is answerable, tagged or not. An untagged query
-//   with none is unscored: in neither set, counted, never in a metric.
-//   Answerable queries with a feature-gap shape are scored in their own block,
-//   not the primary.
-// - No-answer queries score correct-empty (the run returned nothing).
-// - A non-200 response is an error, never a result: it is never correct-empty
-//   and nothing in it is relevant (it scores as an empty ranking that also
-//   fails correct-empty). Every gate fails a candidate with more errors than
-//   its baseline (gate.mjs, "no new errors").
 import { pinnedNgRestrictionsSha256 } from './corpus.mjs';
 import { CorpusMismatchError, QrelsError, RunFileError } from './errors.mjs';
 import { bcaInterval, clusteredInterval, mean, signFlipP } from './stats.mjs';
 
 export const K = 10;
 export const P_K = 5;
-/** Shapes reported as a feature-gap block, outside the primary metric. */
 export const FEATURE_GAP_SHAPES = ['constraint'];
-/** Shapes whose rank-1 hit must not regress (gate rule 3). */
 export const EXACT_CODE_SHAPES = ['code-exact'];
-/** Shapes that put a query in the no-answer set, with `noAnswerByRule`. */
 export const NO_ANSWER_TAGS = ['noanswer', 'code-nonexistent'];
-/** The per-query metrics compared between runs. */
 export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
 
 /**
@@ -56,14 +29,12 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  *   queries?: Record<string, unknown>, config?: Record<string, unknown>,
  *   results: Record<string, QueryRun>, docs: Record<string, DocMeta>,
  *   intents?: Record<string, unknown>,
- * }} RunFile `intents`: each query's `interpreted` echo of the constraint keys, where the runner records it
+ * }} RunFile
  */
 
 /**
- * Errors name a bad grade by its value and position only: never the judgment
- * object (it may carry a judge's rationale), the query id or the code.
  * @param {Judgment | undefined} j
- * @param {string} [where] position, e.g. "query #3, judgment #2"
+ * @param {string} [where]
  */
 export function gradeOf(j, where = 'a judgment') {
   if (j === undefined) return 0;
@@ -78,7 +49,7 @@ export function gradeOf(j, where = 'a judgment') {
 /**
  * @param {Qrels} qrels
  * @param {string} id
- * @param {number} [position] zero-based index of the query in its set, for errors
+ * @param {number} [position]
  * @returns {{ grades: Map<string, number>, groupOf: Map<string, string> }}
  */
 export function qrelsFor(qrels, id, position) {
@@ -87,7 +58,6 @@ export function qrelsFor(qrels, id, position) {
   /** @type {Map<string, number>} */
   const grades = new Map();
   Object.entries(q?.judgments ?? {}).forEach(([code, j], k) => grades.set(code, gradeOf(j, `${at}, judgment #${k + 1}`)));
-  // Overlapping groups join (union-find): a code in two groups links them.
   /** @type {Map<string, string>} */
   const parent = new Map();
   /** @param {string} x @returns {string} */
@@ -109,15 +79,13 @@ export function qrelsFor(qrels, id, position) {
 
 /** @param {number} grade */
 const gain = (grade) => 2 ** grade - 1;
-/** @param {number} i zero-based rank */
+/** @param {number} i */
 const discount = (i) => Math.log2(i + 2);
 
 /**
- * Scores one ranking. `codes` is the run's ranked list (any length; only the
- * top K count).
  * @param {string[]} codes
- * @param {Map<string, number>} grades judged grades; absent = unjudged = 0
- * @param {Map<string, string>} [groupOf] code -> duplicate-group key
+ * @param {Map<string, number>} grades
+ * @param {Map<string, string>} [groupOf]
  * @returns {{ ndcg: number, p5: number, rr: number, dcg: number, idcg: number }}
  */
 export function scoreRanking(codes, grades, groupOf = new Map()) {
@@ -136,7 +104,7 @@ export function scoreRanking(codes, grades, groupOf = new Map()) {
       if (rr === 0) rr = 1 / (i + 1);
     }
   });
-  /** @type {Map<string, number>} best grade per group */
+  /** @type {Map<string, number>} */
   const best = new Map();
   for (const [code, grade] of grades) best.set(key(code), Math.max(best.get(key(code)) ?? 0, grade));
   const ideal = [...best.values()].sort((a, b) => b - a).slice(0, K);
@@ -147,15 +115,11 @@ export function scoreRanking(codes, grades, groupOf = new Map()) {
 /** @param {unknown} v */
 const truthy = (v) => v === true || v === 1 || v === '1' || v === 'true';
 
-/** How a semester number reads to a person. */
 export const SEMESTER_NAMES = /** @type {Record<number, string>} */ ({ 1: 'semester 1', 2: 'semester 2', 3: 'special term I', 4: 'special term II' });
 /** @param {number} sem */
 export const semesterName = (sem) => SEMESTER_NAMES[sem] ?? `semester ${sem}`;
 
 /**
- * The first hard constraint a document breaks, in words, or null. Semester
- * means offered that semester; NG + semester means NG in that semester (an
- * exchange student can take an NG module only in its NG semesters).
  * @param {DocMeta | undefined} doc
  * @param {Constraints} c
  * @returns {string | null}
@@ -178,16 +142,10 @@ export function violationReason(doc, c) {
   return null;
 }
 
-/**
- * Is the query tagged no-answer (a NO_ANSWER_TAGS shape, or `noAnswerByRule`)?
- * Necessary for the no-answer set, not sufficient: see `scoredSet`.
- * @param {Pick<EvalQuery, 'shapes' | 'noAnswerByRule'>} q
- */
+/** @param {Pick<EvalQuery, 'shapes' | 'noAnswerByRule'>} q */
 export const isTaggedNoAnswer = (q) => q.noAnswerByRule === true || (q.shapes ?? []).some((t) => NO_ANSWER_TAGS.includes(t));
 
 /**
- * Which set a query is scored in: `answerable` (some grade >= 1, tagged or
- * not), `noAnswer` (tagged, no grade >= 1) or `unscored` (untagged, no grade >= 1).
  * @param {EvalQuery} q
  * @param {Map<string, number>} grades
  */
@@ -198,9 +156,6 @@ export function scoredSet(q, grades) {
 }
 
 /**
- * The primary answerable queries of a set (some grade >= 1, no feature-gap
- * shape), from its queries and qrels alone: what `eval:count --answerable`
- * prints.
  * @param {EvalQuery[]} queries
  * @param {Qrels} qrels
  */
@@ -210,7 +165,6 @@ export function answerableCount(queries, qrels) {
 }
 
 /**
- * Does a returned document break the query's hard constraints?
  * @param {DocMeta | undefined} doc
  * @param {Constraints} c
  */
@@ -219,9 +173,6 @@ export function violates(doc, c) {
 }
 
 /**
- * `empty` is a correct empty answer (status 200, no codes); `error` is any
- * non-200 response. Exactly one of `noAnswer`, `answerable` and `unscored`
- * holds.
  * @typedef {{
  *   id: string, shapes: string[], persona: string, answerable: boolean, noAnswer: boolean, unscored: boolean, featureGap: boolean,
  *   ndcg: number, p5: number, rr: number, empty: boolean, error: boolean, status: number,
@@ -230,14 +181,9 @@ export function violates(doc, c) {
  */
 
 /**
- * Throws unless every run used the corpus the qrels were judged on: the
- * same moduleInfo sha256, and the same NG list and restrictions sha256s when
- * the qrels record them. A run on the pinned corpus records the
- * sha256 of the restrictions it was normalised with, which must be the eval's
- * pinned copy (eval/pinned/, ADR 0003); older run files record none.
  * @param {Qrels} qrels
  * @param {RunFile[]} runs
- * @param {{ pinnedRestrictionsSha256?: string }} [o] defaults to the eval/pinned/ copy's
+ * @param {{ pinnedRestrictionsSha256?: string }} [o]
  */
 export function assertSameCorpus(qrels, runs, o = {}) {
   const want = /** @type {CorpusIds} */ (qrels.corpus ?? {});
@@ -263,7 +209,6 @@ export function assertSameCorpus(qrels, runs, o = {}) {
 }
 
 /**
- * Scores every query of a run.
  * @param {RunFile} run
  * @param {EvalQuery[]} queries
  * @param {Qrels} qrels
@@ -279,9 +224,6 @@ export function scoreRun(run, queries, qrels) {
     const top = codes.slice(0, K);
     const shapes = q.shapes ?? [];
     const constraints = q.constraints ?? q.filters ?? {};
-    // Groups ignore hard-constraint fields (level, semesters, NG, credits,
-    // faculty), so a returned member breaking this query's constraints (graded
-    // 0 by rule) is no duplicate here: it must not take its siblings' slot.
     for (const c of top) if (violates(run.docs[c], constraints)) groupOf.delete(c);
     const s = scoreRanking(codes, grades, groupOf);
     return {
@@ -317,10 +259,7 @@ function block(scores) {
   };
 }
 
-/**
- * Aggregate metrics for one run.
- * @param {QueryScore[]} scores
- */
+/** @param {QueryScore[]} scores */
 export function summarise(scores) {
   const primary = scores.filter((s) => s.answerable && !s.featureGap);
   const gap = scores.filter((s) => s.answerable && s.featureGap);
@@ -338,7 +277,6 @@ export function summarise(scores) {
       falsePositives: noAnswer.filter((s) => !s.empty && !s.error).length,
       errors: noAnswer.filter((s) => s.error).length,
     },
-    /** Untagged queries with no grade-≥1 document: a count (ids: `unscoredIds`, dev only). */
     unscored: scores.filter((s) => s.unscored).length,
     violationsAt10: { total: violations, perQuery: scores.length ? violations / scores.length : NaN },
     judgedAt10: { judged, top, coverage: top === 0 ? 1 : judged / top },
@@ -346,17 +284,10 @@ export function summarise(scores) {
   };
 }
 
-/**
- * The unscored queries' ids. Dev only: holdout and test reports give the
- * count alone.
- * @param {QueryScore[]} scores
- */
+/** @param {QueryScore[]} scores */
 export const unscoredIds = (scores) => scores.filter((s) => s.unscored).map((s) => s.id);
 
-/**
- * Per-shape blocks (dev only; the holdout CLI never calls this).
- * @param {QueryScore[]} scores
- */
+/** @param {QueryScore[]} scores */
 export function byShape(scores) {
   const shapes = [...new Set(scores.flatMap((s) => s.shapes))].sort();
   return Object.fromEntries(shapes.map((shape) => {
@@ -374,8 +305,6 @@ export function byShape(scores) {
 }
 
 /**
- * Paired comparison of a candidate against a baseline over the same queries
- * and qrels. Deltas are candidate - baseline on the primary answerable set.
  * @param {QueryScore[]} base
  * @param {QueryScore[]} cand
  * @param {{ resamples?: number, seed?: number }} [options]
@@ -416,22 +345,13 @@ export function compare(base, cand, options = {}) {
       cand: rate(noAnswer.map(({ c }) => c)),
       delta: rate(noAnswer.map(({ c }) => c)) - rate(noAnswer.map(({ b }) => b)),
     },
-    /** Untagged queries with no grade-≥1 document, in neither set: a count, never ids. */
     unscored: { n: base.filter((s) => s.unscored).length },
-    /**
-     * One-sided 95% bounds per shape come from a two-sided 90% interval.
-     * `members`: positions (in the baseline's query order, never ids) of the
-     * shape's answerable queries, so a gate can count distinct queries across shapes.
-     */
     shapes: /** @type {Record<string, { n: number, members: number[] } & Partial<ReturnType<typeof stats>>>} */ (Object.fromEntries(shapes.map((shape) => {
       const members = pairs.flatMap(({ b }, i) => (b.answerable && b.shapes.includes(shape) ? [i] : []));
       const ps = members.map((i) => pairs[i]);
       return [shape, { n: ps.length, members, ...(ps.length ? stats(ps, { alpha: 0.1 }) : {}) }];
     }))),
     exactCodeRegressions: pairs
-      // A regression is a worse rank-1 hit (lower grade, or none), not any
-      // change: a variant replaced by the exact course, or a swap between
-      // equally graded cross-listings, is not one.
       .filter(({ b }) => b.shapes.some((t) => EXACT_CODE_SHAPES.includes(t)) && b.top1 !== null && b.top1Grade >= 1)
       .filter(({ b, c }) => c.top1Grade < b.top1Grade)
       .map(({ b }) => b.id),
@@ -439,7 +359,6 @@ export function compare(base, cand, options = {}) {
       base: summarise(base).judgedAt10.coverage,
       cand: summarise(cand).judgedAt10.coverage,
     },
-    /** Non-200 responses over every query of each run. */
     errors: {
       base: base.filter((s) => s.error).length,
       cand: cand.filter((s) => s.error).length,

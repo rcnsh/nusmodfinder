@@ -1,36 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:count`: custodian-only counts on an encrypted set. A count
-// answers one question about the hidden set without a verdict, so it is not a
-// look. It prints one integer and nothing else:
-//
-//   npm run eval:count -- --custodian --set test --answerable
-//       the sealed test set's primary answerable queries
-//   npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
-//       holdout queries not tagged no-answer that the stored run returns
-//       empty (status 200, no codes): the no-signal cutoff's custodian count
-//   npm run eval:count -- --custodian --holdout --lists-differing --run <A> --baseline <B>
-//       holdout queries whose stored lists differ between runs A and B (status,
-//       or the codes in order); both made on these queries with the same
-//       settings: the identity check that moves the shipped-ranker pin without
-//       a look
-//   npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <A> --baseline <B>
-//       the same, comparing each list's status and its sequence of group keys
-//       (groups-v1, eval/groups.json): a change of which member stands for a
-//       group is not counted, a change of which groups show or their order is
-//       (the representative-only route, ADR 0003)
-//   … --route <route>
-//       names the ADR 0003 no-look route the count is taken for
-//       (representative-only, answerable-floor, group-first or gated-without-a-look), written into
-//       the row's route column; a ranking-lock change cites the row (eval:lock -- --evidence
-//       no-look <row>). Without it the route cell is "—".
-//
-// Every call appends a row (date, set, kind, run, count, route) to the set's count
-// log (eval/count-log.md; the self-test set's beside its own ledger). The
-// ledger never reads the count log and refuses a row copied from it, so a
-// count prints no verdict and is not a look (ADR 0003).
-// Any option outside the ones above is refused, so no flag can make it print
-// ids or metrics; any failure after the checks prints only the error class.
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -119,8 +88,6 @@ async function counted() {
   const run = await stored(/** @type {string} */ (a.run));
   if (a['lists-differing']) {
     const base = await stored(/** @type {string} */ (a.baseline));
-    // Lists compare only under the same settings: a filtered run against an
-    // unfiltered one, or hybrid against lexical, would count the settings.
     if (JSON.stringify(run.config) !== JSON.stringify(base.config)) throw new RunFileError('the two runs were made with different settings');
     if (JSON.stringify(/** @type {any} */ (run.corpus)?.moduleInfoSha256) !== JSON.stringify(/** @type {any} */ (base.corpus)?.moduleInfoSha256)) {
       throw new RunFileError('the two runs were made on different corpora');
@@ -128,7 +95,6 @@ async function counted() {
     /** @type {(codes: string[]) => unknown} */
     let seq = (codes) => codes;
     if (a['by-group']) {
-      // The eval's groups-v1, built from the corpus both runs were made on.
       const groups = await loadGroups();
       if (groups.corpus.moduleInfoSha256 !== /** @type {any} */ (run.corpus)?.moduleInfoSha256) throw new CorpusMismatchError('eval/groups.json was built from another corpus than the runs');
       const index = groupIndex(groups.groups);
@@ -144,8 +110,6 @@ async function counted() {
     });
     return n;
   }
-  // Every query outside the no-answer set counts: a tagged query with a grade-≥1 document is
-  // answerable, so emptying it is a loss too (ADR 0003, 2026-11-06).
   const qrels = await loadQrels(set, verify);
   let n = 0;
   querySet.queries.forEach((q, i) => {

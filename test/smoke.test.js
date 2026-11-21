@@ -1,6 +1,4 @@
 // @ts-check
-// Smoke tests: prove the harness drives the real Worker (src/index.js) end to
-// end over the fixture corpus. Behaviour checks live in their own files.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createFakes } from './fakes.js';
 import { adminCall, call, callJson, fixture, seed } from './helpers.js';
@@ -28,7 +26,6 @@ describe('/search', () => {
     expect(body.mode).toBe('lexical');
     expect(body.retrieval.vector).toBe(0);
     expect(body.results.length).toBeGreaterThan(0);
-    // CS1010S may stand in its duplicate group's variants.
     expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
     expect(fakes.ai.calls).toHaveLength(0);
     expect(fakes.vectorize.calls).toHaveLength(0);
@@ -103,7 +100,6 @@ describe('/module/:code', () => {
     expect(Object.keys(body)).toEqual(['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
       'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'ng_allow', 'exchange',
       'examDates', 'nusmodsUrl', 'prereqCohortOnly', 'gradingBasis', 'otherCodes']);
-    // Off the NG list: closed for every semester and study level, saying so.
     expect(body.exchange).toHaveLength(15);
     for (const e of body.exchange) {
       expect(e).toMatchObject({ status: 'closed', reasons: [{ id: 'ng-list:not-listed', kind: 'closed' }] });
@@ -116,7 +112,6 @@ describe('/facets', () => {
     const { body } = await callJson('/facets');
     expect(Object.keys(body).slice(-2)).toEqual(['ngSources', 'offListRules']);
     expect(body.offListRules.map((/** @type {{ id: string }} */ r) => r.id)).toEqual(['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal']);
-    // The page finds rule E by its overlay role, not by an id a new year may rename.
     for (const r of body.offListRules) {
       expect(Object.keys(r), r.id).toEqual(r.id === 'E-offerings-list' ? ['id', 'text', 'scope', 'role'] : ['id', 'text', 'scope']);
       expect(r.text, r.id).toMatch(/\S{3}/);
@@ -127,7 +122,6 @@ describe('/facets', () => {
   it('falls back to live aggregates when no precomputed row exists (no NG date before an ingest records one)', async () => {
     const { status, headers, body } = await callJson('/facets');
     expect(status).toBe(200);
-    // The precomputed path sets a cache-control header; the fallback does not.
     expect(headers.get('cache-control')).toBeNull();
     const faculties = new Set(fixture.modules.map((m) => m.faculty));
     expect(body.faculties).toHaveLength(faculties.size);

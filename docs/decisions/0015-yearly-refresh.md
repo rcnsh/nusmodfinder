@@ -39,3 +39,40 @@ publishes its Sem 1 exchange list before NUSMods' data settles and its Sem 2 lis
 - Two years at once would double the vectors bundle and the standby's stored dimensions, so the
   site serves one.
 - A mid-year revision of any NUS source follows the same steps for the changed sections.
+
+## In the code
+- **One selector.** `test/oracle/oracle.mjs` is the only file that imports a dated oracle
+  (`oracle-<year>.node.mjs`), and it refuses a missing or stub one, so a new year can't be tested
+  against last year's readings through an import nobody updated.
+- **The year scan.** `test/year-scan.node.test.js` scans `src/`, `public/`, `scripts/` and the
+  tests that read production or pinned data, which must load their NG files by the corpus's year.
+  Fixture-year tests aren't scanned, and per-year files (the overlay, the oracle) hold their year
+  by design.
+- **`ngUnpublished` appears only when a semester is unpublished.** `offeredModules`
+  (`scripts/lib.mjs`) and `unscheduledFile` (`scripts/build-ng-unscheduled.mjs`) both omit it
+  otherwise, so in a fully published year the committed fixtures and `data/ng-unscheduled.json`
+  don't change. The two must agree: an empty array in one makes the files differ.
+- **Rule ids carry over by quote.** `scripts/transcription-diff.mjs` maps a new year's rule ids to
+  last year's by the quoted sentence, not by id, so the overlay (keyed by id) carries over and only
+  real changes reach the register: two independent transcriptions of one year named the same rules
+  differently.
+- **Quote matching** (`scripts/ng-sources.mjs` `normaliseQuote`, `quoteIn`, `unescapeJs`) folds
+  typographic quotes and apostrophes to plain ones and every run of white space to one space, keeps
+  case, reads `…` as words left out (each part in order), and matches a code file's quote after
+  undoing JS string escapes. NUS's page writes `'` as `’` in places and a PDF breaks lines where the
+  page doesn't, so a stricter match fails on true quotes. `year check --full` looks for a PDF quote
+  in the archived `pdftotext -layout` text, then in reading-order text (`pdftotextReadingOrder`, no
+  `-layout`), because `-layout` sets columns side by side and interleaves a sentence that wraps
+  inside one column with its neighbour.
+- **`yearCheckFull`** (`scripts/year.mjs`) requires every file the rebuild reads to be committed
+  (the transcription, `build-ng-restrictions.mjs`, `ng-sources.mjs`, `extract-ng.py`), not only the
+  hashed source inputs, so a hand-edited rules file can't pass against an uncommitted builder. It
+  re-extracts the NG list from the archived PDF too, so a hand edit to the list can't get an ok
+  record past the preflight's record rule, and refuses up front, naming `NG_VENV_SETUP`, when
+  `.venv/bin/python` can't import pypdf. While a semester is unpublished it also re-extracts last
+  year's list from last year's archive, since that semester is served from it.
+- **The rehearsal** (`scripts/rollover.mjs`) excludes `test/oracle/catalogue.test.js` from its
+  oracle run: that test checks codes production gained since the pin, and the relabelled pinned
+  corpus has none by construction. It rebuilds the production bundle after the switch, because the
+  rules' answers change, so the data version and the per-corpus files change as a real revision's
+  would.

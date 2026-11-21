@@ -1,9 +1,4 @@
 // @ts-check
-// The query parse in /search
-// on the fixture corpus and the fixture bundle: pins, whole-query masks
-// (partial codes, bare prefixes, XX N000, GE) by exact dense score and in code
-// order without the dense half, the third RRF list, the GE pre-retrieval mask
-// on both halves, noMatch, `interpreted` on every response, and `ignore`.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { denseBundle } from '../src/dense.js';
 import { decodeFilterRow, exactSearch } from '../src/vector-bundle.js';
@@ -21,29 +16,30 @@ const codes = (/** @type {any} */ body) => body.results.map((/** @type {{ code: 
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
 const fixtureCodes = fixture.modules.map((m) => m.code).sort(byCode);
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
-/** Fixture members of a partial code's range [P(+0), P:). @param {string} p */
+/** @param {string} p */
 const members = (p) => fixtureCodes.filter((c) => c >= (/\d$/.test(p) ? p : `${p}0`) && c < `${p}:`);
 const pillarMembers = fixtureCodes.filter((c) => PILLARS.includes(letters(c)));
-/** The exact dense order of `q` over the rows the constraints admit. @param {string} q @param {any} constraints @param {number} depth */
+/**
+ * @param {string} q
+ * @param {any} constraints
+ * @param {number} depth
+ */
 const denseOrder = (q, constraints, depth) => exactSearch(denseBundle(), hashEmbed(q), constraints, depth).map((h) => h.code);
 
-// One result per duplicate group (groups-v1), the others as its variants.
 const groupOf = parseGroupsFile(/** @type {any} */ (groupsFile));
 const gkey = (/** @type {string} */ c) => groupOf.get(c) ?? c;
-/** The group-first projection of a ranked list. @param {string[]} list */
+/** @param {string[]} list */
 const project = (list) => { const seen = new Set(); return list.filter((c) => (seen.has(gkey(c)) ? false : (seen.add(gkey(c)), true))); };
-/** The groups a list covers. @param {string[]} list */
+/** @param {string[]} list */
 const groupSet = (list) => new Set(list.map(gkey));
-/** Result codes and their variants. @returns {string[]} */
+/** @returns {string[]} */
 const shown = (/** @type {any} */ body) => [...codes(body), ...body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code))];
-/** The mask path's depth with the collapse on (topK × 3, src/search.js). */
 const MASK_DEPTH = 150;
 
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
 beforeAll(async () => {
   fakes = await seed();
-  // The catalogue-only text a not-offered response names and embeds.
   const res = await adminCall('/admin/catalogue', fakes, {
     upsert: [{ code: 'GEQ1000', title: 'Asking Questions', description: 'How to ask good questions about the world.', acadYear: fixture.modules[0].acadYear }],
   });
@@ -115,7 +111,6 @@ describe('whole-query masks', () => {
     expect(codes(fallback.body)).toEqual(project(members('CS2')));
     const flip = await callJson('/search?q=cs2&topK=50', { fakes, env: STANDBY });
     expect(codes(flip.body)).toEqual(project(members('CS2')));
-    // topK cuts the code order too.
     expect(codes((await callJson('/search?q=cs&topK=5&mode=lexical', { fakes })).body)).toEqual(project(members('CS')).slice(0, 5));
   });
 
@@ -127,7 +122,6 @@ describe('whole-query masks', () => {
     expect(groupSet(codes(body))).toEqual(groupSet(want));
     const lexical = await callJson('/search?q=cs%203000&topK=50&mode=lexical', { fakes });
     expect(codes(lexical.body)).toEqual(project(want));
-    // ignore=level drops the level, keeps the route.
     const all = await callJson('/search?q=cs%203000&topK=50&ignore=level', { fakes });
     expect(all.body.interpreted.level).toBeNull();
     expect(groupSet(codes(all.body))).toEqual(groupSet(members('CS')));
@@ -152,7 +146,6 @@ describe('whole-query masks', () => {
 
 describe('a code token inside a longer query: the third RRF list', () => {
   it('adds the prefix members by exact dense score, weight 1', async () => {
-    // No lexical match, so the fusion is the dense list and the third list: rank 1 of each ties at 1/61.
     const q = 'cs3 zzqxv';
     const { body } = await callJson(`/search?q=${encodeURIComponent(q)}`, { fakes });
     expect(body.interpreted.prefix).toBe('CS3');
@@ -160,7 +153,6 @@ describe('a code token inside a longer query: the third RRF list', () => {
     const first = denseOrder(q, { ranges: [['CS3', 'CS3:']] }, 1)[0];
     expect(codes(body).slice(0, 2)).toContain(first);
     for (const c of members('CS3')) expect(codes(body).slice(0, 6), c).toContain(c);
-    // In mode=lexical the third list is in code order, fused with the (empty) lexical list.
     const lexical = await callJson(`/search?q=${encodeURIComponent(q)}&mode=lexical`, { fakes });
     expect(codes(lexical.body)).toEqual(members('CS3'));
   });
@@ -285,7 +277,6 @@ describe('parse edge cases', () => {
         expect(body.results[0], `${mode} ${code}`).toMatchObject({ code, title: `New module ${code}` });
       }
     }
-    // A code neither the bundle nor D1 holds is still unknown, after one D1 read.
     const { body } = await callJson('/search?q=cs9997', { fakes: f });
     expect(body.noMatch).toEqual({ reason: 'unknown-code', code: 'CS9997' });
     await env.DB.prepare("DELETE FROM modules WHERE code IN ('CS9998', 'GEQ1000')").run();

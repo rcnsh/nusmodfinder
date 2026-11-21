@@ -1,9 +1,4 @@
 // @ts-check
-// The first screen: the page opens on the search, asking who is searching. An
-// NUS student types what to study and searches every course; an exchange
-// student also answers the exchange set-up (the semester at NUS, the year of
-// study). "Browse all courses instead" is the way out. A link with any state
-// skips it.
 import { expect, test } from '@playwright/test';
 import { EMPTY, query, searches, pill } from './support.mjs';
 
@@ -82,7 +77,6 @@ test('answered, it searches in exchange mode: the URL holds the set-up, and the 
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students']);
   await expect(page.locator('#ng')).toBeChecked();
   await expect(pill(page, 'study', 'ug2')).toBeChecked();
-  // Back goes to the empty search, not the set-up again: the student has left it.
   await page.goBack();
   await expect(page.locator('#status')).toHaveText(EMPTY);
   await expect(page.locator('#setup')).toBeHidden();

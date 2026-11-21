@@ -1,27 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
-// WCAG AA contrast for the page's colours: every text/background
-// pair and every UI-boundary pair public/styles.css uses, in both themes,
-// read from the stylesheet's own tokens (the light :root and the dark one under
-// prefers-color-scheme), so a token change is checked where it is made.
-//
-//   npm run contrast        prints each pair; exits 1 if any fails
-//
-// test/web/contrast.node.test.js runs the same check in `npm test`. Text needs
-// 4.5:1; large text and UI boundaries (control edges, focus rings, status
-// shapes, rules that carry meaning) need 3:1. Decorative hairlines (--rule)
-// and the dialog backdrop carry no meaning and are not checked.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const CSS = fileURLToPath(new URL('../public/styles.css', import.meta.url));
 
-/**
- * Every pair: [foreground token, background token, minimum, where the page uses it].
- * @type {readonly [string, string, number, string][]}
- */
+/** @type {readonly [string, string, number, string][]} */
 export const PAIRS = Object.freeze([
-  // Text, 4.5:1.
   ['ink', 'ground', 4.5, 'body text, titles, codes, exam times'],
   ['ink', 'surface', 4.5, 'inputs, the open sheet, the hidden-codes box, chips'],
   ['ink', 'panel', 4.5, 'notes, sources, NUS\'s quoted text'],
@@ -41,7 +26,6 @@ export const PAIRS = Object.freeze([
   ['note', 'note-tint', 4.5, '"Open, with notes" stamp text'],
   ['hide', 'hide-tint', 4.5, '"Not open" stamp text'],
   ['hide', 'ground', 4.5, 'the set-up\'s "choose" message'],
-  // UI boundaries and meaningful shapes, 3:1.
   ['edge', 'ground', 3, 'control edges: inputs, selects, chips, buttons, tiles'],
   ['edge', 'surface', 3, 'control edges on white, the sheet\'s edge'],
   ['edge', 'panel', 3, 'anything outlined inside a panel'],
@@ -60,7 +44,6 @@ export const PAIRS = Object.freeze([
 ]);
 
 /**
- * The custom properties of the first `:root { … }` block in `css`.
  * @param {string} css
  * @returns {Record<string, string>}
  */
@@ -69,11 +52,7 @@ function tokens(css) {
   return Object.fromEntries([...body.matchAll(/--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\b/g)].map((m) => [m[1], m[2]]));
 }
 
-/**
- * The light and the dark tokens of a stylesheet: the top-level :root, and the
- * :root inside `@media (prefers-color-scheme: dark)` laid over it.
- * @param {string} css
- */
+/** @param {string} css */
 export function themes(css) {
   const light = tokens(css);
   const at = css.indexOf('@media (prefers-color-scheme: dark)');
@@ -89,15 +68,17 @@ function luminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/** WCAG 2 contrast ratio. @param {string} a @param {string} b */
+/**
+ * @param {string} a
+ * @param {string} b
+ */
 export function ratio(a, b) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 }
 
 /**
- * Every pair in every theme.
- * @param {string} [css] the stylesheet's text
+ * @param {string} [css]
  * @returns {{ theme: string, fg: string, bg: string, fgHex: string, bgHex: string, min: number, ratio: number, ok: boolean, use: string }[]}
  */
 export function check(css = readFileSync(CSS, 'utf8')) {

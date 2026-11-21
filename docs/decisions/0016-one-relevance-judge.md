@@ -30,3 +30,24 @@ every dev item of the first round, with exact agreement on 80 of 80 planted repe
   cross-family check lowers that risk but doesn't remove it, and no human has graded a pair.
 - The tooling still supports two-judge rounds (`agree`, `adjudicate`, `drop-judge`), unused by the
   current protocol.
+
+## In the code
+- **Two-judge rounds stay sound** (`eval/judge.mjs`). Once adjudication starts, `collect` and
+  `drop-judge` refuse: the adjudication was built from the grades as they stood, and a re-graded
+  pair could leave a disagreement unadjudicated. Adjudication pass 1 closes once the pass-2
+  packets, which show both judges' grades, exist. `buildRound` in `eval/lib/judging.mjs` gives
+  judge A the same batches for a seed whatever the judge count, so `dropJudge` turns a two-judge
+  round into a single-judge one without touching A's items or grades.
+- **`merge --no-base` refuses to overwrite** existing qrels without `--force`, so starting over
+  never silently drops earlier rounds' judgments or reuses their version.
+- **Nothing a judge sees or writes can leak holdout words.** `renderJudgePacket` puts no query
+  id, shape, persona, system, rank or score in a packet. `validateSectionOutput` names item ids
+  and value types only and reports bad JSON as "not valid JSON", never the parser's message
+  (which quotes the text); `safeKey` prints a key only when it has the item-id form.
+- **`qrelsUnder` refuses a judge slot the qrels hold no grades from** (B in single-judge qrels)
+  instead of falling back to the final grade, so a calibration report never shows A's grades
+  under B's name as agreement.
+- **`test/eval/agreement.node.test.js` pins each statistic** of `eval/lib/agreement.mjs`
+  (quadratic and binary κ, Cohen κ, Krippendorff ordinal α) to an exact fraction worked by hand
+  from the EX1 ratings and checked by an independent fractions-only script. Regenerating an
+  expected value from the code's output makes the test circular.

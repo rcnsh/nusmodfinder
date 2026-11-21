@@ -1,14 +1,4 @@
 // @ts-check
-// The corpus a run seeds. Either a set's own committed corpus (the fixture
-// set's corpus.json) or the pinned snapshot (release data-2026-2027-20260904,
-// sha-checked, never fetched upstream) normalised by the *ranker's*
-// scripts/lib.mjs, because the embedding text is part of the ranker.
-//
-// The pinned NG files (ADR 0003): the pinned snapshot is normalised with byte-identical copies of its year's NG list and
-// restrictions from eval/pinned/, passed into the ranker's offeredModules,
-// never the live data/ files the ranker's loadNgCourses reads. A Registrar
-// revision of the live files then moves neither the eval nor the ranking lock.
-// The run records both sha256s; the report checks both (eval/lib/metrics.mjs).
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { copyFile, mkdir, readFile } from 'node:fs/promises';
@@ -17,19 +7,16 @@ import { pathToFileURL } from 'node:url';
 import { MODULE_INFO_PATH, PINNED_ACAD_YEAR, PINNED_MODULE_INFO_SHA256, PINNED_RELEASE, sha256 } from '../../scripts/pinned-corpus.mjs';
 import { REPO } from './sets.mjs';
 
-/** The eval's NG files for the pinned year, repo-relative (inputs of the ranking lock). */
 export const PINNED_NG_FILES = Object.freeze({
   courses: `eval/pinned/ng-courses-${PINNED_ACAD_YEAR}.json`,
   restrictions: `eval/pinned/ng-restrictions-${PINNED_ACAD_YEAR}.json`,
 });
 
-/** The sha256 of the pinned restrictions copy, what a pinned run must record. */
 export function pinnedNgRestrictionsSha256() {
   return sha256(readFileSync(join(REPO, PINNED_NG_FILES.restrictions)));
 }
 
 /**
- * The pinned NG list and restrictions, in the shape scripts/lib.mjs loadNgCourses returns.
  * @returns {Promise<{ ngCourses: { available: true, bySem: Map<string, number[]>, updatedAsAt: string, source: string | null, total: number,
  *   rules: unknown }, ngSha256: string, ngRestrictionsSha256: string }>}
  */
@@ -54,8 +41,7 @@ async function pinnedNg() {
 }
 
 /**
- * Pinned-snapshot records normalised by `<root>/scripts/lib.mjs` with the pinned NG files.
- * @param {string} root a workspace (or the repo) holding scripts/lib.mjs
+ * @param {string} root
  * @param {any[]} records
  * @returns {Promise<{ modules: NormalisedModule[], ngSha256: string, ngRestrictionsSha256: string }>}
  */
@@ -75,20 +61,12 @@ export async function pinnedModulesWith(root, records) {
  * }} Corpus
  */
 
-/**
- * The run corpus's catalogue codes and prefixes, written over the ranker's own
- * data/ copies in the workspace (which vitest.eval.config.mjs aliases `catalogue-codes-data` and
- * `prefixes-data` to, and older rankers import directly), as its vocabulary and groups are. Both
- * seeds' corpora are the pinned snapshot's (the fixture set's corpus is drawn from it), so both get
- * HEAD's data/pinned/ builds, never the production files a ranker ref commits.
- * @param {string} root the workspace
- */
+/** @param {string} root */
 export async function writeRunCatalogue(root) {
   await mkdir(join(root, 'data'), { recursive: true });
   for (const f of ['catalogue-codes.json', 'prefixes.json']) await copyFile(join(REPO, 'data/pinned', f), join(root, 'data', f));
 }
 
-/** sha256 over every module's code and embedding text, in order. */
 /** @param {NormalisedModule[]} modules */
 export function textSha(modules) {
   const h = createHash('sha256');
@@ -97,8 +75,7 @@ export function textSha(modules) {
 }
 
 /**
- * The pinned corpus normalised by `<root>/scripts/lib.mjs`, with the pinned NG files.
- * @param {string} root a workspace (or the repo) holding scripts/lib.mjs
+ * @param {string} root
  * @returns {Promise<Corpus>}
  */
 export async function loadPinnedWith(root) {
@@ -117,7 +94,6 @@ export async function loadPinnedWith(root) {
 }
 
 /**
- * A committed corpus file ({ source, modules }) such as eval/fixtures/corpus.json.
  * @param {string} path
  * @returns {Promise<Corpus>}
  */

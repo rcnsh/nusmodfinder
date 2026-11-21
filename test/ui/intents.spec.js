@@ -1,18 +1,11 @@
 // @ts-check
-// The parsed-phrase chips. Most cases use intercepted /search answers in the
-// Worker's `interpreted` shape; one checks the real Worker, which reads
-// phrases (PARSE_PHRASES on).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { body, query, searches } from './support.mjs';
 
 const Q = 'history no final exam under 10 hours no prerequisites';
 
-/**
- * Answers /search as a Worker with phrases on would: every intent the
- * request's `ignore=` leaves.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 async function phrasesOn(page) {
   await page.route('**/search?**', (route) => {
     const u = new URL(route.request().url());
@@ -42,7 +35,6 @@ test('each parsed phrase is a chip, and removing one re-runs the search with ign
   await expect(chips(page)).toHaveText(['Under 10 h a week×', 'No prerequisites×']);
   expect(new URLSearchParams(query(page)).get('ignore')).toBe('exam');
   expect(new URLSearchParams(sent.at(-1)).get('ignore')).toBe('exam');
-  // A chip removal replaces the entry (nav.js), and focus goes back to the query, not the body.
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).history.length)).toBe(length);
   await expect(page.locator('#q')).toBeFocused();
 
@@ -99,7 +91,6 @@ for (const scheme of /** @type {const} */ (['light', 'dark'])) {
     await page.goto(`/?q=${encodeURIComponent(Q)}`);
     await expect(chips(page)).toHaveCount(3);
     const { violations } = await new AxeBuilder({ page }).analyze();
-    // As a11y.spec.js: no violation is allowed.
     expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
   });
 }

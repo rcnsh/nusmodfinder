@@ -1,25 +1,13 @@
 // @ts-check
-// The page's response headers, from
-// public/_headers on the local `wrangler dev` stack, the same Workers Static
-// Assets that serve it live. No other origin may frame the page, and the CSP
-// lets it run only its own files: every flow below runs with no CSP violation.
 import { expect, test } from '@playwright/test';
 
-// Chromium's Local Network Access check stops a page on one loopback origin
-// framing another at all, which would pass the framing test for the wrong
-// reason; the live site isn't on loopback, so the test turns it off.
 test.use({
   launchOptions: async ({ browserName }, use) => use(browserName === 'chromium'
     ? { args: ['--disable-features=LocalNetworkAccessChecks,PrivateNetworkAccessRespectPreflightResults,BlockInsecurePrivateNetworkRequests'] }
     : {}),
 });
 
-/**
- * Records every CSP violation the page reports, from before its first script.
- * Every report fails: the page has no native <select> (WebKit reported
- * `style-src-attr` against each one's own control styling).
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 async function watchCsp(page) {
   await page.addInitScript(() => {
     /** @type {any} */ (globalThis).__csp = [];
@@ -43,7 +31,6 @@ test('the page and its files are sent with the framing, sniffing and content pol
     expect(h['content-security-policy'], path).toContain("frame-ancestors 'none'");
     expect(h['content-security-policy'], path).toContain("default-src 'none'");
   }
-  // The rules file itself is not served.
   const rules = await request.get('/_headers');
   expect(rules.status()).toBe(404);
   expect(await rules.text()).not.toContain('Content-Security-Policy');
@@ -51,7 +38,6 @@ test('the page and its files are sent with the framing, sniffing and content pol
 
 test('another origin can\'t frame the page: the frame stays empty, while an unprotected response beside it loads', async ({ page, baseURL }) => {
   const base = /** @type {string} */ (baseURL);
-  // A second origin: the same server by another host name, answered by the router.
   const attacker = base.replace('127.0.0.1', 'localhost');
   expect(attacker).not.toBe(base);
   await page.route(`${attacker}/__attacker`, (route) => route.fulfill({
@@ -61,7 +47,6 @@ test('another origin can\'t frame the page: the frame stays empty, while an unpr
       <iframe id="control" src="${base}/health" width="400" height="200"></iframe>`,
   }));
   await page.goto(`${attacker}/__attacker`);
-  // The control: a Worker JSON answer has no frame policy, so it loads; framing works here at all.
   await expect(page.frameLocator('#control').locator('body')).toContainText('"vectors"');
   await page.waitForTimeout(1000);
   const framed = page.frames().find((f) => f.url().includes('q=accounting'));
@@ -83,14 +68,12 @@ test('no CSP violation: the first screen, a search, a detail, the filters dialog
   await page.locator('#filtersBtn').click();
   await expect(page.locator('dialog[open]')).toBeVisible();
   await page.keyboard.press('Escape');
-  // The inline script ran (it is hashed): a link with state opened on the results view.
   expect(await page.evaluate(() => document.documentElement.dataset.view ?? 'removed by app.js')).toBe('removed by app.js');
   expect(await violations()).toEqual([]);
 });
 
 test('the inline view script runs under the CSP: a link with state never flashes the first screen', async ({ page }) => {
   const violations = await watchCsp(page);
-  // Hold app.js so only the inline script has run.
   /** @type {(() => void) | null} */
   let release = null;
   const held = new Promise((resolve) => { release = () => resolve(undefined); });

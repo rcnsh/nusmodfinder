@@ -1,27 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The NG-listed codes with no classes this year (src/ng-unscheduled-file.js),
-// built per corpus the way the groups are (scripts/build-groups.mjs):
-//
-//   node scripts/build-ng-unscheduled.mjs --corpus production
-//       data/ng-unscheduled.json, the Worker's (src/ng-unscheduled.js): every
-//       code on data/ng-courses-<year>.json with no offered row, from
-//       `current` (data/corpus.json). Refused unless its row count and data version are the production bundle's in
-//       data/vectors.json. `vectors.mjs build --corpus production` rewrites it
-//       with the bundle.
-//   node scripts/build-ng-unscheduled.mjs --corpus fixture
-//       test/fixtures/ng-unscheduled.json, from a small hand-kept source
-//       (test/fixtures/ng-unscheduled-source.json: moduleInfo records copied from
-//       a production corpus), its other codes matched against the fixture corpus.
-//   add --check to rebuild in memory and exit 1 if the committed file differs.
-//
-// Each entry gets the fields a row has (scripts/lib.mjs normalise), its
-// workload as /module/:code answers it, its group's other codes (groups-v1 run
-// over the offered rows plus the file's codes, so FIN3701B joins FIN3701A, C
-// and D), and the allow mask and rule ids ingest stores for a row
-// (storedEligibility with the year's rules). The pinned file is never
-// committed: vitest.config.mjs builds it for test/full and test/oracle
-// (pinnedNgUnscheduledPath).
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -41,19 +19,15 @@ export { NG_UNSCHEDULED_SCHEMA };
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const GENERATOR = 'scripts/build-ng-unscheduled.mjs';
 
-/** The committed files, repo-relative. */
 export const OUTPUTS = Object.freeze({
   production: 'data/ng-unscheduled.json',
   fixture: 'test/fixtures/ng-unscheduled.json',
 });
-/** The fixture's hand-kept source, repo-relative. */
 export const FIXTURE_SOURCE = 'test/fixtures/ng-unscheduled-source.json';
 
-/** Where the production build reads `current` from (`npm run corpus -- restore`). */
 export const productionCorpusPath = () => corpusPath(currentEntry(JSON.parse(readFileSync(CORPUS_MANIFEST_PATH, 'utf8'))), PROD_DIR);
 
 /**
- * The file for `codes`, NG-listed codes with no offered row.
  * @param {{
  *   codes: string[], records: import('./lib.mjs').NusModsRecord[], offered: import('../src/groups.js').GroupInput[],
  *   ngCourses: import('./lib.mjs').NgCourses, acadYear: string, corpus: import('../src/ng-unscheduled-file.js').NgUnscheduledCorpus,
@@ -77,7 +51,6 @@ export function unscheduledFile({ codes, records, offered, ngCourses, acadYear, 
     if (!module) throw new Error(`${code}: ${skipped}`);
     module.ng = true;
     module.ngSemesters = sems;
-    // As offeredModules does: only when a semester is unpublished.
     if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
     return { module, ...storedEligibility(module, rules) };
   });
@@ -104,9 +77,8 @@ export function unscheduledFile({ codes, records, offered, ngCourses, acadYear, 
 }
 
 /**
- * The NG-listed codes a corpus has no offered row for, and the file for them.
  * @param {import('./lib.mjs').NusModsRecord[]} records
- * @param {NormalisedModule[]} modules the corpus's offered rows
+ * @param {NormalisedModule[]} modules
  * @param {import('../src/ng-unscheduled-file.js').NgUnscheduledCorpus} corpus
  * @param {string} acadYear
  */
@@ -119,7 +91,6 @@ async function corpusBytes(records, modules, corpus, acadYear) {
   }));
 }
 
-/** The production moduleInfo records: `current` (data/corpus.json), sha-checked. */
 async function productionRecords() {
   return (await productionCorpus()).records;
 }
@@ -147,18 +118,12 @@ export async function build(corpus) {
   return corpusBytes(records, modules, 'production', acadYear);
 }
 
-/**
- * Writes the production file for the modules the production bundle was just
- * built from (scripts/vectors.mjs build --corpus production), reading the
- * records from `current`, which that build used.
- * @param {NormalisedModule[]} modules
- */
+/** @param {NormalisedModule[]} modules */
 export async function writeProductionNgUnscheduled(modules) {
   await writeFile(join(ROOT, OUTPUTS.production), await corpusBytes(await productionRecords(), modules, 'production', DEFAULT_ACAD_YEAR));
   return OUTPUTS.production;
 }
 
-/** The pinned file as a file (.data/ng-unscheduled/, git-ignored), rebuilt if absent or stale. */
 export async function pinnedNgUnscheduledPath() {
   const bytes = await build('pinned');
   const path = join(ROOT, '.data/ng-unscheduled/ng-unscheduled-pinned.json');

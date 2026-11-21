@@ -1,9 +1,4 @@
 // @ts-check
-// `npm run remote` and the deploy guard share one session module
-// (scripts/remote-session.mjs). `wrangler` here is a fake: a Node script that
-// serves /health on the port it is given, or prints Cloudflare's code 10021 and
-// fails, as told. No real `wrangler dev --remote` ever starts, and nothing
-// binds 8787 or 8799.
 import { chmodSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,13 +7,6 @@ import { RESERVED_PORTS, RETRY_LIMIT_MS, freePort, withRemoteSession } from '../
 import { main as remoteMain } from '../scripts/remote.mjs';
 import { startRun } from '../scripts/run-record.mjs';
 
-/**
- * The fake wrangler. Each start appends a line to starts.jsonl (its pid, argv, cwd, the env
- * file's path, mode and content). `mode.json` says what it does: `serve` answers /health;
- * `fail10021` prints the 10021 error and exits; `hang10021` prints it and stays up; `other`
- * prints another error and exits; `stubborn` serves and ignores SIGTERM. `failFirst: n` makes
- * the first n starts fail with 10021 whatever the mode.
- */
 const FAKE = String.raw`
 import { appendFileSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -55,7 +43,7 @@ beforeEach(() => {
   writeFileSync(join(dir, 'runs.keep'), '');
 });
 afterEach(() => {
-  for (const s of starts()) { try { process.kill(s.pid, 'SIGKILL'); } catch { /* already gone */ } }
+  for (const s of starts()) { try { process.kill(s.pid, 'SIGKILL'); } catch {} }
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -65,7 +53,6 @@ const alive = (/** @type {number} */ pid) => { try { process.kill(pid, 0); retur
 /** @param {Record<string, unknown>} m */
 const mode = (m) => writeFileSync(join(dir, 'mode.json'), JSON.stringify(m));
 
-/** A clock the session's waits advance, so a 30-minute retry window takes no real time. */
 function fakeClock() {
   let t = 0;
   return { now: () => t, sleep: async (/** @type {number} */ ms) => { t += ms; } };
@@ -87,7 +74,6 @@ const opts = (o = {}) => {
 describe('the remote session', () => {
   it('starts wrangler dev --remote on 127.0.0.1 and a free port, with a one-off INGEST_SECRET in a 0600 env file in a temp dir, and never reads .dev.vars', async () => {
     mode({ what: 'serve' });
-    // A .dev.vars in the session's cwd that nobody may read: unreadable, so a read would throw.
     writeFileSync(join(dir, '.dev.vars'), 'INGEST_SECRET=from-dev-vars\n');
     chmodSync(join(dir, '.dev.vars'), 0o000);
     const { o } = opts({ env: { ...process.env, FAKE_DIR: dir, INGEST_SECRET: 'inherited' } });
@@ -99,13 +85,11 @@ describe('the remote session', () => {
     expect(Number(start.args[5])).toBe(seen.port);
     expect(RESERVED_PORTS).not.toContain(seen.port);
     expect(seen.url).toBe(`http://127.0.0.1:${seen.port}`);
-    // The secret is one-off: in the env file only, never .dev.vars' and never the parent's.
     expect(start.envFile?.startsWith(dir)).toBe(false);
     expect(start.envMode).toBe(0o600);
     expect(start.envText).toBe(`INGEST_SECRET=${seen.secret}\n`);
     expect(seen.secret).toMatch(/^[0-9a-f]{48}$/);
     expect(start.inheritedSecret).toBeNull();
-    // The temp dir is gone afterwards, and the child with it.
     expect(existsSync(/** @type {string} */ (start.envFile))).toBe(false);
     expect(alive(start.pid)).toBe(false);
   });
@@ -151,7 +135,6 @@ describe('the remote session', () => {
   it('a session that prints 10021 but stays up, holding /health unanswered, is killed and retried at once', async () => {
     mode({ what: 'hang10021' });
     const clock = fakeClock();
-    // A held /health never settles by itself: the 10021 line must end the poll, not a timeout.
     const { o } = opts({ ...clock, retryDelayMs: 600_000, pollTimeoutMs: 60_000, healthTimeoutMs: 60_000 });
     const started = Date.now();
     await expect(withRemoteSession(async () => 'ran', o)).rejects.toThrow(/10021 on 4 tries/);
@@ -176,7 +159,6 @@ describe('the remote session', () => {
     const { o } = opts({ ...clock, retryDelayMs: 300_000 });
     await expect(withRemoteSession(async () => { ran = true; }, o)).rejects.toThrow(/code 10021 on 7 tries over 30 min/);
     expect(ran).toBe(false);
-    // Tries at 0, 5, 10, ... 30 minutes; none after the limit.
     expect(starts()).toHaveLength(7);
     for (const s of starts()) expect(alive(s.pid)).toBe(false);
   });
@@ -219,7 +201,7 @@ describe('the remote session', () => {
     const { o } = opts({ proc: /** @type {any} */ (proc) });
     await expect(withRemoteSession(async () => {
       proc.emit('SIGINT');
-      return new Promise(() => {}); // the command never ends on its own
+      return new Promise(() => {});
     }, o)).rejects.toThrow(/SIGINT/);
     const [start] = starts();
     expect(alive(start.pid)).toBe(false);
@@ -275,7 +257,6 @@ describe('npm run remote -- <command…>', () => {
     const { EventEmitter } = await import('node:events');
     const proc = new EventEmitter();
     const ready = join(dir, 'ready');
-    // The command ignores SIGINT, as one still finishing in-flight work would.
     const cmd = `require('node:fs').writeFileSync(${JSON.stringify(ready)}, String(process.pid)); process.on('SIGINT', () => {}); setInterval(() => {}, 1000);`;
     const pending = remoteMain([process.execPath, '-e', cmd], { session: { ...opts().o, proc: /** @type {any} */ (proc) }, runsDir: runs, log: () => {} });
     while (!existsSync(ready) || !readFileSync(ready, 'utf8')) await new Promise((r) => { setTimeout(r, 50); });

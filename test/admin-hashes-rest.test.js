@@ -1,10 +1,4 @@
 // @ts-check
-// The deploy guard reads production D1 over the D1 REST query endpoint, not
-// through GET /admin/hashes on a `wrangler dev --remote` session. Both run the same code
-// (src/admin-hashes.js); this proves they give the same answer over the same rows: a local D1
-// seeded through the Worker's own /admin/ingest, read once through the route and once through
-// the real REST client (scripts/d1-rest.mjs), whose fetch runs each statement against that
-// same local D1 and answers in Cloudflare's envelope.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { d1RestClient } from '../scripts/d1-rest.mjs';
@@ -18,7 +12,6 @@ import { adminCall, fixture, seed } from './helpers.js';
 let fakes;
 beforeAll(async () => { fakes = await seed(); });
 
-/** The REST client, its "Cloudflare" being the local D1 the Worker wrote. */
 function localRest() {
   /** @type {string[]} */
   const sent = [];
@@ -32,7 +25,7 @@ function localRest() {
   return { client: d1RestClient({ accountId: 'acct', databaseId: 'db', token: async () => 'local', fetchImpl }), sent };
 }
 
-/** The guard's values (rowsKey, dataVersion, catalogueKey) from a hashes body. @param {any} hashes */
+/** @param {any} hashes */
 async function guardValues(hashes) {
   const ctx = { hashes, query: async () => ({ results: [] }) };
   return Object.fromEntries(await Promise.all(GUARD_CHECKS.map(async (c) => [c.name, await c.d1(/** @type {any} */ (ctx))])));
@@ -45,7 +38,6 @@ describe('/admin/hashes and the REST guard read agree', () => {
     const rest = await adminHashes(client.query, { embeddingModel: DEFAULT_MODEL });
     expect(rest).toEqual(route);
     expect(Object.keys(rest.modules ?? {})).toHaveLength(fixture.modules.length);
-    // Only reads went out, and the client counted what D1 says it read.
     expect(sent.every((s) => /^\s*SELECT/i.test(s))).toBe(true);
     expect(client.rowsRead).toBeGreaterThanOrEqual(fixture.modules.length);
 
@@ -86,12 +78,7 @@ describe('/admin/hashes and the REST guard read agree', () => {
   });
 });
 
-// The guard recomputes each row's hash from the row's own columns (src/rowhash.js, as ingest does),
-// for modules and catalogue_only alike. Hashing D1's stored row_hash values instead would let a row
-// changed behind its row_hash (a hand `d1 execute`, an older writer, a one-table restore) keep the
-// same dataVersion, and the deploy would ship over it.
 describe('the guard recomputes every row\'s hash from its columns', () => {
-  /** What the deploy would ship, taken from D1 as it is now (so the guard passes before the edit). */
   async function shipped() {
     const values = await guardValues((await readD1(localRest().client)).hashes);
     const { results } = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare('SELECT code FROM catalogue_only').all());
@@ -113,8 +100,6 @@ describe('the guard recomputes every row\'s hash from its columns', () => {
     expect(pass.ok).toBe(true);
     expect((await compareWithTag({ client: localRest().client, fields: ship.fields })).ok).toBe(true);
 
-    // One module closed to exchange students and 99 credits heavier; row_hash, text_hash, title
-    // and description untouched. The guard reads every column, as many rows as before.
     const code = fixture.modules[0].code;
     await env.DB.prepare("UPDATE modules SET ng = 0, ng_allow = 0, ng_semesters = '[]', credits = credits + 99 WHERE code = ?").bind(code).run();
     const { client, sent } = localRest();
@@ -128,7 +113,6 @@ describe('the guard recomputes every row\'s hash from its columns', () => {
     expect(rollback.ok).toBe(false);
     expect(rollback.results.filter((r) => !r.ok).map((r) => r.name).sort()).toEqual(['dataVersion', 'rowHashes']);
 
-    // A whole-table edit: every value the guard compares moves.
     const before = await guardValues((await readD1(localRest().client)).hashes);
     await env.DB.batch([
       env.DB.prepare("UPDATE modules SET ng = 0, ng_allow = 0, ng_semesters = '[]', semesters = '[]', credits = credits + 99"),
@@ -139,7 +123,6 @@ describe('the guard recomputes every row\'s hash from its columns', () => {
     const catalogueEdit = await runGuard({ client: localRest().client, ...ship });
     expect(catalogueEdit.results.filter((r) => !r.ok).map((r) => r.name).sort()).toEqual(['catalogueRows', 'dataVersion', 'rowHashes']);
     expect(catalogueEdit.results.find((r) => r.name === 'catalogueRows')?.message).toMatch(/ZZ1000/);
-    // catalogueKey covers codes only, and they did not change.
     expect(catalogueEdit.results.find((r) => r.name === 'catalogueKey')?.ok).toBe(true);
   });
 });

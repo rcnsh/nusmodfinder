@@ -1,14 +1,4 @@
 // @ts-check
-// The eval run, inside workerd. Not part of `npm test`: vitest.eval.config.mjs
-// runs it from a workspace (.eval-work/) holding the ranker under test (src/,
-// migrations/ from a git ref or the working tree) next to this runner, so the
-// relative imports below resolve to that ranker. Started by eval/runner/run.mjs,
-// which provides `evalPayload`.
-//
-// Seeds local D1 + the fake Vectorize through the Worker's own /admin/ingest
-// with real corpus embeddings, then sends one /search per query with
-// production defaults and the query's filters. One test per query, named by
-// its opaque id; the result travels to the Node-side reporter in task.meta.
 import { beforeAll, describe, inject, it } from 'vitest';
 import { call, seed } from './harness.js';
 import { createFakes } from '../../test/fakes.js';
@@ -19,7 +9,6 @@ if (!payload) throw new Error('evalPayload not provided; run through `npm run ev
 
 const fakes = createFakes();
 const ai = new LookupAI(payload.lookup);
-// The Worker only calls `run`.
 fakes.ai = /** @type {any} */ (ai);
 
 beforeAll(async () => {
@@ -35,7 +24,7 @@ describe('eval', () => {
       const text = await res.text();
       /** @type {any} */
       let body = null;
-      try { body = JSON.parse(text); } catch { /* recorded as an error below */ }
+      try { body = JSON.parse(text); } catch {}
       const results = res.status === 200 && Array.isArray(body?.results) ? body.results : [];
       /** @type {EvalQueryResult} */
       const out = {
@@ -50,7 +39,6 @@ describe('eval', () => {
           faculty: r.faculty ?? null,
         }])),
         ...(res.status === 200 ? {} : { error: body ? `${body.error}: ${body.message}` : `non-JSON HTTP ${res.status}` }),
-        // The parse the Worker echoed, the constraint keys only (null when it echoes none).
         interpreted: res.status === 200 && body?.interpreted && typeof body.interpreted === 'object'
           ? Object.fromEntries(['exam', 'su', 'hoursBelow', 'prereq'].map((k) => [k, body.interpreted[k] ?? null]))
           : null,
@@ -60,8 +48,6 @@ describe('eval', () => {
       if (ai.missing.length) {
         throw new Error(`${ai.missing.length} text(s) have no precomputed embedding; run \`npm run eval:embed\` locally`);
       }
-      // A degraded response skipped the dense half (an embedding error, or the
-      // breaker opened by earlier ones): it measures a different ranker.
       if (body?.degraded) {
         throw new Error(`degraded response (${body.degraded.source}: ${body.degraded.reason}); the dense half did not run`);
       }

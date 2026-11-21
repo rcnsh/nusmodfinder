@@ -1,9 +1,4 @@
 // @ts-check
-// The ranking lock (eval/ranking-lock.json) and its gate
-// (eval/lib/ranking-lock.mjs). Every case runs over a throwaway git repo in a
-// temp dir with fake list files: `recompute` stands in for the eval runner and
-// returns the lists a test names, so no case runs workerd, reads the real
-// ledger or the real count log, or calls anything remote.
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -32,7 +27,6 @@ function git(cwd, args) {
 }
 
 let repos = 0;
-/** A new repo holding a fake ranker, the shipped pin and empty logs. */
 async function newRepo() {
   const dir = join(tmp, `repo-${++repos}`);
   await mkdir(dir, { recursive: true });
@@ -80,10 +74,7 @@ async function commit(dir, files, message) {
 /** @param {string} dir @param {string} [rev] */
 const readLock = async (dir, rev = 'HEAD') => JSON.parse(git(dir, ['show', `${rev}:${LOCK_PATH}`]));
 
-/**
- * Lists in the lock's shape from a compact spec: set -> mode -> id -> [status, codes].
- * @param {Record<string, Record<string, Record<string, any[]>>>} spec
- */
+/** @param {Record<string, Record<string, Record<string, any[]>>>} spec */
 function listsOf(spec) {
   /** @type {Record<string, Record<string, Record<string, string>>>} */
   const out = {};
@@ -96,7 +87,6 @@ function listsOf(spec) {
   return out;
 }
 
-/** The base lists: two dev queries and one fixture query in every mode. */
 const SPEC = () => ({
   dev: {
     filtered: { 'd-001': [200, ['CS1010', 'CS2030']], 'd-002': [200, ['MA1521']] },
@@ -126,14 +116,12 @@ const lockText = (dir, o) => `${JSON.stringify({
   lists: o.lists,
 }, null, 1)}\n`;
 
-/** A repo whose base commit holds the bootstrap lock over SPEC's lists. */
 async function withBootstrap() {
   const dir = await newRepo();
   const base = await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'b75ac19' } }) }, 'lock');
   return { dir, base };
 }
 
-/** A recompute that returns these lists (and fails a test that expects the fast path if called). */
 const recomputing = (/** @type {any} */ lists) => vi.fn(async () => ({ embedding: EMBEDDING, corpus: CORPUS, lists }));
 const notCalled = () => vi.fn(async () => { throw new Error('recompute must not run on the fast path'); });
 
@@ -156,7 +144,6 @@ describe('the ranking lock gate: inputs', () => {
 
   it('passes on the fast path when the inputs equal a green base\'s, though the lock\'s inputsHash is stale', async () => {
     const { dir } = await withBootstrap();
-    // A neutral ranker change merged: the lock was not rewritten, so its inputsHash is stale.
     const green = await commit(dir, { 'src/search.js': 'export const RRF_K = 60; // neutral\n' }, 'neutral');
     expect((await readLock(dir)).inputsHash).not.toBe(inputsHash(dir, 'HEAD'));
     await commit(dir, { 'docs/x.md': 'doc\n' }, 'docs');
@@ -270,7 +257,6 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
   const CHANGED = () => edited((s) => { s.dev.filtered['d-001'] = [200, ['CS2030', 'CS1010']]; });
 
   /**
-   * Commits a ranking change at HEAD with the lock rewritten to CHANGED's lists.
    * @param {string} dir
    * @param {{ kind: string, ref: string }} evidence
    * @param {Record<string, string>} [files]
@@ -293,7 +279,6 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
   it('refuses a row an earlier lock already cited', async () => {
     const { dir } = await withBootstrap();
     await rankingChange(dir, { kind: 'holdout-pass', ref: '1' }, { 'eval/holdout-ledger.md': `${await ledger(dir)}${ledgerRow()}` });
-    // A later change, with evidence of its own, so the base lock cites something else.
     const second = edited((s) => { s.dev.filtered['d-002'] = [200, []]; });
     await commit(dir, { 'src/search.js': 'export const RRF_K = 98;\n', 'eval/count-log.md': `${await countLog(dir)}${countRow('group-first')}` }, 'second change');
     await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: second, evidence: { kind: 'no-look', ref: '1' } }) }, 'second lock');
@@ -354,7 +339,6 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
     await commit(dir, { 'src/search.js': 'export const RRF_K = 60;\n' }, 'revert');
     await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'revert', ref: first } }) }, 'revert lock');
     expect(await gate(dir, base, recomputing(listsOf(SPEC())))).toMatchObject({ ok: true, problems: [] });
-    // A "revert" to lists no earlier lock held is refused.
     await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: edited((s) => { s.dev.filtered['d-002'] = [200, []]; }), evidence: { kind: 'revert', ref: first } }) }, 'false revert');
     const r = await gate(dir, base, recomputing(edited((s) => { s.dev.filtered['d-002'] = [200, []]; })));
     expect(r.ok).toBe(false);
@@ -405,11 +389,7 @@ describe('the ranking lock gate: bootstrap', () => {
   });
 });
 
-/**
- * A copy of the code the closure walks (the runner, eval/lib, the lock CLI, scripts/, src/, the
- * fakes and the eval config): no set, ledger or log is copied.
- * @param {string} name
- */
+/** @param {string} name */
 async function runnerTree(name) {
   const root = join(tmp, name);
   for (const p of ['eval/runner', 'eval/lib', 'eval/lock.mjs', 'scripts', 'src', 'test/fakes.js', 'vitest.eval.config.mjs']) {

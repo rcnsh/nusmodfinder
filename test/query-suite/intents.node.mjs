@@ -1,10 +1,4 @@
 // @ts-check
-// The phrase rules, read straight from eval/query-rules/intent-phrases.json and
-// eval/query-rules/ge-pillars.json, applied to a suite text to give the intent half
-// of its `interpreted` object (ge, level, exam, su, hoursBelow, prereq). It is
-// the matching rules those files state (intent-phrases.json `matching`) and no
-// more: no code join, no code resolution, no correction. The suite tests use it
-// to check every item's `interpreted` against its text.
 import { join } from 'node:path';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { queryTokens } from '../../src/fts-query.js';
@@ -15,17 +9,14 @@ export const GE = readJson(join(REPO, 'eval/query-rules/ge-pillars.json'));
 export const COLLISION = new Set(readJson(join(REPO, 'eval/query-rules/collision-list.json')).list.map((/** @type {string} */ s) => s.toLowerCase()));
 export const STOPWORDS = new Set(readJson(join(REPO, 'eval/query-rules/stopwords.json')).current);
 
-/** The intent keys this module derives; `pin` and `prefix` come from codes, not phrases. */
 export const INTENT_KEYS = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
 
-/** Canonical q: trimmed, whitespace collapsed, ASCII letters lower-cased. @param {string} s */
+/** @param {string} s */
 export const canonical = (s) => s.trim().replace(/\s+/g, ' ').replace(/[A-Z]/g, (c) => c.toLowerCase());
 
 /**
- * A phrase as a regex: bounded by no [a-z0-9] on either side, a space matching
- * a run of whitespace or '-', every other character literal, and `N` (when the
- * list has one) captured as one digit 1-9 (level) or an integer 1-99 (hours).
- * @param {string} phrase @param {'level' | 'hours' | null} n
+ * @param {string} phrase
+ * @param {'level' | 'hours' | null} n
  */
 export function phraseRegex(phrase, n) {
   const parts = phrase.split(n ? /(N)/ : /(?!)/).map((p) => {
@@ -40,7 +31,7 @@ export function phraseRegex(phrase, n) {
  * @typedef {{ key: string, kind?: string, phrase: string, n: 'level' | 'hours' | null }} Phrase
  */
 
-/** @returns {Phrase[]} pass A: the constraint phrases. */
+/** @returns {Phrase[]} */
 function passA() {
   /** @type {Phrase[]} */
   const out = [];
@@ -50,7 +41,7 @@ function passA() {
   return out;
 }
 
-/** @returns {Phrase[]} pass B: the level phrases and the GE phrases. */
+/** @returns {Phrase[]} */
 function passB() {
   /** @type {Phrase[]} */
   const out = [];
@@ -64,8 +55,8 @@ function passB() {
 }
 
 /**
- * Leftmost-longest, non-overlapping matches of one pass's phrases.
- * @param {string} text @param {Phrase[]} phrases
+ * @param {string} text
+ * @param {Phrase[]} phrases
  * @returns {Match[]}
  */
 function matchPass(text, phrases) {
@@ -85,12 +76,7 @@ function matchPass(text, phrases) {
   return kept;
 }
 
-/**
- * Every phrase match in a text, both passes. Pass B reads the text with pass
- * A's matches blanked; a pass-B level match is `negated` when a negator is
- * among the two tokens before it.
- * @param {string} raw
- */
+/** @param {string} raw */
 export function phraseMatches(raw) {
   const text = canonical(raw);
   const a = matchPass(text, passA());
@@ -104,7 +90,10 @@ export function phraseMatches(raw) {
   return { a, b };
 }
 
-/** A level phrase match as a window. @param {Match} m @returns {{ min: number, max: number | null, source: string }} */
+/**
+ * @param {Match} m
+ * @returns {{ min: number, max: number | null, source: string }}
+ */
 function levelWindow(m) {
   const l = PHRASES.level;
   if (m.kind === 'beginner') return { ...l.beginner.window, source: 'beginner' };
@@ -115,10 +104,8 @@ function levelWindow(m) {
 }
 
 /**
- * The level an `XX N000` code token sets (code resolution step 3), given the
- * prefix the item echoes: the token must be that prefix's letters, off the
- * collision and stopword lists, followed (with or without one space) by N000.
- * @param {string} raw @param {string | null} prefix
+ * @param {string} raw
+ * @param {string | null} prefix
  */
 export function codeLevel(raw, prefix) {
   if (!prefix || !/^[A-Z]+$/.test(prefix)) return null;
@@ -129,9 +116,8 @@ export function codeLevel(raw, prefix) {
 }
 
 /**
- * The intent half of `interpreted` the phrase rules give for a text.
  * @param {string} raw
- * @param {string | null} [prefix] the item's `interpreted.prefix`, for an `XX N000` level
+ * @param {string | null} [prefix]
  */
 export function deriveIntents(raw, prefix = null) {
   const { a, b } = phraseMatches(raw);
@@ -143,7 +129,6 @@ export function deriveIntents(raw, prefix = null) {
     const c = PHRASES.constraints[m.key];
     if (m.key === 'hoursBelow') out.hoursBelow = m.n ?? c.light;
     else out[m.key] = c.interpreted;
-    // The shared phrase: pass A strips it and it sets beginner as if pass B had read it.
     if (PHRASES.level.beginner.phrases.includes(m.phrase)) windows.push({ ...PHRASES.level.beginner.window, source: 'beginner' });
   }
   /** @type {Set<string>} */

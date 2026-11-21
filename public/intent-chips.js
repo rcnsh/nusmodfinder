@@ -1,15 +1,8 @@
 // @ts-check
-// The parsed-phrase chip row: one chip per phrase /search read from the query
-// (intents.js), each with a button that undoes it. Undoing re-runs the search
-// with `ignore=<intent>` (app.js; nav.js: a replace that drops `open=`). Its
-// own module, wired into app.js at one point, so the cards (render.js) don't
-// depend on it.
 import { h } from './dom.js';
 import { intentChips } from './intents.js';
 
 /**
- * The chip row, or null when nothing was parsed. Each remove button calls
- * `onRemove` with its intent.
  * @param {unknown} interpreted
  * @param {readonly string[]} ignore
  * @param {(intent: import('./intents.js').PhraseIntent) => void} onRemove

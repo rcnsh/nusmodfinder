@@ -1,10 +1,4 @@
 // @ts-check
-// `eval:count --route` and `eval:representatives --route` write ADR 0003's no-look
-// route into the count log's `route` column, the evidence `eval:lock -- --evidence no-look <row>`
-// cites. Every set, run and log here lives in a temp dir: the count runs on a `selftest` set (its
-// count log sits in its own directory) with a throwaway key and synthetic queries, and the
-// representatives check on a copy of the fixture set. Neither tool is ever pointed at the real
-// ledger or the real count log.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -32,7 +26,6 @@ afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 const today = () => new Date().toISOString().slice(0, 10);
 const QUERIES = { schema: 'vnm-eval-queries/1', set: 'selftest', version: 'route-v1', queries: [{ id: 'q1', text: 'alpha' }, { id: 'q2', text: 'beta' }] };
 const sha = createHash('sha256').update(JSON.stringify(QUERIES.queries)).digest('hex');
-// --by-group compares the runs' corpus with the one eval/groups.json was built from.
 const corpusSha = JSON.parse(await readFile(join(REPO, 'eval', 'groups.json'), 'utf8')).corpus.moduleInfoSha256;
 /** @param {string} variant @param {Record<string, string[]>} lists */
 const run = (variant, lists) => ({
@@ -88,7 +81,7 @@ describe('eval:count --route', () => {
 });
 
 describe('eval:representatives --route', () => {
-  /** A copy of the fixture set with two stored runs. @param {Record<string, string[]>} candLists */
+  /** @param {Record<string, string[]>} candLists */
   async function fixtureSet(candLists) {
     const dir = join(tmp, `fixture-${++sets}`);
     await mkdir(join(dir, 'runs'), { recursive: true });

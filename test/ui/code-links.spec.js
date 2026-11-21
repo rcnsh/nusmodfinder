@@ -1,9 +1,4 @@
 // @ts-check
-// Typed codes and the links between codes: a stamp on each typed code not shown and
-// a "Switch to Sem 2" action where the other semester is open; "Also as" codes
-// as links to their own entry, which then says where it was opened from; the
-// detail's head repeating the code and title; and, for a query of course codes
-// only, which of them the count shows.
 import { expect, test } from '@playwright/test';
 import { live, query, pill } from './support.mjs';
 
@@ -22,7 +17,6 @@ test.describe('the hidden-codes box: a stamp per code and "Switch to Sem 2"', ()
   test('each typed code not shown carries a stamp saying why, in a word', async ({ page }) => {
     await page.goto('/?q=CS2030+CS3244+CS5562+AR5801+CS1001&ng=1&study=ug2&sem=1');
     await expect(page.locator('#status .hidden-codes .hc-stamp')).toHaveText(['Not on the NG list for Sem 1', 'Not for exchange students', 'Not open in Sem 1', 'Not this year']);
-    // Each stamp is the "not shown" shape and colour, beside the code and its title.
     await expect(hidden(page, 'CS3244').locator('.hc-stamp .st')).toHaveClass(/st-closed/);
     await expect(hidden(page, 'CS3244').locator('.hc-stamp svg')).toHaveAttribute('aria-hidden', 'true');
     await expect(hidden(page, 'CS3244').locator('.hc-head')).toHaveText('CS3244 Machine Learning');
@@ -44,7 +38,6 @@ test.describe('the hidden-codes box: a stamp per code and "Switch to Sem 2"', ()
     await page.goto('/?q=CS2030+PP5164&ng=1&study=ug2');
     await expect(hidden(page, 'PP5164').locator('.hc-stamp')).toHaveText('Not open in either semester');
     await expect(page.locator('#status .switch-sem')).toHaveCount(0);
-    // CS3244 is open in Sem 2, but the level filter would still hide it there.
     await page.goto('/?q=CS2030+CS3244&level=2&ng=1&study=ug2&sem=1');
     await expect(hidden(page, 'CS3244').locator('.why')).not.toHaveText(/shown with these settings\.$/);
     await expect(page.locator('#status .switch-sem')).toHaveCount(0);
@@ -85,13 +78,11 @@ test.describe('"Also as" codes are links to their own entry', () => {
 
   test('a slow answer doesn\'t take focus from where the student moved on to', async ({ page }) => {
     await page.goto(`/?${LIST}`);
-    // The variant's search answers late; meanwhile the student changes a filter.
     await page.route('**/search?q=ACC1701XB**', async (route) => {
       await new Promise((r) => setTimeout(r, 1500));
       await route.continue().catch(() => {});
     });
     await card(page, 'ACC1701XA').locator('.variants a').first().click();
-    // By keyboard, so focus is on the pill in every engine (a click doesn't focus a radio in WebKit).
     await pill(page, 'level', '').focus();
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Space');
@@ -113,18 +104,15 @@ test.describe('"Also as" codes are links to their own entry', () => {
   });
 
   test('a from= that is not one of the open course\'s other codes says nothing, and the URL drops it', async ({ page }) => {
-    // A crafted link: PP5288 has no other codes; CS1010 is an unrelated course.
     await page.goto('/?q=PP5288&open=PP5288&from=CS1010');
     const d = await region(page, 'PP5288');
     await expect(d.locator('.kicker')).toHaveText('Course details');
     await expect(d).not.toContainText('Opened from');
     await expect.poll(() => query(page)).toBe('q=PP5288&open=PP5288');
-    // A real course shown on the same page, but not in the open course's group, is refused too.
     await page.goto('/?q=ACC1701XB+CS3244&sem=1&ng=1&study=ug2&open=ACC1701XB&from=CS3244');
     const x = await region(page, 'ACC1701XB');
     await expect(x.locator('.kicker')).toHaveText('Course details');
     await expect.poll(() => query(page)).toBe('q=ACC1701XB+CS3244&sem=1&ng=1&study=ug2&open=ACC1701XB');
-    // Back to the real "Also as" link: it still says where it came from.
     await page.goto('/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
     await expect((await region(page, 'ACC1701XB')).locator('.kicker')).toHaveText('Opened from ACC1701XA: another code for the same course');
     await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
@@ -141,11 +129,9 @@ test.describe('"Also as" codes are links to their own entry', () => {
 test('the detail\'s head repeats the code and title, with units and department', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244');
   const d = await region(page, 'CS3244');
-  // The code is part of the heading's name, so a screen reader hears both.
   await expect(d.getByRole('heading', { level: 3 })).toHaveText('CS3244 Machine Learning');
   await expect(d.locator('.dtitle .dcode')).toHaveText('CS3244');
   await expect(d.locator('.dmeta')).toHaveText('4 units · Computer Science, Computing');
-  // The sections sit under it.
   await expect(d.getByRole('heading', { level: 4, name: 'Description' })).toBeVisible();
   await expect(d.locator('.kicker')).toHaveText('Course details');
 });

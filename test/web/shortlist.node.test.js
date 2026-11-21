@@ -1,11 +1,4 @@
 // @ts-check
-// public/shortlist.js:
-// counting, the same course, NUS's form order, totals, flags and NUS's notes,
-// over /module answers built from the fixture and its groups
-// (shortlist-answers.node.mjs), with synthetic answers where the fixture has
-// no such course. The seeded property test checks the totals against a
-// reference written separately (shortlist-reference.node.mjs, which
-// scripts/live-shortlist.mjs also runs over production's rows).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -19,13 +12,7 @@ import { parseState } from '../../public/state.js';
 import { DEFAULT_ACAD_YEAR } from '../../public/year.js';
 import { FIXTURE, GROUP_OF, REASONS_FILE, exchange, fixtureOutcome, ngListedOutcome, synthOutcome } from './shortlist-answers.node.mjs';
 
-/**
- * /facets' offListRules, exactly as the Worker answers them: data/ng-reasons.json's,
- * whose scopes are `{ departments, levels }` (levels as digits) or `{ faculties }`, and `{}`
- * for rule E. A synthetic shape (`{ department }`, levels in 1000s) would pass here and
- * never match the real rules.
- * @type {import('../../public/shortlist.js').OffListRule[]}
- */
+/** @type {import('../../public/shortlist.js').OffListRule[]} */
 const RULES = REASONS_FILE.offListRules;
 /** @param {string} id */
 const ruleText = (id) => {
@@ -35,11 +22,9 @@ const ruleText = (id) => {
 };
 
 /**
- * Works out a link's shortlist, every code answered from the fixture unless
- * `extra` gives its outcome (a synthetic row, a 404, or null: still loading).
  * @param {string} qs
  * @param {Record<string, any>} [extra]
- * @param {{ rules?: any, nus?: boolean }} [opts] `nus`: an NUS student's plain plan
+ * @param {{ rules?: any, nus?: boolean }} [opts]
  */
 function run(qs, extra = {}, { rules = RULES, nus = false } = {}) {
   const params = new URLSearchParams(qs);
@@ -59,18 +44,15 @@ const number = (r, code) => at(r, code).form.number;
 
 describe('counting', () => {
   it('GRO\'s level 4000 note counts as a quota note does: "Open, with 1 note", counted if NUS accepts you', () => {
-    // PC4262 in Sem 1: open to everyone with no stored note; an undergraduate gets GRO's note, a graduate none.
     const r = run('ng=1&study=ug2&pick=PC4262.1&pick=GE2101.1');
     expect(at(r, 'PC4262')).toMatchObject({ status: 'note', standing: 'counted', why: 'Counted, if NUS accepts you: read its notes' });
     expect(at(r, 'PC4262').reasons).toEqual([{ id: 'gro:level-4000', kind: 'supply', text: expect.stringMatching(/^GRO: “Higher level undergraduate courses/) }]);
     expect(r.sems[1]).toMatchObject({ counted: 8, confirm: 0 });
     expect(at(run('ng=1&study=grad&pick=PC4262.1'), 'PC4262')).toMatchObject({ status: 'open', standing: 'counted', why: 'Counted', reasons: [] });
-    // Law (C5-m1): LL4407, open in Sem 2 with its Law notes only.
     expect(at(run('ng=1&study=ug2&inv=law&pick=LL4407.2'), 'LL4407').reasons.map((x) => x.id)).not.toContain('gro:level-4000');
   });
 
   it('open picks count; condition notes count "if NUS accepts you into each"; other notes are to confirm', () => {
-    // GE2101 in Sem 1 at ug2: a quota note (a condition); in Sem 2 NUSMods shows no classes (a `semester` note).
     const r = run('ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=GE2101.2');
     expect(at(r, 'CS2113')).toMatchObject({ standing: 'counted', why: 'Counted' });
     expect(at(r, 'GE2101')).toMatchObject({ standing: 'counted', why: 'Counted, if NUS accepts you: read its notes' });
@@ -84,10 +66,8 @@ describe('counting', () => {
     const r = run('ng=1&study=ug2&pick=CS3244.1&pick=CS5562.2&pick=PF2504.1', {}, {});
     expect(at(r, 'CS3244')).toMatchObject({ standing: 'out', why: `Not on NUS's 2026/27 exchange course list for Sem 1. Courses not on the list “are ${RULE_E}” (the Registrar's course restrictions, rule E)` });
     expect(at(r, 'CS5562').why).toMatch(/^Not on NUS's 2026\/27 exchange course list for Sem 2\./);
-    // PF2504 in Sem 1: on NUS's list, but NUSMods shows no classes then (to confirm).
     expect(r.sems[1]).toMatchObject({ counted: 0, confirm: 4 });
     expect(r.sems[2]).toMatchObject({ counted: 0, confirm: 0 });
-    // A closed course for another reason: PF2504 at grad.
     expect(at(run('ng=1&study=grad&pick=PF2504.1'), 'PF2504')).toMatchObject({ standing: 'out', why: 'Not open to exchange students in Sem 1' });
   });
 
@@ -206,7 +186,6 @@ describe('NG-listed codes with no classes (404 kind ng-listed)', () => {
 
 describe('the same course', () => {
   it('two codes in one group are the same course when both are on the NG list, or either\'s preclusion names the other', () => {
-    // CS2030S is off the NG list, but its preclusion names CS2030 (and CS2030's names it).
     expect(at(run('ng=1&study=ug2&pick=CS2030S.1&pick=CS2030.1'), 'CS2030').standing).toBe('counted');
     const r = run('ng=1&study=ug2&pick=CS2030S.1&pick=CS2030.1');
     expect(r.sems[1].counted).toBe(4);
@@ -252,7 +231,6 @@ describe('the same course', () => {
     const r = run('ng=1&study=ug2&pick=ACC1701XB.1&pick=ACC1701XA.1');
     expect(at(r, 'ACC1701XB')).toMatchObject({ standing: 'invite' });
     expect(at(r, 'ACC1701XA')).toMatchObject({ standing: 'duplicate', sameAs: 'ACC1701XB' });
-    // Business and Law units sit on a line of their own, out of the to-confirm sum.
     expect(r.sems[1]).toMatchObject({ counted: 0, confirm: 0, invite: 4 });
   });
 
@@ -271,7 +249,6 @@ describe('the same course', () => {
       CS2103R: synthOutcome('CS2103R', { ng: false, otherCodes: ['CS2103', 'CS2103DE'], preclusion: null }),
     };
     const r = run('pick=CS2103.1&pick=CS2103DE.2&pick=CS2103R.1', extra);
-    // CS2103 kept; CS2103DE names it: the same; CS2103R and CS2103 name neither: both kept.
     expect(r.entries.map((w) => [w.code, w.standing])).toEqual([['CS2103', 'counted'], ['CS2103DE', 'duplicate'], ['CS2103R', 'counted']]);
     expect(at(r, 'CS2103R').flags.map((f) => f.kind)).toEqual(['group']);
   });
@@ -290,7 +267,11 @@ describe('the same course', () => {
 });
 
 describe('NUS\'s application form order', () => {
-  /** n synthetic courses, `units` each, open in both semesters. @param {string} prefix @param {number} n @param {number} units */
+  /**
+   * @param {string} prefix
+   * @param {number} n
+   * @param {number} units
+   */
   const many = (prefix, n, units = 4) => Object.fromEntries(Array.from({ length: n }, (_, i) => {
     const code = `${prefix}${1000 + i}`;
     return [code, synthOutcome(code, { credits: units })];
@@ -390,7 +371,6 @@ describe('flags', () => {
   });
 
   it('a closed entry is never flagged', () => {
-    // CS2030S (off the NG list) sits its exam with CS2030.
     expect(run('ng=1&study=ug2&pick=CS2030.1&alt=CS2030S.1').entries.every((w) => w.flags.length === 0)).toBe(true);
   });
 
@@ -434,7 +414,6 @@ describe('NUS\'s notes on particular courses', () => {
     expect(notes('LAJ2201', { department: 'Centre for Language Studies', level: 2 })).toEqual([NOTES.language2]);
   });
   it('level 4000: GRO\'s line is the exchange note the /module answer carries, said once, never one of these notes', () => {
-    // The shortlist adds no line of its own: a synthetic level 4000 row whose answer has no note gets none.
     expect(notes('GE4101', {})).toEqual([]);
     const w = at(run('ng=1&study=ug2&pick=PC4262.1'), 'PC4262');
     expect(w.notes).toEqual([]);
@@ -449,7 +428,6 @@ describe('NUS\'s notes on particular courses', () => {
     expect(at(run('ng=1&study=ug2&inv=biz&pick=ACC1701XA.1'), 'ACC1701XA').lines).toEqual([BIZ_LAW.gro, ...BIZ_LAW.invited.biz]);
     const un = at(run('ng=1&study=ug2&pick=ACC1701XA.1'), 'ACC1701XA');
     expect(un.lines.slice(0, 4)).toEqual([BIZ_LAW.gro, ...BIZ_LAW.uninvited.biz]);
-    // The quota note reads as for invited students only.
     expect(un.lines.at(-1)).toMatch(/^If you were invited: /);
     expect(at(run('ng=1&study=ug2&inv=law&pick=LL4407.2'), 'LL4407')).toMatchObject({ standing: 'counted', lines: [BIZ_LAW.gro, ...BIZ_LAW.invited.law] });
     expect(at(run('ng=1&study=ug2&pick=LL4407.2'), 'LL4407')).toMatchObject({ standing: 'invite', why: 'Only for students invited by NUS Law' });
@@ -465,7 +443,6 @@ describe('totals, lines and helpers', () => {
     expect(lines).toContain(TOTAL_LINES.weeks);
     expect(lines).toContain(`Includes 4 units of Economics courses. GRO: “${GRO_POPULAR}”`);
     expect(lines.slice(-4)).toEqual([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum, TOTAL_LINES.maximumScope]);
-    // The maximum-units line word for word (ADR 0010), typographic apostrophes and all.
     expect(TOTAL_LINES.maximum).toBe('NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.');
     expect(TOTAL_LINES.maximumScope).toBe('This limits the courses NUS enrols you in, not the courses you list');
     expect(r.sems[1].over20).toBe(false);
@@ -479,7 +456,6 @@ describe('totals, lines and helpers', () => {
   });
 
   it('"units picked" is one measure: every loaded pick\'s units, counted or not', () => {
-    // CS3244 is closed in Sem 1 at ug2: not counted, but picked, as the shortlist button says.
     const r = run('sem=2&ng=1&study=ug2&pick=CS3244.1&pick=CS2030.1');
     expect(r.sems[1]).toMatchObject({ counted: 4, picked: 8 });
     expect(r.sems[2].picked).toBe(0);
@@ -521,12 +497,9 @@ describe('totals, lines and helpers', () => {
 
   it('the fixed lines are NUS\'s, cited: applicants, the form, the CourseReg box', () => {
     expect(APPLICANT_LINES).toHaveLength(4);
-    // The 2025 application guide has a prerequisite field but no class choice, and the
-    // 10-course caution rests on NUS's 2018/19 information sheet.
     expect(APPLICANT_LINES[2]).toBe('NUS\'s form asks, for each course with a prerequisite, the home course that meets it (NUS\'s application guide)');
     expect(FORM_LINES.ten).toBe('NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check');
     expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in July or August (the Registrar says mid-July): check each course there.');
-    // The list's date comes from /facets' NG list source, never a constant; without it, no date.
     expect(FORM_LINES.applicants('2027/28', '15 Apr 2027')).toContain('(the 2027/28 list is dated 15 Apr 2027)');
     expect(FORM_LINES.applicants('2027/28', '')).toBe('This order uses NUS\'s 2027/28 exchange list and exams. Applying for 2028/29? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later, and the timetable in July or August (the Registrar says mid-July): check each course there.');
     expect(COURSEREG_BOX.rules.join(' ')).toContain(RULE_E);
@@ -534,9 +507,7 @@ describe('totals, lines and helpers', () => {
   });
 });
 
-// ------------------------------------------------------------ the property test
-
-/** A small seeded generator (mulberry32), so a failure reproduces. @param {number} seed */
+/** @param {number} seed */
 function rng(seed) {
   let a = seed >>> 0;
   return () => {
@@ -550,18 +521,16 @@ function rng(seed) {
 
 const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
 
-/** The reference (shortlist-reference.node.mjs) over the fixture's own columns and groups. */
 const REF_DATA = { rowOf: (/** @type {string} */ c) => FIXTURE.get(c), groupOf: (/** @type {string} */ c) => GROUP_OF.get(c) ?? [], reasons: REASONS_FILE.reasons };
 
 describe('totals over 500 random shortlists, against the reference', () => {
   it('counted, to-confirm and only-if-invited units per semester equal the reference, at both semesters, every study level and in browse mode', () => {
     const random = rng(20261111);
     const all = [...FIXTURE.keys()];
-    // Weighted towards groups, so the same-course rule is exercised.
     const grouped = all.filter((c) => GROUP_OF.has(c));
     const pickCode = () => (random() < 0.4 ? grouped : all)[Math.floor(random() * (random() < 0.4 ? grouped : all).length)];
     let compared = 0;
-    /** How often each standing came up, so the test shows it exercised every rule. @type {Record<string, number>} */
+    /** @type {Record<string, number>} */
     const seen = {};
     for (let i = 0; i < 500; i += 1) {
       const n = 1 + Math.floor(random() * 14);
@@ -571,7 +540,6 @@ describe('totals over 500 random shortlists, against the reference', () => {
         const which = () => (random() < 0.75 ? 'pick' : 'alt');
         const code = pickCode();
         parts.push(`${which()}=${code}${tag()}`);
-        // Often another code of the same group too.
         const others = GROUP_OF.get(code) ?? [];
         if (others.length && random() < 0.5) parts.push(`${which()}=${others[Math.floor(random() * others.length)]}${tag()}`);
       }

@@ -1,9 +1,4 @@
 // @ts-check
-// The query suite (test/query-suite/queries.json) is the fixed acceptance set
-// for query understanding. These tests pin its shape: the per-row counts, the
-// `interpreted` schema, the topK rule, the thresholds, no dev text beyond the
-// four allowed ones, and its sha256, so a ranking change cannot quietly edit
-// the suite it is checked against.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { ALLOWED_DEV, INTERPRETED_KEYS, ROW_COUNTS, SUITE_PATH, devQueries, nearDuplicate, normalise, suiteTexts } from './suite-files.node.mjs';
 
-/** Changing the suite means updating this constant in the same change. */
 const SUITE_SHA256 = '6cb2cbe3987ac69f22257139e5cb6ad4bdf5fee33018d3c8acb6dfc458e1574a';
 
 const raw = readFileSync(SUITE_PATH);
@@ -91,7 +85,6 @@ describe('the query suite (test/query-suite/queries.json)', () => {
   });
 
   it('holds no dev text, or near-duplicate of one, beyond the four allowed ones (d-024, d-079, d-022, d-016)', () => {
-    // Only the four named items may carry dev text, each verbatim and in its row.
     const named = items.filter((x) => String(x.origin).startsWith('dev:'));
     expect(named.map((x) => x.origin).sort()).toEqual(Object.keys(ALLOWED_DEV).map((id) => `dev:${id}`).sort());
     for (const it of named) {
@@ -103,14 +96,11 @@ describe('the query suite (test/query-suite/queries.json)', () => {
     const hits = [];
     for (const s of suiteTexts(items)) {
       const item = items.find((x) => x.id === s.id);
-      // A named item's text is that dev text, so it may resemble other dev texts;
-      // its reference is derived from it, so it may resemble its own source only.
       const source = String(item.origin).startsWith('dev:') ? item.origin.slice(4) : null;
       if (source && s.field === 'text') continue;
       for (const d of dev) if (d.id !== source && nearDuplicate(s.text, d.text)) hits.push(`${s.id} ${s.field} ~ ${d.id}`);
     }
     expect(hits).toEqual([]);
-    // Each allowed dev text appears once, verbatim.
     for (const id of Object.keys(ALLOWED_DEV)) {
       const d = dev.find((x) => x.id === id);
       expect(items.filter((x) => x.text === d?.text), id).toHaveLength(1);

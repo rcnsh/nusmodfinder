@@ -1,29 +1,10 @@
 // @ts-check
-// Read-only access to production D1 over Cloudflare's D1 REST query endpoint:
-//
-//   POST https://api.cloudflare.com/client/v4/accounts/<account>/d1/database/<id>/query
-//   { "sql": "...", "params": [...] }
-//
-// The deploy guard, rollback's data check and d1:restore's re-read go through it, on the Mac
-// and in GitHub Actions alike, instead of a `wrangler dev --remote` session (which would bind
-// Vectorize and Workers AI too). Every statement is checked before it leaves: only SELECT and
-// read-only PRAGMA statements are sent, one per request, with no write keyword and no named
-// parameter anywhere; anything else is refused in code, whatever the token would allow. The token is asked for once, lazily, and never appears in an
-// error. `rowsRead` sums the responses' `meta.rows_read`, for run records.
-//
-// No Node APIs, so the Worker test harness can drive it (test/admin-hashes-rest.test.js); the
-// token, account and database come from scripts/d1-read.mjs.
 
 export const D1_API = 'https://api.cloudflare.com/client/v4';
 
-/** PRAGMAs that only read the schema. Any other PRAGMA (and any `=` form) is refused. */
 const READ_PRAGMAS = new Set(['table_info', 'table_xinfo', 'table_list', 'index_list', 'index_info', 'index_xinfo', 'foreign_key_list']);
 
-/**
- * The statement with comments removed and string and identifier literals blanked, so a `;` or a
- * keyword inside one can't fool the checks below.
- * @param {string} sql
- */
+/** @param {string} sql */
 function skeleton(sql) {
   let out = '';
   for (let i = 0; i < sql.length;) {
@@ -42,7 +23,7 @@ function skeleton(sql) {
       let j = i + 1;
       for (; j < sql.length; j++) {
         if (sql[j] === close) {
-          if (close !== ']' && sql[j + 1] === close) { j++; continue; } // a doubled quote is an escape
+          if (close !== ']' && sql[j + 1] === close) { j++; continue; }
           break;
         }
       }
@@ -56,24 +37,10 @@ function skeleton(sql) {
   return out;
 }
 
-/**
- * Words that write or change the schema. None may appear anywhere outside a literal, so a reader
- * that is wrong about where a statement ends still can't let one through.
- * RETURNING is here too: no read has one.
- */
 export const WRITE_KEYWORDS = ['INSERT', 'UPDATE', 'DELETE', 'REPLACE', 'CREATE', 'DROP', 'ALTER', 'ATTACH', 'DETACH', 'VACUUM', 'REINDEX', 'RETURNING'];
 const WRITE_RE = new RegExp(`\\b(${WRITE_KEYWORDS.join('|')})\\b`, 'i');
 
-/**
- * Throws unless `sql` is one SELECT, or one PRAGMA that only reads the schema. After comments and
- * literals are stripped: exactly one statement; the first keyword SELECT (or a listed PRAGMA); no
- * write keyword anywhere; and no `$`, `@`, `:` or `#` at all. SQLite reads any of those four
- * followed by an identifier character as a parameter, its identifier characters include `$` and
- * every byte >= 0x80, and a TCL-style `$a(...)` swallows quotes up to the next `)`, which would hide
- * a `;` from the literal-blanking (`SELECT $$(');UPDATE …`). Every caller sends a
- * constant with `?` parameters, so being this strict costs nothing.
- * @param {string} sql
- */
+/** @param {string} sql */
 export function assertReadOnly(sql) {
   const shown = JSON.stringify(String(sql).slice(0, 80));
   const refuse = (/** @type {string} */ why) => {
@@ -123,7 +90,7 @@ export function d1RestClient({ accountId, databaseId, token, fetchImpl = fetch }
     queries++;
     /** @type {any} */
     let body = null;
-    try { body = await res.json(); } catch { /* not JSON: reported below */ }
+    try { body = await res.json(); } catch {}
     if (!res.ok || body?.success !== true) {
       const errors = Array.isArray(body?.errors) ? body.errors.map((/** @type {any} */ e) => `${e?.code ?? '?'} ${String(e?.message ?? '').slice(0, 200)}`).join('; ') : '';
       throw new Error(`D1 REST query failed: HTTP ${res.status}${errors ? ` (${errors})` : ''}`);

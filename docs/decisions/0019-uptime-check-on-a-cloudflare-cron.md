@@ -32,3 +32,13 @@ go unnoticed for more than 13 hours, and the "hourly" check was not one.
   ADR 0004's allowances.
 - The uptime Worker bundles `data/groups.json` when it is deployed; the codes go stale after a
   corpus refresh until it is redeployed, which the check tolerates (named 404s pass).
+
+## In the code
+- `QUERIES` (`scripts/uptime-check.mjs`) holds 31 plain-English topics, none a course title, code,
+  filter phrase or year, so a data refresh or a year switch never breaks one. `queryIndex` steps
+  `QUERY_STRIDE` (twice `TRIES`, coprime with 31) per period, so a run's first query recurs only
+  after 31 periods (7.75 h, past the search cache's TTL and the zone's 4 h Browser Cache TTL), and
+  the queries one run may send never include the next period's first.
+- `eslint.config.mjs` parses `workers/**/*.mjs` as ES2025, because `workers/uptime/index.mjs`
+  imports `data/groups.json` with an import attribute (`with { type: 'json' }`), which Node and
+  wrangler's bundler both require; a lower `ecmaVersion` makes the uptime Worker unlintable.

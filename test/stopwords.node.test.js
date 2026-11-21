@@ -1,7 +1,4 @@
 // @ts-check
-// The stopword lists behind one selector: `current` (27) and `stopwords-v2`
-// (35), equal to eval/query-rules/stopwords.json. Screened as separate rankers, so the selector
-// is a single constant, like scripts/lib.mjs EMBEDDING_TEXT_VARIANT.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

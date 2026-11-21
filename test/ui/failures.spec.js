@@ -1,7 +1,4 @@
 // @ts-check
-// Failure states by request interception: a hung
-// search, 429, an HTML error page, the network gone, /facets down or slow, and
-// a keyword-only answer. The page shows a plain sentence, never a raw code.
 import { expect, test } from '@playwright/test';
 import { body, matchFor, searches, pill, facultyOptions, openFaculty } from './support.mjs';
 
@@ -9,7 +6,7 @@ const RAW = /rate_limited|upstream_failure|not_json|bad_request|internal|SyntaxE
 
 test('a search that never answers gives up after 10 s with a sentence; the button stays enabled throughout', async ({ page }) => {
   await page.clock.install();
-  await page.route('**/search?**', () => { /* never answers */ });
+  await page.route('**/search?**', () => { });
   await page.goto('/?q=slow');
   await expect(page.locator('#status')).toHaveText('Searching…');
   await expect(page.locator('#go')).toBeEnabled();
@@ -32,7 +29,7 @@ test('a newer search aborts the one in flight, whose answer is never shown', asy
   await page.locator('#q').press('Enter');
   await failed;
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
-  await held[0].fulfill({ json: body({ query: 'first' }) }).catch(() => { /* the page already aborted it */ });
+  await held[0].fulfill({ json: body({ query: 'first' }) }).catch(() => { });
   await page.waitForTimeout(200);
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
 });
@@ -88,7 +85,6 @@ test('the first search starts before /facets answers, and the faculty list fills
   await page.route('**/facets', async (route) => { await facetsHeld; await route.continue(); });
   await page.goto('/?q=databases&faculty=Computing');
   await expect(page.locator('#status')).toContainText(matchFor('databases'));
-  // Quoted until /facets lists it: until then it is only the link's text.
   await openFaculty(page);
   await expect(facultyOptions(page)).toHaveText(['Any faculty', '“Computing”']);
   /** @type {any} */ (release)();

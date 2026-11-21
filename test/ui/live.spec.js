@@ -1,13 +1,8 @@
 // @ts-check
-// The screen-reader behaviour a test can measure: the one
-// polite live region says each answer in a sentence (the count, no match,
-// hidden codes, errors and 429), the list is aria-busy while a search runs,
-// the Search button is never disabled (it keeps focus; a second search aborts
-// the first), and every control has an accessible name.
 import { expect, test } from '@playwright/test';
 import { body, live, liveLog, query, recordLive, settled, pill } from './support.mjs';
 
-/** Every live region on the page: there must be one. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 const liveRegions = (page) => page.locator('[aria-live], [role="status"], [role="alert"], [role="log"], [role="marquee"], [role="timer"], output');
 
 test('one polite live region, in the header, present in every view', async ({ page }) => {
@@ -112,12 +107,10 @@ test('the same sentence again is said again: the region clears, then repeats it'
   await settled(page);
   const said = await live(page).textContent();
   expect(said).toMatch(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
-  // Record every text the region holds from here on.
   await live(page).evaluate((el) => {
     /** @type {any} */ (globalThis).liveLog = [];
     new MutationObserver(() => /** @type {any} */ (globalThis).liveLog.push(el.textContent)).observe(el, { childList: true, characterData: true, subtree: true });
   });
-  // Level 2000 keeps the same count and query; then Back to no level (from memory, no fetch).
   await pill(page, 'level', '2').check();
   await expect.poll(() => query(page)).toBe('q=CS2104&sem=1&level=2&ng=1&study=ug2');
   await expect(live(page)).toHaveText(/** @type {string} */ (said));
@@ -136,7 +129,6 @@ test('the list is aria-busy while a search runs, and not after', async ({ page }
   await held[0].fulfill({ json: body() });
   await expect(page.locator('#results')).toHaveAttribute('aria-busy', 'false');
   await expect(live(page)).toHaveText('1 course matches “networks”.');
-  // An error ends the busy state too.
   await page.locator('#q').fill('other');
   await page.locator('#q').press('Enter');
   await expect(page.locator('#results')).toHaveAttribute('aria-busy', 'true');
@@ -158,24 +150,19 @@ test('the Search button is never disabled: it keeps focus while a search runs, a
   await expect(go).toBeEnabled();
   await expect(go).toBeFocused();
   expect(await go.evaluate((el) => el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true')).toBe(false);
-  // The second press: the first request is aborted, and only the second's answer shows.
   const aborted = page.waitForEvent('requestfailed', (r) => r.url().includes('q=compilers'));
   await page.keyboard.press('Enter');
   await aborted;
   expect(held).toHaveLength(2);
   await expect(go).toBeFocused();
   await held[1].fulfill({ json: body({ query: 'compilers', results: [{ code: 'CS4212', title: 'Compiler Design', credits: 4, semesters: [1] }] }) });
-  await held[0].fulfill({ json: body({ query: 'compilers' }) }).catch(() => { /* already aborted */ });
+  await held[0].fulfill({ json: body({ query: 'compilers' }) }).catch(() => { });
   await expect(live(page)).toHaveText('1 course matches “compilers”.');
   await expect(page.locator('#results button.card-toggle')).toHaveAttribute('data-code', 'CS4212');
   await expect(go).toBeFocused();
 });
 
-/**
- * Every control on the page as its accessibility-tree line ("button
- * \"Search\""), with the ones that have no name.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 async function controls(page) {
   const all = page.locator('a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])');
   /** @type {string[]} */
@@ -183,13 +170,9 @@ async function controls(page) {
   /** @type {string[]} */
   const nameless = [];
   for (const el of await all.all()) {
-    // Not rendered (another view, the rail on a phone, a closed dialog): not in the accessibility tree.
     if (!(await el.isVisible())) continue;
     const first = (await el.ariaSnapshot()).split('\n')[0];
     lines.push(first);
-    // A role then a quoted, non-empty name (YAML quotes the whole key when the name holds a quote or a colon):
-    // `- button "Search"`, `- 'button "Remove filter: Sem 1"': Sem 1`. Playwright gives <summary> no role,
-    // so its name is its text (`- text: As NUS states it`).
     const named = /^- '?[a-z]+ "\s*[^"\s]/.test(first) || (await el.evaluate((e) => e.tagName === 'SUMMARY' && !!e.textContent?.trim()));
     if (!named) nameless.push(`${first} (${await el.evaluate((e) => e.outerHTML.slice(0, 80))})`);
   }
@@ -247,7 +230,6 @@ test('the live region stays in the accessibility tree while the filters dialog i
   await page.setViewportSize({ width: 390, height: 664 });
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   await settled(page);
-  /** Chromium only: whether the accessibility tree ignores #live (a modal dialog makes the rest of the page inert). */
   const ignored = async () => {
     const cdp = await page.context().newCDPSession(page);
     const { root } = await cdp.send('DOM.getDocument');
@@ -267,7 +249,6 @@ test('the live region stays in the accessibility tree while the filters dialog i
   await expect(dialog.getByRole('status')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  // The region goes home in the dialog's close event, a task after the dialog hides: wait for it.
   await expect.poll(() => live(page).evaluate((el) => !!el.closest('header'))).toBe(true);
   if (browserName === 'chromium') expect(await ignored()).toBe(false);
   await expect(liveRegions(page)).toHaveCount(1);
@@ -275,12 +256,11 @@ test('the live region stays in the accessibility tree while the filters dialog i
 
 test('each answer is said once: a failed other-semester check and a late /facets say nothing again', async ({ page }) => {
   await recordLive(page);
-  // The partial code's other-semester check fails (429): the line doesn't change, so nothing more is said.
   await page.route('**/search?**sem=2**', (route) => route.fulfill({ status: 429, headers: { 'retry-after': '30' }, json: { error: 'rate_limited' } }));
   const checked = page.waitForResponse((r) => r.url().includes('sem=2'));
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
   await checked;
-  await page.waitForTimeout(400); // past announce()'s 150 ms repeat
+  await page.waitForTimeout(400);
   expect(await liveLog(page)).toEqual(['No CG32xx course is open to 2nd-year exchange students in Sem 1.']);
 });
 
@@ -316,14 +296,10 @@ test('pressing Search again on the answer already shown says it again', async ({
   await expect.poll(() => liveLog(page)).toEqual(['', said]);
 });
 
-// The shortlist's sentences and what it keeps
-// quiet. Each edit's own sentence is asserted in shortlist.spec.js where the edit
-// is made; these are the cases about which sentence wins.
 test('a link with q and picks says the count, never the rows\' progress', async ({ page }) => {
   await recordLive(page);
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1');
   await expect(live(page)).toHaveText(/^\d+ courses match “networks”\.$/);
-  // The rows are in once the button counts them.
   await expect(page.locator('.sl-open:visible small')).toHaveText('Sem 1: 8 units picked');
   const log = (await liveLog(page)).filter(Boolean);
   expect(log.filter((t) => /Loading|loaded/.test(t))).toEqual([]);
@@ -331,7 +307,6 @@ test('a link with q and picks says the count, never the rows\' progress', async 
 
 test('a link to the view says the rows\' progress, never the search under it', async ({ page }) => {
   await recordLive(page);
-  // The rows held until the search has answered, so both sentences have their turn.
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.route('**/module/**', (route) => { held.push(route); });

@@ -1,6 +1,4 @@
 // @ts-check
-// A `current` corpus for tests of the scripts that read one: a corpus manifest
-// (data/corpus.json's shape) and its restored file, in a temp dir. Nothing is downloaded.
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -8,7 +6,6 @@ import { CORPUS_SCHEMA } from '../scripts/corpus-manifest.mjs';
 import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
 
 /**
- * Writes `<dir>/corpus.json` naming `records` as current, and `<dir>/prod/<sha256>.json`.
  * @param {string} dir
  * @param {unknown[]} records
  * @returns {Promise<{ manifestPath: string, corpusDir: string, sha256: string }>}

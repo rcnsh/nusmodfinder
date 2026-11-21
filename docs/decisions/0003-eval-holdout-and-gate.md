@@ -321,3 +321,161 @@ ranking-lock evidence.
 - shipped pin: `669fe7f69f4587b294b5389894a3cd49e5263de7` 669fe7f69f4587b294b5389894a3cd49e5263de7 (the year-of-study note and page fixes, version `0b81c82e`; ranking-neutral, holdout count 0)
 - shipped pin: `8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690` 8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690 (the shortlist and export, with `ng-unscheduled.json`, version `f8aefeab`; ranking-neutral, holdout count 0)
 - shipped pin: `b75ac19016a2073e77d37c2c44485c9a5d8c99a2` b75ac19016a2073e77d37c2c44485c9a5d8c99a2 (the level-4000 note and shortlist wording, version `b0834844`; ranking-neutral, holdout count 0)
+
+## In the code
+Constraints the code keeps that a tidy-up would break.
+
+**Looks and the ledger**
+- `eval/cli.mjs` `fail()` calls `process.exit`, so it serves only checks that run before the
+  ledger lock is taken (`changeOf`, `assertRunSlotFree`). Code under the lock throws instead
+  (`assertGateable` throws `RunFileError`), so `withLedgerLock`'s `finally` releases the lock. A
+  `process.exit` under the lock leaves a lock file that refuses every look until it is 30
+  minutes old.
+- `cmdRun` runs every check that can refuse a holdout run (the key, a free run slot,
+  `precheckCorpus`: a hybrid baseline at the pin on the qrels' corpus, judged qrels, groups for
+  that corpus, every ciphertext against its manifest) before `reserveLook`. A reserved row
+  counts even when the run aborts, so a check moved after it spends a look on a refusal.
+- `eval/lib/ledger.mjs` counts looks so a hand edit can only add to them: every table row but
+  the header and separators counts, a row whose set cell names no known set counts against every
+  set, and a look is refused when any known set has fewer looks than at `HEAD` or `origin/main`
+  (so moving a row to another set is caught). `finaliseLook` appends the final row when its
+  reserved row is gone, so deleting a reserved row never uncounts a look.
+- `withLedgerLock` is an `O_EXCL` lock file holding a random token. The holder calls
+  `assertHeld()` directly before each synchronous append and removes the lock only while its
+  token is still there; a lock older than 30 minutes is broken only under a second
+  `<ledger>.lock.break` lock, so two processes that saw the same stale lock can't have one delete
+  the lock the other just took. Loosening either step lets two parallel looks both pass the limit.
+- A run's slot is taken when `MANIFEST.json` lists it, not when its ciphertext exists
+  (`assertRunSlotFree`), so deleting the file never frees it. Writing a run, and `eval:embed`
+  writing a query cache (`recordInManifest`), adds only that file's entry and re-hashes no other,
+  so a tampered ciphertext stays flagged by `eval:verify` instead of being blessed by the next
+  write.
+- Stored runs can't be rewritten without a retire, so the readers accept fields older runs lack:
+  no `config.mode` is hybrid (`assertGateable`), and no `corpus.ngRestrictionsSha256` is skipped
+  by `assertComparable`'s restrictions check. Making them required refuses committed holdout runs.
+- `eval:count --lists-differing` (`eval/count.mjs`) refuses two runs whose `config` differs: a
+  filtered run against an unfiltered one, or hybrid against lexical, counts the settings, not
+  the ranker, and a wrong count would block (or hide) a pin move.
+
+**Keeping holdout text out of the terminal**
+- Retrieval for an encrypted set runs in a forked child (`eval/runner/vitest-child.mjs`) whose
+  stdout and stderr `runInChild` in `eval/runner/run.mjs` discards, because workerd prints a
+  Worker's uncaught exceptions itself and no in-process setting stops it. The child's failure
+  message can carry query text, so only plain sets show it.
+- `--embed-missing` is opt-in and refused in CI, so a run never calls Workers AI unasked (ADR
+  0004). It embeds the missing texts with `scripts/embed.mjs` and reruns once; on an encrypted
+  set that child's output is discarded (stack traces and Workers AI error bodies can carry query
+  text) and its failure throws `EmbeddingError`, so the reserved look is aborted and only the
+  class prints. `eval:embed --corrected-from-ref` likewise logs counts, never a text.
+- Error messages are written to be safe if printed, though an encrypted set prints only the
+  class: the compliance errors (`ParseMismatchError`, `ConstraintFieldsError` and the rest) name
+  counts; `gradeOf` in `eval/lib/metrics.mjs` names a bad grade by value only, never the judgment
+  (it can carry a rationale) or the query; `eval/lib/judging.mjs` names item ids only, never a
+  key a judge wrote. `eval/judge.mjs` prints a `UsageError` in full even on an encrypted set,
+  because usage messages name only flags and paths; one that interpolates a query id, text or
+  rationale leaks through that exception.
+- `scripts/holdout.mjs` takes the set name for the AAD from `--set`, which defaults to `holdout`
+  under `eval/holdout` and `test` under `eval/sealed` and is required anywhere else, so a
+  ciphertext can't be decrypted or verified as another set. `eval/lib/sets.mjs` binds custody to
+  set names, not directories: the `selftest` set alone keeps its ledger beside its files, and its
+  ciphertexts carry `selftest` in their AAD, so real holdout files can't be read through it to
+  dodge the real ledger.
+- `assertInManifest` in `eval/lib/crypto.mjs` hashes the bytes the caller already read, so the
+  ciphertext checked is the one decrypted; re-reading the file opens a swap window.
+  `verifyManifest` skips macOS Finder files (`.DS_Store`, `._*`), which are git-ignored and can't
+  be committed; any other unlisted file still fails.
+- A plaintext set directory with a `MANIFEST.json` (a pinned diagnostic set) has its queries and
+  qrels checked against it on every read; `eval/dev` has none.
+
+**Scoring**
+- `scoreRun` in `eval/lib/metrics.mjs` takes a document that breaks its query's hard
+  constraints out of its duplicate group for that query. Groups ignore level, semester, NG,
+  credits and faculty, so without this a member graded 0 by rule takes its group's slot and
+  hides a relevant sibling's gain.
+- The compliance rule (`eval/lib/compliance.mjs`) mirrors `/search` instead of re-deriving it:
+  `failedConstraint` reads `exam=0` with a semester as "no exam in that semester", as
+  `src/search.js` does; an exchange-mode query in a special term, where `ngBit` throws, gets
+  bit 0, as `/search` refuses it; and `candidateParse` passes the echoed values through unnormalised, so an
+  unexpected value is a parse mismatch, not forgiven. A candidate error where the baseline
+  answered 200 fails the rule per query, since the error also hides its parse from the mismatch
+  check.
+- Every "point estimate ≥ 0" in `eval/lib/gate.mjs` compares against `-EPS` (1e-12), so
+  summation noise in a Δ that is really 0 can't fail a verdict. In `bcaInterval`
+  (`eval/lib/stats.mjs`), resampled means within a relative 1e-12 of the estimate count half
+  toward z0, so a discrete bootstrap distribution (nDCG deltas over few queries) isn't pushed to
+  one side.
+- `serialiseGroups` in `eval/lib/groups.mjs` writes one group per line for readable diffs; the
+  file's bytes are the groups-v1 hash above, so any serialiser change, whitespace included, needs
+  a new groups version.
+- The run file (`eval/runner/reporter.mjs`) keeps each query's echoed parse under `intents`,
+  outside `results`, because the ranking-identity checks (the lock, `--lists-differing`, the
+  compliance identity check) hash `results`; there a parse-only change would read as a ranking
+  change.
+
+**The runner and its workspace**
+- `eval/runner/harness.js` is overlaid onto every ranker the eval runs, `eval-v0` included, so
+  it uses only what every ranker has: the default export's `fetch` and `/admin/ingest`
+  (`test/eval/workspace.node.test.js` checks its imports). Each `/search` goes through the
+  Worker's `caches.default` as in production; the lookup AI and fake Vectorize make a hit's body identical
+  to a miss's.
+- The test Worker config (`test/wrangler.test.jsonc`) is part of the ranker (`HASHED` in
+  `eval/lib/workspace.mjs`): a run takes it from the ref when the ref has one, so an old ranker
+  runs under its own compatibility date and flags, and a config change moves `ranker.treeHash`.
+- `writeBundle` in `eval/runner/run.mjs` gives a ranker that has `src/vector-bundle.js` a vector
+  bundle built from the run's corpus by that ranker's own encoder; an older ranker keeps the fake
+  Vectorize, which does the same exact cosine with an id tiebreak, so a Δ between them measures
+  the ranker, not the index.
+- `vitest.eval.config.mjs` aliases the vocabulary, groups and bundle to the workspace's copies,
+  which `eval/lib/corrected.mjs` rebuilds from the run's corpus, never the repo's `data/`, so no
+  ranker is scored against production vocabulary. The NG-unscheduled file is the workspace's
+  committed copy, because only the no-match answer reads it. `rankerIntentParser` there sets
+  `isOffered: () => false`, so it pins no code: its callers read only the dense text, the
+  corrected text and the constraints.
+- `eval/lib/embeddings.mjs` hands vectors to workerd as one base64 Float32 string plus keys in
+  row order (`packLookup`), because nested arrays crash the Vitest pool's provide/inject
+  transport; `base64ToF32` copies the decoded Buffer, because a pooled Buffer can sit at an
+  offset a `Float32Array` can't align to.
+- `queryTextForms` (`eval/lib/query-forms.mjs`) returns both query forms ("Other choices"), and
+  every set's cache holds both, because a query vector missing mid-run trips the dense circuit
+  (`src/upstream.js`, three failures) and hides later misses instead of failing the run.
+  `test/eval/query-forms.test.js` runs it in workerd beside the Worker's own parser, so the
+  module has no imports.
+- `eval:embed --corpus` takes the embedding text from the `--ref` workspace's `scripts/lib.mjs`,
+  so the corpus vectors match the ranker they are pinned for.
+
+**Rule data, candidates and the open sets**
+- The rule lists the Worker reads (`eval/query-rules/cohort-only-prereq.json`, the constraint
+  phrases) are copied into `data/` by `scripts/build-catalogue-data.mjs`, because neither the
+  Worker nor a run's workspace reads `eval/`; `test/intents-data.node.test.js` holds the copies
+  and the two readings (`src/cohort-only.js`, `eval/query-rules/cohort-only.mjs`) equal.
+- `STOPWORDS_V2` in `src/fts-query.js` (the current list plus catalogue words such as `course`,
+  `module`, `nus`) is a pre-registered candidate, screened alone under the general rule and put
+  in force only if it passes dev alone. Each list equals its `eval/query-rules/stopwords.json`
+  entry (`test/stopwords.node.test.js`).
+- `scripts/no-signal-cosines.mjs` derives the τ candidates from the gibberish set's derivation
+  half and the dev tags only, never labels, with committed embeddings and the product's own
+  parse, so it makes no remote call and is no look. The gibberish set holds at least 40 strings,
+  split by the seed in `eval/gibberish-split.mjs` into halves of at least 20;
+  `test/query-suite/gibberish.node.test.js` requires the split to reproduce, so τ is never checked
+  on the strings that tuned it.
+- The query suite carries dev text only in the four items of `ALLOWED_DEV`
+  (`test/query-suite/suite-files.node.mjs`), verbatim and in their rows; every other suite or
+  gibberish text is held off dev by the token rule and query-embedding cosine ≥ 0.9, so the
+  suite measures understanding, not dev memorisation. `needs-embedding.txt` lists every text
+  exactly, so `embeddings.json` covers each form. `test/query-suite/suite.node.test.js` pins
+  `queries.json` by `SUITE_SHA256`, so an edit to the acceptance set shows in the PR that makes
+  it.
+- The Worker tests (`test/regressions/` and neighbours) run the fixture with a hash embedder, so
+  they check query handling, filtering and exchange mode, never ranking quality; an asserted
+  ranked order there pins the fake embedder.
+
+**Tests of custody**
+- Tests that take looks or counts never touch the real `eval/holdout-ledger.md`,
+  `eval/count-log.md` or a real holdout file: they build sets from dev-derived data with a
+  throwaway key, `selftest` keeps its ledger and count log in its own directory, and test-set
+  looks run in a temporary clone (`test/eval/clone.node.mjs`) whose empty ledger is committed at
+  its `HEAD` and `origin/main`, with this checkout's working-tree `eval/` and `scripts/` copied in.
+  Look limits and the tamper check never depend on this checkout's looks.
+- `test/eval/pins.node.mjs` takes both pins from this record's text, the shipped pin from the
+  last `- shipped pin:` line, and builds tree hashes with its own `git archive`, never from
+  `eval/lib`, so a bug in the pin code can't agree with itself, and a ship needs no test edit.

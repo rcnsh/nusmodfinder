@@ -37,6 +37,7 @@
     "sources": "node scripts/sources.mjs",
     "year": "node scripts/year.mjs",
     "lint": "eslint .",
+    "comments": "node scripts/comments.mjs",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.web.json && tsc -p tsconfig.ui.json",
     "test": "vitest run --exclude 'test/full/**' --exclude 'test/oracle/**'",
     "test:full": "vitest run test/full",

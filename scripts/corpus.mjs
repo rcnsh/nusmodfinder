@@ -1,40 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
-// The production corpus manifest's commands (scripts/corpus-manifest.mjs):
-//
-//   npm run corpus -- fetch [<year>]
-//       NUSMods' moduleInfo.json for <year> (default DEFAULT_ACAD_YEAR) into
-//       .data/staging/, with a sidecar recording when it was served. The only
-//       command that contacts api.nusmods.com.
-//   npm run corpus -- publish [--file <path>] [--fetched-at <ISO time>] [--new-data-version]
-//       Uploads the staged corpus (or --file, with --fetched-at unless a
-//       <file>.cache.json sidecar records it) as release asset
-//       prod-<year>-<yyyymmdd> (gz), writes its entry in data/corpus.json and
-//       sets `current`. Refuses a corpus whose data version (with HEAD's NG
-//       files) is not src/data-version.json unless --new-data-version, and a
-//       release already in the manifest. Writes a run record. Commit
-//       data/corpus.json afterwards.
-//   npm run corpus -- restore
-//       Downloads `current` (gh), sha-checks it and writes
-//       .data/prod/<sha256>.json: what ingest, `vectors.mjs build --corpus
-//       production` and every per-corpus builder read. Any worktree.
-//   npm run corpus -- check
-//       CI: `current`'s data version with HEAD's NG files equals
-//       src/data-version.json, its catalogueKey equals the bundled catalogue
-//       file's, and data/'s per-corpus catalogue files are what the build writes from it.
-//
-// `preflight()` is the deploy preflight's "corpus manifest" check (scripts/preflight.mjs):
-// restore, then the same check.
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { build as build3b, staleFiles } from './build-catalogue-data.mjs';
 import { checkCurrent, fetchStaging, publishCorpus, restoreCurrent } from './corpus-manifest.mjs';
 import { DEFAULT_ACAD_YEAR } from './lib.mjs';
 
-/**
- * `check`'s comparisons: current's data version and catalogueKey, and the catalogue files' freshness.
- * @param {{ check?: typeof checkCurrent, built?: () => Promise<Record<string, string>>, stale?: typeof staleFiles }} [deps]
- */
+/** @param {{ check?: typeof checkCurrent, built?: () => Promise<Record<string, string>>, stale?: typeof staleFiles }} [deps] */
 export async function corpusCheck({ check = checkCurrent, built = () => build3b('production'), stale = staleFiles } = {}) {
   const r = await check();
   const problems = [...r.problems];
@@ -43,10 +15,6 @@ export async function corpusCheck({ check = checkCurrent, built = () => build3b(
 }
 
 /**
- * The deploy preflight's "corpus manifest" check (the preflight's optional-check
- * contract, `{ ok, message }`): restores `current` (sha-checked; a no-op when it is already there), then
- * corpusCheck. A deploy whose src/data-version.json, bundled catalogue file or catalogue files don't
- * follow current stops here, before D1 is read.
  * @param {{ log?: (line: string) => void, restore?: typeof restoreCurrent, check?: typeof corpusCheck }} [deps]
  * @returns {Promise<{ ok: boolean, message: string }>}
  */

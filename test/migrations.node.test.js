@@ -1,7 +1,4 @@
 // @ts-check
-// Migration 0006 and its tooling, checked from Node: the remote wrapper that
-// scripts/remote-migration.mjs writes, the clean migration file, and the rule
-// that nothing writes `modules` with INSERT OR REPLACE or assigns a rowid.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,16 +58,11 @@ describe('migrations/0006_fts_external.sql', () => {
       "CREATE VIRTUAL TABLE modules_fts USING fts5( code UNINDEXED, title, description, content = 'modules', content_rowid = 'rowid', tokenize = 'porter unicode61', prefix = '2 3 4' );");
     expect(sql).toContain("INSERT INTO modules_fts(modules_fts) VALUES('rebuild');");
     expect(sql).toContain("INSERT INTO modules_fts(modules_fts, rank) VALUES('rank', 'bm25(0.0, 3.0, 1.0)');");
-    // Every trigger addresses the FTS row by rowid; none deletes by code.
     expect(sql).not.toMatch(/DELETE\s+FROM\s+modules_fts/i);
   });
 });
 
 describe('INSERT OR REPLACE', () => {
-  // On an external-content FTS table, REPLACE's implicit delete fires no
-  // delete trigger (recursive_triggers is off), so the old row's index
-  // entries stay behind and integrity-check fails. UPDATE OR REPLACE onto an
-  // existing code does the same.
   const REPLACES_MODULES = /\b(?:(?:INSERT|UPDATE)\s+OR\s+REPLACE(?:\s+INTO)?|REPLACE\s+INTO)\s+["`[]?(?:main\s*\.\s*)?["`[]?modules\b(?!_)/i;
 
   it('the pattern catches every REPLACE form on modules and nothing else', () => {
@@ -98,7 +90,6 @@ describe('INSERT OR REPLACE', () => {
       .filter((f) => /\.(m?js|sql|py)$/.test(f)).map((f) => join(dir, f));
     const offenders = [];
     for (const f of [...files('src'), ...files('scripts'), ...files('migrations'), ...files('test')]) {
-      // This file's own examples (the pattern test, the rowid trigger's refused forms) are not uses.
       if (f.startsWith(join('test', 'fixtures')) || f === join('test', 'migrations.node.test.js')) continue;
       const text = read(f);
       if (REPLACES_MODULES.test(text)) offenders.push(f);
@@ -108,11 +99,6 @@ describe('INSERT OR REPLACE', () => {
 });
 
 describe('modules.rowid is immutable', () => {
-  // The external-content FTS table is keyed on modules.rowid. Changing a
-  // rowid moves the row out from under its FTS entry, and no text pattern
-  // catches every spelling (the upsert form ingest uses, schema-qualified
-  // names, row-value SET, [bracketed] identifiers).
-  // 0006's modules_rowid_immutable trigger refuses them in the database.
   const FORMS = [
     "INSERT INTO modules (code, title, acad_year, text_hash) VALUES ('A1', 't', 'y', 'h') ON CONFLICT(code) DO UPDATE SET rowid = 100",
     "INSERT INTO modules (code, title, acad_year, text_hash) VALUES ('A1', 't', 'y', 'h') ON CONFLICT(code) DO UPDATE SET title = excluded.title, rowid = 101",
@@ -127,7 +113,6 @@ describe('modules.rowid is immutable', () => {
     "UPDATE OR IGNORE modules SET rowid = 150 WHERE code = 'A1'",
   ];
 
-  /** A database with every migration applied and two modules. */
   async function migrated() {
     const { DatabaseSync } = await import('node:sqlite');
     const db = new DatabaseSync(':memory:');

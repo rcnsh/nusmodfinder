@@ -1,10 +1,4 @@
 // @ts-check
-// scripts/live-shortlist-plan.mjs: the shortlist's live check's arguments, its
-// seeded draw of the shortlist and the 404 codes, the calls it plans, and the
-// reading and comparing of totals, on the fixture (the production modules live
-// in .data/, which CI doesn't have), with no network. The browser half,
-// scripts/live-shortlist.mjs, is run by hand: against the local UI server before the
-// PR, against production after the deploy (docs/operations.md, "Live checks").
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { csvTotals, draw404, GAP_MS, loadData, makePlan, parseArgs, PRODUCTION_URL, readTotals, refData, rng, SLOTS, STUDY, totalsProblems } from '../scripts/live-shortlist-plan.mjs';
@@ -65,7 +59,6 @@ describe('the shortlist draw', () => {
     const ref = reference(plan.entries, STUDY, [], refData(data));
     expect(ref.standings.map((s) => s.standing)).toEqual(plan.entries.map((e) => e.standing));
     expect(plan.totals).toEqual(ref.totals);
-    // A closed entry is never counted; the Business pick is "only if invited" (no `inv`).
     const units = (/** @type {string} */ sem, /** @type {string} */ st) => plan.entries.filter((e) => e.which === 'pick' && e.sem === sem && e.standing === st).reduce((a, e) => a + e.credits, 0);
     for (const s of /** @type {const} */ (['1', '2'])) expect(plan.totals[s]).toEqual({ counted: units(s, 'counted'), confirm: units(s, 'confirm'), invite: units(s, 'invite') });
   });

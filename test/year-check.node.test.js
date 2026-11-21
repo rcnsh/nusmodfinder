@@ -1,9 +1,4 @@
 // @ts-check
-// `year check` in its CI mode, and `year next`.
-// Each case runs over a temp copy of the files the check reads (test/year-fakes.node.mjs), changed
-// one way: a consistent tree, a stale constant, a stub, a date that disagrees, a 40% drop in a
-// semester published both years, a missing oracle, and an unpublished semester (which passes).
-// `year next` writes stubs and never overwrites. The real tree passes too.
 import { existsSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -24,8 +19,6 @@ const problems = () => yearCheck({ root }).problems.join('\n');
 
 describe('year check, CI mode', () => {
   it('passes a consistent tree, noting a pending archive and what the maintainer must confirm', () => {
-    // The real manifest's archive is published and nothing is left to confirm, so the copy is
-    // put back in a new year's state: both are notes, never failures.
     const rel = `data/ng-sources-${Y}.json`;
     const pending = readJson(root, rel);
     const rev = pending.revisions.at(-1);
@@ -38,7 +31,6 @@ describe('year check, CI mode', () => {
     expect(r.year).toBe(Y);
     expect(r.notes.join('\n')).toMatch(/archive: pending/);
     expect(r.notes.join('\n')).toMatch(/to confirm \(the maintainer\)/);
-    // YST's Sem 2 page is last year's until YST publishes this year's: said, not failed.
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     for (const s of ['1', '2']) if (m.published.yst[s] !== Y) expect(r.notes.join('\n')).toContain(`YST Sem ${s}: ${yearLabel(m.published.yst[s])}'s page`);
   });
@@ -117,10 +109,8 @@ describe('year check, CI mode', () => {
     const r = yearCheck({ root });
     expect(r.problems).toEqual([]);
     expect(r.notes.join('\n')).toContain(`Sem 2 unpublished: exchange mode shows ${yearLabel(LAST)}'s Sem 2 list`);
-    // Without last year's list there is nothing to show.
     unlinkSync(join(root, `data/ng-courses-${LAST}.json`));
     expect(problems()).toContain(`Sem 2 is unpublished, so exchange mode shows ${LAST}'s Sem 2 list`);
-    // A published semester needs its section, an unpublished one has none.
     m.published.ngList['2'] = true;
     writeJson(root, `data/ng-sources-${Y}.json`, m);
     expect(problems()).toMatch(/Sem 2 is published .* has no Sem 2 list/);
@@ -150,7 +140,6 @@ describe('year next', () => {
     expect(oracle).toContain(readFileSync(join(root, `test/oracle/oracle-${Y}.node.mjs`), 'utf8'));
     expect(readFileSync(join(root, `docs/year-refresh/registers/${NEXT}.md`), 'utf8')).toMatch(/\| C1 \(re-verify\) \|/);
     expect(CHECKLIST(NEXT)).toMatch(/--write-budget 80000/);
-    // The next year's stubs fail its own year check.
     expect(yearCheck({ root, year: NEXT }).problems.join('\n')).toMatch(/is a stub/);
   });
 

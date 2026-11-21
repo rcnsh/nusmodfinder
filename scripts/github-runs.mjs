@@ -1,9 +1,5 @@
 // @ts-check
-// Whether a commit's own CI push run succeeded: the deploy's preflight refuses otherwise, and
-// the Actions deploy's gate (scripts/deploy-gate.mjs) waits for it. One `gh api` read of the repo's runs for that sha; `{owner}/{repo}` is filled in by
-// gh from the checkout's remote (GH_TOKEN in Actions, the deployer's gh login on the Mac).
 
-/** The workflows (by `name:`) whose push runs must have succeeded. */
 export const REQUIRED_WORKFLOWS = /** @type {const} */ (['CI']);
 
 /**
@@ -17,7 +13,6 @@ export const REQUIRED_WORKFLOWS = /** @type {const} */ (['CI']);
 export const runsApiPath = (sha) => `repos/{owner}/{repo}/actions/runs?head_sha=${sha}&event=push&per_page=100`;
 
 /**
- * The push runs for `sha`, newest first.
  * @param {{ sha: string, exec: Exec }} o
  * @returns {Promise<WorkflowRun[]>}
  */
@@ -32,7 +27,6 @@ export async function pushRuns({ sha, exec }) {
 }
 
 /**
- * Each required workflow's newest push run for `sha`, and what it means for a deploy.
  * @param {WorkflowRun[]} runs
  * @param {string} sha
  * @returns {{ ok: boolean, states: RunState[] }}

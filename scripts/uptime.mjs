@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `node scripts/uptime.mjs [--url <url>] [--dry-run]` (ADR 0012, ADR 0019): the uptime check, run
-// by hand. The uptime Worker (workers/uptime/) runs the same check every 15 minutes; both call
-// checkAndReport() in scripts/uptime-check.mjs, which says what is checked and reported.
-//
-// `--dry-run` checks the site and prints what it would ping, pinging nothing, so it needs no
-// HC_UPTIME_URL. Without it the run pings the healthchecks.io check like a Worker run.
-// The site is wrangler.jsonc's Custom Domain unless --url is given; the module code is drawn from
-// this checkout's data/groups.json. The exit code is checkAndReport()'s: 0 once the report reached
-// healthchecks.io (or on a dry run), up or down; 1 when the ping failed; 2 on a usage or
-// configuration error, before any request. No run record: healthchecks.io keeps the history.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { workerUrl } from './remote-session.mjs';
@@ -21,7 +11,7 @@ export {
 
 const USAGE = 'usage: node scripts/uptime.mjs [--url <url>] [--dry-run]';
 
-/** The site wrangler.jsonc routes to (its first route pattern), or null. @param {string} text */
+/** @param {string} text */
 export function siteUrl(text) {
   const pattern = /"pattern"\s*:\s*"([^"/]+)"/.exec(text)?.[1];
   return pattern ? `https://${pattern}` : null;
@@ -48,9 +38,8 @@ function parseArgs(argv) {
  */
 
 /**
- * One run from the command line.
  * @param {UptimeDeps} [deps]
- * @returns {Promise<number>} the exit code
+ * @returns {Promise<number>}
  */
 export async function uptime({
   argv = process.argv.slice(2), env = process.env, fetchImpl, ping, sleep, now, log = console.log, error = console.error,

@@ -1,17 +1,11 @@
 // @ts-check
-// The CI workflow's shape, read as text (the repo has no YAML parser and needs none for this).
-// - The UI job runs in Playwright's own image, whose browsers must be the ones the locked
-//   @playwright/test drives: bump one without the other and every UI test fails to launch.
-// - Every job always starts. `check` and `eval-gate` carry only the draft guard;
-//   the heavy jobs skip by steps, on scripts/ci-changes.mjs's outputs, and run in full when
-//   `changes` failed; `main`'s runs never cancel each other.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const read = (/** @type {string} */ p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/ci.yml');
 
-/** The text of one job: from `  <name>:` to the next job at the same indent. @param {string} name */
+/** @param {string} name */
 function job(name) {
   const start = workflow.indexOf(`\n  ${name}:\n`);
   if (start < 0) throw new Error(`ci.yml has no job ${name}`);
@@ -19,9 +13,9 @@ function job(name) {
   const next = rest.slice(1).search(/\n {2}[a-z][\w-]*:\n/);
   return next < 0 ? rest : rest.slice(0, next + 1);
 }
-/** The job-level `if:` (two-space job, four-space key). @param {string} text */
+/** @param {string} text */
 const jobIf = (text) => text.match(/^ {4}if: (.+)$/m)?.[1];
-/** Each step's text. @param {string} text */
+/** @param {string} text */
 const steps = (text) => text.slice(text.indexOf('\n    steps:\n')).split(/\n {6}- /).slice(1);
 
 const DRAFT = 'github.event.pull_request.draft != true';
@@ -50,9 +44,6 @@ describe('the ui CI job', () => {
 });
 
 describe('the workflow is valid YAML', () => {
-  // A plain (unquoted) scalar may not hold ": " or " #": GitHub then rejects the whole file and the
-  // push shows one failed run with no jobs. The repo has no YAML parser, so this checks the one-line
-  // keys that carry shell or text.
   it('no unquoted one-line run, name or if value holds ": " or " #"', () => {
     const bad = workflow.split('\n').map((line, i) => ({ line, n: i + 1 }))
       .filter(({ line }) => {
@@ -74,7 +65,6 @@ describe('every CI job always starts', () => {
       const text = job(name);
       expect(jobIf(text), name).toBe(DRAFT);
       expect(text, name).not.toMatch(/needs:/);
-      // No step of theirs is skipped by a diff either.
       for (const step of steps(text)) expect(step, `${name}: ${step.split('\n')[0]}`).not.toMatch(/needs\.changes|outputs\.(code|ui|grid)/);
     }
   });
@@ -84,13 +74,10 @@ describe('every CI job always starts', () => {
       const text = job(name);
       expect(jobIf(text), name).toBe(`\${{ !cancelled() && ${DRAFT} }}`);
       expect(text, name).toMatch(/^ {4}needs: changes$/m);
-      // A missing output (a failed `changes`) is not 'false', so the job runs.
       const run = text.match(/^ {6}RUN: \$\{\{ needs\.changes\.outputs\.(\w+) != 'false' \}\}$/m);
       expect(run, `${name} has no RUN from a changes output`).not.toBeNull();
       const all = steps(text);
-      // A step's `if:` is its first line (`- if: …`) or an indented key.
       const gated = all.filter((s) => /^\s*if: .*\benv\.RUN == 'true'/m.test(s));
-      // Every step but the one that says what it decided waits on RUN.
       expect(gated.length, name).toBe(all.length - 1);
       expect(all.filter((s) => !gated.includes(s))[0], name).toMatch(/RUN/);
     }

@@ -1,11 +1,4 @@
 // @ts-check
-// The corpus vocabulary the typo step (src/typo.js) corrects against: every surface token of the indexed text (title and
-// description, split by queryTokens exactly as modules_fts splits them) with
-// its document frequency, and the FTS index terms those tokens become (folded
-// and porter-stemmed), so whether a prefix term `"tok"*` matches anything is
-// decided here, with no D1 query. Built from the same corpus as the vectors
-// bundle and versioned by its data version (scripts/build-vocabulary.mjs).
-// Pure: no bindings, no JSON imports, so Node scripts and the eval import it.
 import { queryTokens } from './fts-query.js';
 import { ftsTerm } from './porter.js';
 
@@ -16,7 +9,7 @@ export const VOCABULARY_SCHEMA = 'vnm-vocabulary/1';
  * @typedef {{
  *   schema: string, corpus: VocabularyCorpus, dataVersion: string, rule: string, documents: number, count: number,
  *   terms: string, df: number[], stems: string,
- * }} VocabularyFile The committed form: `terms` and `stems` newline-joined, sorted by code unit.
+ * }} VocabularyFile
  * @typedef {{
  *   corpus: VocabularyCorpus, dataVersion: string, documents: number,
  *   terms: string[], df: number[], stems: string[],
@@ -48,10 +41,7 @@ export function buildVocabulary(modules, { corpus, dataVersion }) {
   };
 }
 
-/**
- * The committed bytes: the header fields one per line, the data on one line each.
- * @param {VocabularyFile} file
- */
+/** @param {VocabularyFile} file */
 export function serializeVocabulary(file) {
   const lines = Object.entries(file).map(([k, v]) => ` ${JSON.stringify(k)}: ${JSON.stringify(v)}`);
   return `{\n${lines.join(',\n')}\n}\n`;
@@ -74,8 +64,8 @@ export function parseVocabulary(file) {
 }
 
 /**
- * The first index in sorted `xs` whose value is ≥ `x`.
- * @param {string[]} xs @param {string} x
+ * @param {string[]} xs
+ * @param {string} x
  */
 function lowerBound(xs, x) {
   let lo = 0;
@@ -89,8 +79,8 @@ function lowerBound(xs, x) {
 }
 
 /**
- * The number of documents containing the surface token, 0 when none does.
- * @param {Vocabulary} v @param {string} token
+ * @param {Vocabulary} v
+ * @param {string} token
  */
 export function dfOf(v, token) {
   const i = lowerBound(v.terms, token);
@@ -98,9 +88,8 @@ export function dfOf(v, token) {
 }
 
 /**
- * Whether the FTS prefix term `"token"*` matches any document: FTS5 folds and
- * stems the token, then looks for an index term starting with the result.
- * @param {Vocabulary} v @param {string} token
+ * @param {Vocabulary} v
+ * @param {string} token
  */
 export function prefixMatches(v, token) {
   const p = ftsTerm(token);
@@ -109,14 +98,12 @@ export function prefixMatches(v, token) {
   return i < v.stems.length && v.stems[i].startsWith(p);
 }
 
-/** Three DP rows, reused across calls (grown as needed). */
 let rows = [new Int32Array(32), new Int32Array(32), new Int32Array(32)];
 
 /**
- * The optimal string alignment distance (Levenshtein plus adjacent
- * transposition, each substring edited at most once): `desgin` →
- * `design` costs 1. Above `max` it stops early and returns max + 1.
- * @param {string} a @param {string} b @param {number} [max]
+ * @param {string} a
+ * @param {string} b
+ * @param {number} [max]
  */
 export function osaDistance(a, b, max = Infinity) {
   const n = a.length;
@@ -139,8 +126,6 @@ export function osaDistance(a, b, max = Infinity) {
       cur[j] = d;
       if (d < rowMin) rowMin = d;
     }
-    // No later row can come back under the bound (a transposition reaches back
-    // two rows, but only from a cell the row between already improves on).
     if (rowMin > max) return max + 1;
     [prev2, prev, cur] = [prev, cur, prev2];
   }
@@ -148,10 +133,9 @@ export function osaDistance(a, b, max = Infinity) {
 }
 
 /**
- * The vocabulary term nearest `token` within `maxDist` OSA edits: the
- * smallest distance, then the higher df, then the lexicographically smaller
- * term. Null when none is within the bound.
- * @param {Vocabulary} v @param {string} token @param {number} maxDist
+ * @param {Vocabulary} v
+ * @param {string} token
+ * @param {number} maxDist
  */
 export function nearestTerm(v, token, maxDist) {
   /** @type {{ term: string, d: number, df: number } | null} */

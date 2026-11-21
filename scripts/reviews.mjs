@@ -1,23 +1,4 @@
 // @ts-check
-// Course review scores (ADR 0018): what students wrote under each course on
-// NUSMods, as a few numbers per course in data/reviews.json. No comment text
-// leaves .data/; the card links to NUSMods for the reviews themselves.
-//
-//   npm run reviews -- crawl            every thread and comment of the NUSMods Disqus forum
-//   npm run reviews -- score [--limit N] [--max-usd N]
-//                                       each comment rated by Claude, resumable
-//   npm run reviews -- build            data/reviews.json from the scores
-//
-// crawl: Disqus's public API pages the forum 100 at a time (forums/listThreads,
-// then forums/listPosts), 2 s apart, resumable from .data/reviews/crawl/*.cursor.
-// score: one Claude Haiku 5.5 call per course thread (threads over 100 comments
-// in chunks), structured output per comment; ANTHROPIC_API_KEY or an `ant auth`
-// profile; sends no request whose estimate would pass --max-usd (default 10), counting what is
-// spent, in flight and failed, and leaves those for the next run. A chunk that comes back missing a
-// comment is re-sent by running score again. build: reviews only (questions and
-// replies dropped), repeats of one review dropped, reviews with no overall score
-// not counted, each review weighted by age
-// (half-life HALF_LIFE academic years before DEFAULT_ACAD_YEAR).
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -32,12 +13,10 @@ export const OUT = join(ROOT, 'data', 'reviews.json');
 export const SCHEMA_ID = 'vnm-reviews/1';
 
 const FORUM = 'nusmods-prod';
-// Disqus's public embed key: the one every NUSMods page sends from the browser.
 const DISQUS_KEY = 'E8Uh5l5fHZ6gD8U3KycjAIAk46f68Zw7C6eW8WSjZvCLXebZ7p0r1yrYDrLilk2F';
 const GAP_MS = 2_000;
 export const MODEL = 'claude-haiku-5-5';
 const CHUNK = 100;
-/** $ per million tokens for MODEL: input, cache write (1 h), output. */
 const PRICE = { input: 0.1, cacheWrite: 0.2, output: 0.5 };
 export const HALF_LIFE = 3;
 export const CODE_RE = /^[A-Z]{2,4}\d{4}[A-Z]{0,3}$/;
@@ -69,7 +48,6 @@ export const OUTPUT_SCHEMA = {
   },
 };
 
-// Checked against Claude Opus 5.5 on 419 comments: overall agrees exactly on 81%, within 1 on all.
 export const SYSTEM = `You read the comment thread under one NUS course on NUSMods and rate each comment.
 
 For every comment, return one entry with its id:
@@ -88,8 +66,6 @@ Rate only what the comment says or clearly implies; use null for anything it doe
 
 const sleep = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
 /**
- * A crawl file's records, the first of each id (a page appended twice by a crash between the
- * append and the cursor write counts once).
  * @param {string} file
  * @returns {any[]}
  */
@@ -104,7 +80,6 @@ const readJsonl = (file) => {
 };
 
 /**
- * The course code a thread is about: the identifier that is a code, else the code in its link.
  * @param {Thread} t
  * @returns {string | null}
  */
@@ -114,7 +89,6 @@ export function codeOf(t) {
 }
 
 /**
- * Each course's live comments, oldest first.
  * @param {Thread[]} threads
  * @param {Post[]} posts
  * @returns {Map<string, Post[]>}
@@ -134,11 +108,6 @@ export function postsByCourse(threads, posts) {
 }
 
 /**
- * The academic year the writer names in `taken`, as its first year's last two digits, or null:
- * a pair of consecutive years anywhere, each of two or four digits ("AY22/23", "S2 AY24/25",
- * "ay 24/25 sem 1", "22-23"), else "AY" and four digits, read as two consecutive years
- * ("AY1516") or as one calendar year, else "AY" and two digits. test/reviews.node.test.js has
- * the four-digit forms.
  * @param {string} taken
  * @returns {number | null}
  */
@@ -157,12 +126,9 @@ export function namedYear(taken) {
 }
 
 /**
- * The academic year a review is about, as its first year's last two digits: the one the writer
- * names (namedYear), unless that is after the current year or after it was posted; else the
- * academic year it was posted in (from August); null with neither.
  * @param {Scored} c
- * @param {string | undefined} postedAt ISO date
- * @param {number} currentYear the current academic year's first year, two digits
+ * @param {string | undefined} postedAt
+ * @param {number} currentYear
  * @returns {number | null}
  */
 export function reviewYear(c, postedAt, currentYear) {
@@ -173,11 +139,9 @@ export function reviewYear(c, postedAt, currentYear) {
 }
 
 /**
- * One course's numbers from its scored comments: reviews only, a review posted again (same
- * opening 200 letters and digits) counted once, each score weighted by age.
  * @param {Scored[]} scored
  * @param {Map<string, Post>} postOf
- * @param {number} currentYear the current academic year's first year, two digits
+ * @param {number} currentYear
  * @returns {CourseReviews | null}
  */
 export function aggregate(scored, postOf, currentYear) {
@@ -186,14 +150,10 @@ export function aggregate(scored, postOf, currentYear) {
   const dated = [];
   const ordered = [...scored].sort((a, b) => (postOf.get(a.id)?.createdAt ?? '').localeCompare(postOf.get(b.id)?.createdAt ?? ''));
   for (const c of ordered) {
-    // A review with no overall score adds to no number the card leads with, so it isn't counted,
-    // and it can't claim the repeat key from a later post of the same text that has one.
     if (!c.is_review || c.overall === null) continue;
-    // A text with no Latin letter or digit (Chinese, emoji) keys on its own id: never a repeat.
     const key = (postOf.get(c.id)?.text ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 200) || `id:${c.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    // Nor is one with no year to weigh it by.
     const year = reviewYear(c, postOf.get(c.id)?.createdAt, currentYear);
     if (year !== null) dated.push({ c, year });
   }
@@ -244,7 +204,6 @@ async function crawl(argv) {
     const state = join(CRAWL, `${name}.cursor`);
     if (existsSync(state) && readFileSync(state, 'utf8').trim() === 'DONE') return;
     let cursor = existsSync(state) ? readFileSync(state, 'utf8').trim() : '';
-    // No cursor: a fresh crawl, so start the file empty rather than after an earlier crawl.
     if (!cursor) writeFileSync(join(CRAWL, `${name}.jsonl`), '');
     let pages = 0;
     do {
@@ -266,7 +225,6 @@ async function crawl(argv) {
   run.finish('ok', { exitCode: 0 });
 }
 
-/** Every scoring request: one per course, or per 100 comments of a longer thread. */
 function requests() {
   const byCourse = postsByCourse(readJsonl(join(CRAWL, 'threads.jsonl')), readJsonl(join(CRAWL, 'posts.jsonl')));
   const out = [];
@@ -312,9 +270,6 @@ async function scoreAll(argv) {
   console.log(`score: ${todo.length} requests to send, cap $${maxUsd}`);
   const usage = { input: 0, cacheWrite: 0, output: 0 };
   const usd = () => (usage.input * PRICE.input + usage.cacheWrite * PRICE.cacheWrite + usage.output * PRICE.output) / 1e6;
-  // A request's cost before it is sent, on the high side: its input written to cache at 3.6 ASCII
-  // characters a token and 1.5 tokens per other character (Chinese runs about one each), and 400
-  // output tokens (thinking included) per comment.
   const tokens = (/** @type {string} */ s) => {
     const chars = [...s];
     const ascii = chars.filter((ch) => ch.charCodeAt(0) < 128).length;
@@ -322,8 +277,6 @@ async function scoreAll(argv) {
   };
   const systemTokens = tokens(SYSTEM);
   const queue = todo.map((r) => ({ r, est: ((tokens(r.content) + systemTokens) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6 }));
-  // Spend so far is usd() for the requests that answered, plus the estimates of those in flight
-  // (`pending`) and of those that failed with no answer (`lost`: they may still have billed).
   let pending = 0;
   let lost = 0;
   let inFlight = 0;
@@ -332,7 +285,6 @@ async function scoreAll(argv) {
   let incomplete = 0;
   await Promise.all(Array.from({ length: 6 }, async () => {
     while (queue.length) {
-      // The next request that fits under the cap; none fits: wait for those in flight, or stop.
       const at = queue.findIndex((q) => usd() + pending + lost + q.est <= maxUsd);
       if (at < 0) {
         if (inFlight > 0) { await sleep(500); continue; }
@@ -366,7 +318,6 @@ async function scoreAll(argv) {
         if (r.ids.some((id) => !comments.some((c) => c.id === id))) incomplete++;
       } catch (err) {
         failed++;
-        // One that answered (a max_tokens stop) is in usd() already; one that didn't may still bill.
         if (!billed) lost += est;
         console.log(`${r.id}: ${/** @type {Error} */ (err).message}`);
       } finally {
@@ -375,7 +326,6 @@ async function scoreAll(argv) {
       }
     }
   }));
-  // A failed request's usage is unknown (it may have billed), so the record says how many failed.
   run.wrote('scored chunks', { actual: sent - failed }).detail('usd', Math.round(usd() * 1e4) / 1e4).detail('usage', usage)
     .detail('failedRequests', failed).detail('leftAtCap', queue.length);
   console.log(`score: $${usd().toFixed(2)} for ${sent} of ${todo.length} requests${queue.length ? `; ${queue.length} left, over the $${maxUsd} cap` : ''}; `
@@ -405,7 +355,6 @@ function build() {
     const r = aggregate(s, postOf, currentYear);
     if (r) courses[code] = r;
   }
-  // One course per line, so a rebuild's diff reads course by course.
   const head = { schema: SCHEMA_ID, source: `NUSMods comments (Disqus forum ${FORUM})`, model: MODEL, halfLifeYears: HALF_LIFE };
   const lines = Object.entries(courses).map(([code, r]) => `${JSON.stringify(code)}:${JSON.stringify(r)}`);
   writeFileSync(OUT, `${JSON.stringify(head).slice(0, -1)},"courses":{\n${lines.join(',\n')}\n}}\n`);

@@ -1,9 +1,4 @@
 // @ts-check
-// The eval runner's refusal of corpus vectors that embed another text than
-// the ranker's (eval/lib/embeddings.mjs assertCorpusTextsEmbedded, called by
-// eval/runner/run.mjs): a ranker runs only on a corpus embedding version
-// embedded from its own embedding text (ref 3a2-vN with emb-bge-small-vN),
-// never on another.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -18,12 +13,15 @@ const records = [
   { moduleCode: 'CS3244', title: 'Machine Learning', department: 'Computer Science', faculty: 'Computing', description: 'Basic concepts and algorithms in machine learning.' },
   { moduleCode: 'PLS8001', title: 'Cultivating Collaboration', department: 'Psychology', faculty: 'Arts and Social Science', description: 'Soft skills on the interpersonal level.' },
 ];
-/** The eval-v0 embedding text (title, department, faculty, description). @param {import('../../scripts/lib.mjs').NusModsRecord} r */
+/** @param {import('../../scripts/lib.mjs').NusModsRecord} r */
 const v0Text = (r) => [r.title, r.department, r.faculty, r.description].join('. ');
 
-/** A ranker's corpus under a text function. @param {(r: any) => string} text */
+/** @param {(r: any) => string} text */
 const corpusOf = (text) => records.map((r) => ({ code: /** @type {string} */ (r.moduleCode), text: text(r) }));
-/** A corpus version embedded from a text function. @param {string} version @param {(r: any) => string} text */
+/**
+ * @param {string} version
+ * @param {(r: any) => string} text
+ */
 const versionOf = (version, text) => ({ version, textRef: `ref-${version}`, keys: corpusOf(text).map((m) => embeddingKey(MODEL, m.text)) });
 
 const v0 = versionOf('emb-bge-small-v0', v0Text);
@@ -54,7 +52,6 @@ describe('assertCorpusTextsEmbedded', () => {
     expect(() => assertCorpusTextsEmbedded(mixed, v0, 'x')).toThrow(/^1 of 2 corpus texts of ranker x .*first: PLS8001/);
   });
 
-  // The pinned corpus and the v0 asset, if this checkout has them (never downloaded here).
   const local = existsSync(MODULE_INFO_PATH) && existsSync(join(EMB_DIR, 'emb-bge-small-v0', 'corpus.index.json'));
   it.skipIf(!local)('on real data: the v0 asset refuses this checkout\'s ranker, every module of it', async () => {
     expect(EMBEDDING_TEXT_VARIANT).toMatch(/^v[123]$/);

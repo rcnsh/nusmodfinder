@@ -1,12 +1,4 @@
 // @ts-check
-// The suite's and the gibberish set's new texts are embedded into
-// test/query-suite/embeddings.json. test/query-suite/needs-embedding.txt lists every
-// one of them; this file checks that list is exact, and holds the checks that
-// need the vectors, skipped until test/query-suite/embeddings.json exists:
-// - every listed text has a vector for each form the rankers embed;
-// - no suite or gibberish text is a near-duplicate of a dev text by query
-//   embedding (cosine ≥ 0.9, the leak-filter threshold of ADR 0003), except
-//   the four dev texts the suite allows.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -18,7 +10,6 @@ const devCache = readJson(join(REPO, 'eval/dev/embeddings.json')).entries;
 const items = readJson(SUITE_PATH).items;
 const gibberish = readJson(GIBBERISH_PATH).strings;
 
-/** Every suite and gibberish text, in file order: suite texts, then the gibberish set. */
 function allTexts() {
   const texts = [...suiteTexts(items).map((t) => t.text), ...gibberish.map((/** @type {any} */ g) => g.text)];
   return [...new Set(texts)];
@@ -27,7 +18,6 @@ function allTexts() {
 /** @param {Record<string, string>} entries @param {string} text */
 const embedded = (entries, text) => queryTextForms(text).every((f) => embeddingKey(MODEL, f) in entries);
 
-/** The listed texts: every line that is not blank or a `#` comment. */
 const listed = () => readFileSync(NEEDS_EMBEDDING_PATH, 'utf8').split('\n').filter((l) => l.trim() !== '' && !l.startsWith('#'));
 
 const haveVectors = existsSync(SUITE_EMBEDDINGS_PATH);

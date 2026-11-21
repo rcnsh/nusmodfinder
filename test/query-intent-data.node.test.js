@@ -1,7 +1,4 @@
 // @ts-check
-// The query-understanding data files the Worker reads (data/), against the
-// eval's files they copy (eval/query-rules/) and their committed counts. No
-// corpus needed.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -27,8 +24,6 @@ describe('the query-understanding data files', () => {
     expect(data.exempt).toEqual(evalCopy.exempt);
   });
 
-  // data/prefixes.json follows production's current corpus;
-  // data/pinned/prefixes.json is the pinned corpus's (the eval's), unchanged.
   it.each([
     ['data/prefixes.json', 305, { CS: 165, LSM: 122, GEA: 2, GEC: 35, GEX: 15, GESS: 28 }],
     ['data/pinned/prefixes.json', 304, { CS: 164, LSM: 123, GEA: 2, GEC: 36, GEX: 16, GESS: 29 }],
@@ -46,7 +41,6 @@ describe('the query-understanding data files', () => {
   it('the catalogue-only codes and rows agree, sorted, and none is a prefix-less code', () => {
     const codes = readJson('data/catalogue-codes.json');
     const rows = readJson('data/catalogue-only.json');
-    // Production's current corpus, whose count follows NUSMods; the pinned corpus has 14359.
     expect(codes.count).toBe(codes.codes.length);
     expect(rows.count).toBe(codes.count);
     expect(codes.count).toBeGreaterThan(10000);

@@ -1,9 +1,4 @@
 // @ts-check
-// Builds the directory a run executes in: the ranker under test (src/,
-// migrations/, scripts/lib.mjs and data/, since the embedding text is part of
-// the ranker) from a git ref or the working tree, overlaid with the HEAD runner
-// (eval/runner/retrieval.eval.js, harness.js, lookup-ai.js and test/fakes.js),
-// so an old ref such as `eval-v0` runs under today's harness.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -11,20 +6,11 @@ import { cp, lstat, mkdir, readFile, readdir, readlink, rm } from 'node:fs/promi
 import { dirname, join, relative, sep } from 'node:path';
 import { REPO } from './sets.mjs';
 
-/** Ranker files taken from the ref (or working tree). */
 export const RANKER = ['src', 'migrations', 'scripts/lib.mjs', 'data'];
-/** Test-only Worker config: from the ref if it has one (its own compat date), else HEAD's. */
 export const TEST_CONFIG = 'test/wrangler.test.jsonc';
-/** What `ranker.treeHash` covers: the ranker plus the Worker config it runs under. */
 export const HASHED = [...RANKER, TEST_CONFIG];
 
 /**
- * Content hash of the ranker files under `root` (HASHED paths: RANKER and
- * the test Worker config, whose compatibility date and flags change what
- * runs): sha256 over
- * the sorted lines "<posix path>\0<kind>\0<sha256 of content or link target>".
- * Recorded as `ranker.treeHash`, so a run file says which ranker code actually
- * ran, whatever `git rev-parse` said about the ref.
  * @param {string} root
  * @param {string[]} [paths]
  */
@@ -47,7 +33,6 @@ export async function treeHash(root, paths = HASHED) {
   entries.sort();
   return createHash('sha256').update(entries.join('\n')).digest('hex');
 }
-/** Runner files always taken from the working tree. */
 export const RUNNER = ['eval/runner/retrieval.eval.js', 'eval/runner/harness.js', 'eval/runner/lookup-ai.js', 'test/fakes.js'];
 
 /**
@@ -66,10 +51,7 @@ const existsAt = (ref, path) => spawnSync('git', ['cat-file', '-e', `${ref}:${pa
 /** @param {string[]} paths */
 const dirty = (paths) => git(['status', '--porcelain', '--', ...paths]).toString().trim() !== '';
 
-/**
- * `treeHash` is treeHash() of the ranker files as extracted into the workspace.
- * @typedef {{ ref: string, sha: string, dirty: boolean, treeHash: string, runner: { sha: string, dirty: boolean } }} RankerInfo
- */
+/** @typedef {{ ref: string, sha: string, dirty: boolean, treeHash: string, runner: { sha: string, dirty: boolean } }} RankerInfo */
 
 /**
  * @param {{ ref?: string, name: string }} options

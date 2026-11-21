@@ -1,25 +1,4 @@
 // @ts-check
-// Ingest cost over the full pinned corpus (6,771 modules): what ingest costs in
-// D1 rows, measured on local D1 through the real routes and
-// scripts/ingest-core.mjs (fake Workers AI and Vectorize). Every D1 statement
-// any admin route runs is metered (meta.rows_read / rows_written), including
-// /admin/hashes and the facets rebuild, which the ingest script's own budget
-// does not see. Logs one `[ingest-cost] {...}` line.
-//
-// A forced full re-ingest stays under 10% of the daily D1 read limit
-// (500,000 rows), and within the default write budget (40,000, ADR 0002) as
-// the budget charges it (per batch, the larger of meta.rows_written and the
-// estimate with FTS shadow writes; a forced re-ingest of unchanged text has
-// none).
-//
-// A cold load is charged ~149k rows (FTS inserts: 13.19 per module measured),
-// so the default budget stops it
-// cleanly and the resume here runs with a higher one.
-//
-// The older-format starting state: rows whose text_hash is hashOf(text), with
-// row_hash NULL. The planned run from it
-// re-embeds every module but changes no FTS-indexed column, so it must finish
-// in one run under the default budget.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
@@ -36,8 +15,6 @@ const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 /** @typedef {{ read: number, written: number, statements: number }} Meter */
 
 /**
- * env.DB with every statement's D1 meta added to `meter`. `first()` runs as
- * `all()` because only `all()`/`run()`/`batch()` return meta.
  * @param {Meter} meter
  * @returns {D1Database}
  */
@@ -75,7 +52,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
   const report = { modules: c.modules.length };
 
   /**
-   * One metered run.
    * @param {string} name
    * @param {NormalisedModule[]} modules
    * @param {import('../../scripts/ingest-core.mjs').IngestOptions} [options]
@@ -90,11 +66,8 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
     report[name] = {
       status: result.status, plan: result.plan, embedded: result.embedded, deleted: result.deleted,
       aiCalls: fakes.ai.calls.length - aiBefore,
-      // What D1 reported to the script (ingest + delete responses only), what
-      // its budget charged for them (FTS estimate included)...
       budgetRowsWritten: result.rowsWritten,
       budgetRowsCharged: result.rowsCharged,
-      // ...and every D1 statement of the run, /admin/hashes and facets included.
       rowsRead: meter.read, rowsWritten: meter.written, statements: meter.statements,
     };
     return { result, meter };
@@ -106,11 +79,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
   });
 
   it('cold ingest, forced full re-ingest within the read budget, no-op rerun, field-only change, 10 deletes, verify', async () => {
-    // Cold: an empty 0006 database. An INSERT writes the row, its primary-key
-    // index entry and every filter index (~7.1 rows/module) plus ~13.2 FTS5
-    // shadow rows local D1 does not report: far more than the 40,000 default
-    // budget (sized for the forced re-ingest of existing rows, ADR 0002), so
-    // the default stops it cleanly; it loads with a higher one.
     const stopped = await measured('coldDefaultBudget', c.modules);
     expect(stopped.result.status).toBe('budget');
     expect(stopped.result.rowsCharged).toBeLessThanOrEqual(40_000);
@@ -118,7 +86,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
     expect(cold.result.status).toBe('done');
     expect(stopped.result.upserted + cold.result.upserted).toBe(c.modules.length);
 
-    // The older-format starting state: text_hash = hashOf(text), no row_hash.
     const mainFormat = await Promise.all(c.modules.map(async (m) => env.DB
       .prepare('UPDATE modules SET text_hash = ?, row_hash = NULL WHERE code = ?').bind((await sha256Hex(m.text)).slice(0, 32), m.code)));
     for (let i = 0; i < mainFormat.length; i += 500) await env.DB.batch(mainFormat.slice(i, i + 500));
@@ -127,7 +94,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
     expect(production.result.plan).toMatchObject({ embed: c.modules.length, rowOnly: 0, unchanged: 0, deletes: 0 });
     expect(production.result.rowsCharged).toBeLessThanOrEqual(40_000);
 
-    // Forced full re-ingest.
     const forced = await measured('forced', c.modules, { force: true });
     expect(forced.result.status).toBe('done');
     expect(forced.result.plan.embed).toBe(c.modules.length);
@@ -135,12 +101,10 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
     expect(forced.result.rowsCharged).toBeLessThanOrEqual(40_000);
     expect(forced.result.rowsCharged).toBeGreaterThanOrEqual(forced.result.rowsWritten);
 
-    // Nothing changed.
     const noop = await measured('noop', c.modules);
     expect(noop.result.plan).toMatchObject({ embed: 0, rowOnly: 0, deletes: 0 });
     expect(noop.result.upserted).toBe(0);
 
-    // Field-only changes on 25 modules: semesters, credits, prerequisite, NG flags.
     const touched = new Map();
     c.modules.forEach((m, i) => {
       if (i % 271 !== 0 || touched.size >= 25) return;
@@ -160,7 +124,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
       expect(row).toEqual({ semesters: JSON.stringify(m.semesters), credits: m.credits, prerequisite: m.prerequisite, ng: m.ng ? 1 : 0 });
     }
 
-    // 10 modules leave the corpus.
     const gone = changedCorpus.filter((_, i) => i % 677 === 5).slice(0, 10);
     expect(gone).toHaveLength(10);
     const goneCodes = new Set(gone.map((m) => m.code));
@@ -171,7 +134,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
     for (const code of goneCodes) expect(fakes.vectorize.vectors.has(code)).toBe(false);
     await env.DB.prepare("INSERT INTO modules_fts(modules_fts, rank) VALUES('integrity-check', 1)").run();
 
-    // And the stores agree.
     /** @type {Meter} */
     const vmeter = { read: 0, written: 0, statements: 0 };
     const verify = await runVerify({

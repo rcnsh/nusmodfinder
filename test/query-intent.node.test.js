@@ -1,8 +1,4 @@
 // @ts-check
-// src/query-intent.js, the code and GE half of the parse (steps 1 and 5–7):
-// canonical q, code joins, code resolution, partial codes,
-// letter-only tokens, the collision list and the GE intent. Pure, so it runs in
-// Node over the query-understanding data files and a hand-written offered set.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -17,7 +13,6 @@ import { deriveIntents } from './query-suite/intents.node.mjs';
 const readJson = (rel) => JSON.parse(readFileSync(join(REPO, rel), 'utf8'));
 const suite = readJson('test/query-suite/queries.json');
 
-/** Offered codes the cases and the suite name (the pinned corpus has them all), plus the fixture's. */
 const OFFERED = new Set([
   'CS1010', 'CS1010S', 'CS1231', 'CS1231S', 'CS2030', 'CS2040', 'CS3244', 'MA1521', 'EE2211', 'LSM1301',
   'GEA1000', 'GEA1000N', 'ES1000', 'ME3000', 'IS6000', 'IS4246', 'GE2101',
@@ -66,7 +61,6 @@ describe('code joins (step 5)', () => {
     expect(parse('ma 1521').interpreted.pin).toEqual(['MA1521']);
     expect(parse('is 4246').interpreted.pin).toEqual(['IS4246']);
     expect(parse('me 3000').interpreted.pin).toEqual(['ME3000']);
-    // Inside a longer query, never: no pin, no level route.
     for (const q of ['ee 2211 workload', 'is 4246 workload', 'give me 3000 level electives', 'show me 4000 level courses',
       'what is 2000 level', 'is it 3000 level', 'give me 2 easy electives', 'how many units is 3 US credits']) {
       const p = parse(q);
@@ -75,7 +69,6 @@ describe('code joins (step 5)', () => {
       expect(p.interpreted.level, q).toBeNull();
       expect(p.kind, q).toBe('search');
     }
-    // A collision join that names no code is no join: `st 2000` stays topical.
     expect(parse('st 2000').kind).toBe('search');
     expect(parse('st 2000').interpreted.prefix).toBeNull();
   });
@@ -124,7 +117,6 @@ describe('code resolution (step 6)', () => {
     expect(longer.kind).toBe('search');
     expect(longer.codeList).toEqual([['CS0', 'CS:']]);
     expect(longer.level).toEqual({ min: 3, max: 3 });
-    // Collision letters never reach step 3.
     expect(parse('st2000').kind).toBe('no-match');
     expect(parse('st2000').interpreted.level).toBeNull();
   });
@@ -225,9 +217,6 @@ describe('ignore', () => {
 });
 
 describe('the query suite, the keys this half of the parse sets', () => {
-  // pin, prefix and ge are this half's; level only through XX N000. The other keys
-  // come from the level phrases and the constraint intents (test/full/query-suite.test.js
-  // runs each item's full rule).
   const KEYS = /** @type {const} */ (['pin', 'prefix', 'ge']);
   for (const item of suite.items) {
     it(`${item.id} ${JSON.stringify(item.text)}`, () => {
@@ -305,7 +294,6 @@ describe('typed codes', () => {
     expect(parse('cs 1010s and cs32 machine learning').codes).toEqual([{ code: 'CS1010S', status: 'offered' }]);
     expect(parse('cs').codes).toEqual([]);
     expect(parse('machine learning').codes).toEqual([]);
-    // An `XX N000` route is code-shaped: neither offered nor catalogue-only.
     expect(parse('cs3000 machine learning').codes).toEqual([{ code: 'CS3000', status: 'unknown' }]);
   });
 });

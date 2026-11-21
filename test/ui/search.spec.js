@@ -1,6 +1,4 @@
 // @ts-check
-// The page's search, exchange set-up, DOM-only rendering and IME handling, in
-// the browser against the fixture.
 import { expect, test } from '@playwright/test';
 import { EMPTY, body, browse, live, matchFor, query, searches, pill, facultyOptions, openFaculty } from './support.mjs';
 
@@ -18,7 +16,6 @@ test('a typed search renders cards, and the URL holds the query', async ({ page 
 test('exchange mode asks for the year of study first, then keeps ng=1 and study in the URL', async ({ page }) => {
   await page.goto('/?q=networks');
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
-  // The student chooses "Exchange student" in the rail, by its label.
   await page.locator('label[for="ng"]').click();
   await expect(page.locator('#ng')).toBeChecked();
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
@@ -26,7 +23,6 @@ test('exchange mode asks for the year of study first, then keeps ng=1 and study 
   await pill(page, 'study', 'ug2').check();
   await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '2nd year', 'Exchange students']);
   expect(query(page)).toBe('q=networks&ng=1&study=ug2');
-  // In exchange mode the semester is the rail's segment: Sem 1, Sem 2 or both.
   await expect(page.locator('#semWrap')).toBeHidden();
   await page.locator('#semSeg').getByText('Sem 1', { exact: true }).click();
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students']);
@@ -42,7 +38,6 @@ test('the remembered year of study only pre-fills: a link without one gets it, a
   await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '3rd year', 'Exchange students']);
   expect(query(page)).toBe('q=networks&ng=1&study=ug3');
   expect(sent).toEqual(['q=networks&ng=1&study=ug3']);
-  // The URL wins over the remembered one.
   await page.goto('/?q=networks&ng=1&study=grad');
   await expect(pill(page, 'study', 'grad')).toBeChecked();
 });
@@ -59,7 +54,6 @@ test('result fields render as text, never as markup', async ({ page }) => {
       }, { code: 'CS2105', title: 'Networks', ng: true, ngSemesters: ['<s>2</s>'] }],
     }),
   }));
-  // /facets down, so the made-up faculty stays a chip (it would be dropped once /facets answers: see below).
   await page.route('**/facets', (route) => route.abort('failed'));
   await page.goto(`/?q=${encodeURIComponent(evil)}&faculty=${encodeURIComponent(evil)}`);
   const card = page.locator('#results > li').first();
@@ -68,11 +62,8 @@ test('result fields render as text, never as markup', async ({ page }) => {
   await expect(card.locator('.meta')).toContainText('<i>1</i>');
   await expect(card.locator('.notes li')).toHaveText(`Places. ${evil}`);
   await expect(card.locator('.variants')).toHaveText(`Also as ${evil}`);
-  // An NUS student's search: no exchange line on a course on the NG list.
   await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveCount(0);
-  // Inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
   await expect(page.locator('#status .count .q')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
-  // /facets never vouched for it, so the chip quotes it as the student's own text.
   await expect(page.locator('#chips .chip')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
   expect(await page.locator('#results img, #results b, #results i, #results s, #results u, #status img, #chips img').count()).toBe(0);
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).__pwned)).toBeUndefined();
@@ -90,7 +81,6 @@ test('Enter during IME composition does not search; Enter after it does', async 
   }, init);
   await enter({ composing: true, keyCode: 229 });
   await enter({ composing: true, keyCode: 13 });
-  // Safari: the keydown that ends a composition, after compositionend.
   await enter({ composing: false, keyCode: 229 });
   await page.waitForTimeout(300);
   expect(sent).toEqual([]);
@@ -121,7 +111,6 @@ test.describe('text from a link never speaks as the site', () => {
     await expect(page.locator('#status .count .q')).toHaveText(CAPPED);
     await expect(page.locator('#status .count')).toHaveText(new RegExp(`^\\d+ courses match ${escapeRe(CAPPED)}$`));
     await expect(live(page)).toHaveText(new RegExp(`^\\d+ courses match ${escapeRe(CAPPED)}\\.$`));
-    // The search box keeps what was typed: it is the student's own field.
     await expect(page.locator('#q')).toHaveValue(SPOOF.trim());
   });
 
@@ -150,7 +139,6 @@ test.describe('text from a link never speaks as the site', () => {
     await expect.poll(() => query(page)).toBe('q=accounting');
     await expect(page.locator('#chips')).not.toContainText('Registrar');
 
-    // A real faculty loses the quotes once /facets lists it.
     let release2 = () => {};
     const held2 = new Promise((r) => { release2 = () => r(undefined); });
     await page.unroute('**/facets');
@@ -183,7 +171,6 @@ test.describe('text from a link never speaks as the site', () => {
     await expect(facultyOptions(page).filter({ hasText: 'Registrar' })).toHaveCount(0);
     await expect(page.locator('#status .count')).toHaveText(/^\d+ courses match “accounting”$/);
 
-    // A faculty /facets lists stays.
     await page.goto('/?q=databases&faculty=Computing');
     await openFaculty(page);
     await expect(page.locator('#faculty-list [data-value="Computing"]')).toHaveText(/^Computing, \d+$/);

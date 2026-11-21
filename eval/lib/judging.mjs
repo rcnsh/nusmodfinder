@@ -1,20 +1,4 @@
 // @ts-check
-// Judging: pure functions over a pool file and a round's state.
-// eval/judge.mjs does the I/O (files, encryption); eval/JUDGING.md is the
-// protocol. A round:
-//   pool --preGrade--> rule grades (hard-constraint violations, judge `rule`)
-//        --buildRound--> per-judge batches of ~12 queries, candidates shuffled
-//                        with recorded seeds, ~5% planted repeats, drift items
-//        --renderJudgePacket--> one self-contained Markdown file per batch
-//   judge outputs --collectOutputs--> grades per item, validated
-//        --agreementUnits--> A vs B (agreement.mjs)
-//        --buildAdjudication--> pass 1 (blind) and pass 2 (both grades) packets
-//        --finalJudgments/mergeQrels--> vnm-eval-qrels/1 with a judges object
-// A single-judge round (judges { A } only, from prepare or dropJudge) skips
-// agreement and adjudication: its final grade is rule, else A's.
-// Packets never carry a query id, shape, persona, system, rank or score.
-// Validation messages never quote judge-written text (it may carry holdout
-// content): they name files, sections, item ids and value types only.
 import { createHash } from 'node:crypto';
 import { CODE_RULE, applyCodeRule } from './code-rule.mjs';
 import { CorpusMismatchError, QrelsError } from './errors.mjs';
@@ -56,17 +40,12 @@ export const DEFAULT_CALIBRATION_N = 150;
  * @typedef {{ slot: Slot, judge: string, reason: string, at: string }} DroppedJudge
  */
 
-// ---------------------------------------------------------------------------
-// helpers
-
 /** @param {string} queryId @param {string} code */
 export const pairKey = (queryId, code) => `${queryId}\t${code}`;
 /** @param {string} key */
 export const splitKey = (key) => /** @type {[string, string]} */ (key.split('\t'));
 
 /**
- * A uint32 seed derived from a base seed and labels, so every shuffle in a
- * round is reproducible from the round seed alone.
  * @param {number} seed
  * @param {...(string | number)} parts
  */
@@ -75,7 +54,6 @@ export function deriveSeed(seed, ...parts) {
 }
 
 /**
- * Fisher-Yates with a seeded generator.
  * @template T
  * @param {T[]} xs
  * @param {() => number} rand
@@ -90,7 +68,6 @@ export function shuffle(xs, rand) {
 }
 
 /**
- * Opaque item ids ("i" + 6 base-36 characters), unique within `used`.
  * @param {() => number} rand
  * @param {Set<string>} used
  */
@@ -109,7 +86,6 @@ function newItemId(rand, used) {
 const label = (prefix, i) => `${prefix}${String(i + 1).padStart(2, '0')}`;
 
 /**
- * Splits `xs` into ceil(n / size) chunks whose sizes differ by at most one.
  * @template T
  * @param {T[]} xs
  * @param {number} size
@@ -129,11 +105,7 @@ export function chunkEvenly(xs, size) {
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// pool candidates and mechanical pre-grading
-
 /**
- * A pool candidate from a normalised corpus module (cmdPool, drift items).
  * @param {any} m
  * @returns {Candidate}
  */
@@ -145,10 +117,7 @@ export function poolCandidate(m) {
   };
 }
 
-/**
- * What a judge may see of a candidate (no prerequisite: JUDGING.md).
- * @param {any} c a pool candidate (older pools carry `units` instead of `credits`)
- */
+/** @param {any} c */
 export function judgeView(c) {
   const ngSemesters = c.ngSemesters ?? [];
   return {
@@ -158,11 +127,7 @@ export function judgeView(c) {
   };
 }
 
-/**
- * Splits a pool into rule grades (hard-constraint violations: grade 0, judge
- * `rule`) and the candidates judges see.
- * @param {Pool} pool
- */
+/** @param {Pool} pool */
 export function preGrade(pool) {
   /** @type {Record<string, Grade>} */
   const rule = {};
@@ -181,9 +146,6 @@ export function preGrade(pool) {
   return { rule, toJudge };
 }
 
-// ---------------------------------------------------------------------------
-// rounds and batches
-
 /**
  * @typedef {{
  *   pool: Pool, poolSha256: string, queries: EvalQuery[], set: string, round: string,
@@ -194,25 +156,15 @@ export function preGrade(pool) {
  */
 
 /**
- * The judge slots a round (or its judges object) uses: A, or A and B.
  * @param {{ judges: Judges }} round
  * @returns {Slot[]}
  */
 export const judgeSlots = (round) => JUDGE_SLOTS.filter((s) => round.judges[s]);
 
-/**
- * Is this a single-judge round (judge A only)?
- * @param {{ judges: Judges }} round
- */
+/** @param {{ judges: Judges }} round */
 export const isSingleJudge = (round) => !round.judges.B;
 
-/**
- * Builds a judging round: rule grades, then for each judge slot its own
- * shuffled batches of ~batchSize queries with planted repeats and drift items.
- * With judges { A } only it is a single-judge round: A's batches are the same
- * as in a two-judge round with the same seed.
- * @param {RoundOptions} o
- */
+/** @param {RoundOptions} o */
 export function buildRound(o) {
   const batchSize = o.batchSize ?? DEFAULT_BATCH;
   const repeatRate = o.repeatRate ?? DEFAULT_REPEAT_RATE;
@@ -241,7 +193,7 @@ export function buildRound(o) {
   for (const d of o.drift ?? []) {
     if (!byId.has(d.queryId)) continue;
     const key = pairKey(d.queryId, d.code);
-    if (rule[key] || toJudge[d.queryId]?.some((c) => c.code === d.code)) continue; // already in this round
+    if (rule[key] || toJudge[d.queryId]?.some((c) => c.code === d.code)) continue;
     drift[key] = { grade: d.grade };
     modules[d.code] ??= judgeView(d.candidate);
     queries[d.queryId] ??= { shapes: byId.get(d.queryId)?.shapes ?? [], candidates: [] };
@@ -276,8 +228,6 @@ export function buildRound(o) {
         });
         return { id: '', queryId: qid, seed, items: ids };
       });
-      // Planted repeats: ~repeatRate of the batch's new items, shown again in a
-      // later section of the same query under new item ids.
       const fresh = sections.flatMap((s) => s.items.filter((id) => items[id].kind === 'new'));
       const count = repeatRate > 0 && fresh.length >= 2 ? Math.max(1, Math.round(repeatRate * fresh.length)) : 0;
       const picked = shuffle(fresh, rand).slice(0, count);
@@ -292,7 +242,6 @@ export function buildRound(o) {
           return id;
         });
         const at = sections.findIndex((s) => s.queryId === qid);
-        // At least one other section between the original and its repeat when the batch allows.
         const lo = Math.min(at + 2, sections.length);
         const pos = lo + Math.floor(rand() * (sections.length - lo + 1));
         sections.splice(pos, 0, { id: '', queryId: qid, seed, items: ids });
@@ -334,11 +283,6 @@ export function buildRound(o) {
 /** @typedef {ReturnType<typeof buildRound> & { dropped?: DroppedJudge[] }} Round */
 
 /**
- * Turns a two-judge round into a single-judge round by removing judge B:
- * its batches, items and grades go; A's batches, items (same ids) and grades
- * stay untouched. Records { slot, judge, reason, at } in `round.dropped`.
- * Refuses once adjudication has started, and when B has collected grades
- * unless `force`. Mutates and returns the round.
  * @param {Round} round
  * @param {{ slot: string, reason: string, force?: boolean, at?: string }} o
  */
@@ -360,11 +304,7 @@ export function dropJudge(round, o) {
   return round;
 }
 
-// ---------------------------------------------------------------------------
-// packets
-
 /**
- * The text between `<!-- BEGIN name -->` and `<!-- END name -->` in JUDGING.md.
  * @param {string} doc
  * @param {string} name
  */
@@ -388,10 +328,7 @@ function intentLines(narrative) {
   return [typeof narrative === 'string' && narrative.trim() ? `- ${narrative}` : '- (no intent written)'];
 }
 
-/**
- * Hard constraints in words.
- * @param {Record<string, unknown>} c
- */
+/** @param {Record<string, unknown>} c */
 export function constraintText(c) {
   const ng = c.ng === true || c.ng === 1 || c.ng === '1' || c.ng === 'true';
   const parts = [];
@@ -444,20 +381,18 @@ function queryHeader(round, q, heading) {
 const template = (ids) => `{\n${ids.map((id) => `  ${JSON.stringify(id)}: { "grade": null, "rationale": null }`).join(',\n')}\n}`;
 
 /**
- * Output path of one section's file.
  * @param {string} outDir
- * @param {string} who slot (A, B) or adjudicator pass dir (adjudicator/p1)
+ * @param {string} who
  * @param {string} batch
  * @param {string} section
  */
 export const outputPath = (outDir, who, batch, section) => `${outDir}/${who}/${batch}/${section}.json`;
 
 /**
- * One self-contained judge packet (Markdown) for a slot's batch.
  * @param {Round} round
  * @param {Slot} slot
  * @param {string} batchId
- * @param {{ judging: string, queries: EvalQuery[], outDir: string }} o judging = JUDGING.md text
+ * @param {{ judging: string, queries: EvalQuery[], outDir: string }} o
  */
 export function renderJudgePacket(round, slot, batchId, o) {
   const batch = round.batches[slot].find((b) => b.id === batchId);
@@ -485,16 +420,8 @@ export function renderJudgePacket(round, slot, batchId, o) {
   return `${lines.join('\n')}\n`;
 }
 
-// ---------------------------------------------------------------------------
-// validation and collection
-
-/**
- * A judge-written key, printed only when it has the item-id form: any other
- * key may be words of the query (an encrypted set's content).
- */
 const safeKey = (/** @type {string} */ k) => (/^i[0-9a-z]{6}$/.test(k) ? `"${k}"` : '(a key that is not an item id)');
 
-/** Ids the qrels' `judges` objects reserve; a judge may not be named after them. */
 export const RESERVED_JUDGE_IDS = ['rule', 'adjudicator'];
 /** @param {string} id */
 function assertJudgeId(id) {
@@ -502,10 +429,8 @@ function assertJudgeId(id) {
 }
 
 /**
- * Problems with one section's output; empty means valid. Messages name item
- * ids and value types, never judge-written text.
- * @param {string[]} expected the section's item ids
- * @param {string | null} text the file's contents, or null when it is missing
+ * @param {string[]} expected
+ * @param {string | null} text
  * @returns {{ problems: string[], grades: Record<string, Grade> }}
  */
 export function validateSectionOutput(expected, text) {
@@ -515,7 +440,7 @@ export function validateSectionOutput(expected, text) {
   try {
     out = JSON.parse(text);
   } catch {
-    return { problems: ['not valid JSON'], grades: {} }; // the parser's message quotes the text
+    return { problems: ['not valid JSON'], grades: {} };
   }
   if (!out || typeof out !== 'object' || Array.isArray(out)) return { problems: ['not a JSON object of item ids'], grades: {} };
   const o = /** @type {Record<string, unknown>} */ (out);
@@ -543,13 +468,10 @@ export function validateSectionOutput(expected, text) {
 }
 
 /**
- * Validates and stores every section of `batches` from `read`. A valid file
- * replaces the section's grades; an invalid one drops them; a missing file
- * keeps what an earlier collect stored (and is a problem if there is none).
  * @param {Batch[]} batches
- * @param {Record<string, Grade>} store mutated
+ * @param {Record<string, Grade>} store
  * @param {(batch: string, section: string) => string | null} read
- * @param {string} who for messages
+ * @param {string} who
  */
 export function collectOutputs(batches, store, read, who) {
   /** @type {string[]} */
@@ -574,7 +496,6 @@ export function collectOutputs(batches, store, read, who) {
 }
 
 /**
- * Exact agreement between each planted repeat and its original, per slot.
  * @param {Round} round
  * @param {string} slot
  */
@@ -591,7 +512,6 @@ export function selfConsistency(round, slot) {
 }
 
 /**
- * Agreement of a slot's drift re-grades with the stored final grades.
  * @param {Round} round
  * @param {string} slot
  */
@@ -608,7 +528,6 @@ export function driftReport(round, slot) {
 }
 
 /**
- * A slot's grade for each pair it judged as a new item (repeats and drift excluded).
  * @param {Round} round
  * @param {string} slot
  * @returns {Map<string, Grade>}
@@ -623,10 +542,7 @@ export function slotPairGrades(round, slot) {
   return out;
 }
 
-/**
- * Pairs both judges graded: A's and B's grade with the query's shapes.
- * @param {Round} round
- */
+/** @param {Round} round */
 export function agreementUnits(round) {
   const a = slotPairGrades(round, 'A'), b = slotPairGrades(round, 'B');
   return [...a.keys()].filter((k) => b.has(k)).sort().map((key) => ({
@@ -637,16 +553,10 @@ export function agreementUnits(round) {
   }));
 }
 
-/**
- * The pairs judges must grade (pool pairs not graded by `rule`).
- * @param {Round} round
- */
+/** @param {Round} round */
 export function judgedPairKeys(round) {
   return Object.entries(round.queries).flatMap(([qid, q]) => q.candidates.map((c) => pairKey(qid, c))).filter((k) => !round.rule[k]);
 }
-
-// ---------------------------------------------------------------------------
-// adjudication
 
 /**
  * @typedef {{ queryId: string, code: string, batch: string, section: string, first: Slot }} AdjItem
@@ -657,7 +567,6 @@ export function judgedPairKeys(round) {
  */
 
 /**
- * Adjudication items for every pair where A and B differ (|A − B| ≥ 1).
  * @param {Round} round
  * @param {{ adjudicator: string, batchSize?: number }} o
  */
@@ -698,8 +607,6 @@ export function buildAdjudication(round, o) {
 }
 
 /**
- * An adjudication packet. Pass 1 is blind; pass 2 adds the adjudicator's own
- * pass-1 grade and both judges' grades and rationales as Grader 1 / Grader 2.
  * @param {Round} round
  * @param {string} batchId
  * @param {1 | 2} pass
@@ -747,14 +654,7 @@ export function renderAdjudicationPacket(round, batchId, pass, o) {
   return `${lines.join('\n')}\n`;
 }
 
-// ---------------------------------------------------------------------------
-// final grades and qrels
-
 /**
- * The final judgment of every pool pair: `rule` where it applies, else the
- * agreed A = B grade, else the adjudicator's pass-2 grade. In a single-judge
- * round: `rule`, else A's grade (source `judged`). Throws, with counts only,
- * when a pair has no final grade yet.
  * @param {Round} round
  * @returns {Map<string, { grade: number, source: 'rule' | 'agreed' | 'adjudicated' | 'judged', judges: Record<string, unknown> }>}
  */
@@ -774,7 +674,7 @@ export function finalJudgments(round) {
     return out;
   }
   const adj = round.adjudication;
-  /** @type {Map<string, string>} pair -> adjudication item */
+  /** @type {Map<string, string>} */
   const adjByPair = new Map(Object.entries(adj?.items ?? {}).map(([id, it]) => [pairKey(it.queryId, it.code), id]));
   /** @type {ReturnType<typeof finalJudgments>} */
   const out = new Map();
@@ -805,8 +705,6 @@ export function finalJudgments(round) {
 }
 
 /**
- * The next qrels version: "<x>-v<n>" becomes "<x>-v<n+1>"; no base gives
- * "qrels-<set>-v1".
  * @param {string | undefined} base
  * @param {string} set
  */
@@ -817,11 +715,6 @@ export function nextVersion(base, set) {
 }
 
 /**
- * Merges a round's final judgments into qrels (vnm-eval-qrels/1). With
- * `codeRule` (code-rule.mjs `codeRuleGrades` over the set's queries and
- * corpus) the code-target rule grades are applied last: they replace the
- * round's grade for a pair they name and add pairs nobody pooled. Their
- * counts ride on the round's `judging` entry.
  * @param {Round} round
  * @param {{ base?: Qrels | null, version?: string, createdAt?: string, codeRule?: Map<string, import('./code-rule.mjs').RuleGrade> }} [o]
  * @returns {Qrels & { embedding?: string | null, judging: unknown[] }}
@@ -875,24 +768,14 @@ export function mergeQrels(round, o = {}) {
     ],
     queries,
   };
-  // Every grade must pass the scorer's own check.
   Object.values(qrels.queries).forEach((q, i) => Object.values(q.judgments).forEach((j, k) => gradeOf(j, `query #${i + 1}, judgment #${k + 1}`)));
   return qrels;
 }
 
-// ---------------------------------------------------------------------------
-// drift sampling
-
-/**
- * Was a qrels judgment graded by the mechanical rule? (Sources: rule, agreed,
- * adjudicated, and judged for a single-judge round's A grade.)
- * @param {import('./metrics.mjs').Judgment} j
- */
+/** @param {import('./metrics.mjs').Judgment} j */
 export const isRuleJudgment = (j) => typeof j === 'object' && (j.source === RULE || (!!j.judges && typeof j.judges === 'object' && RULE in /** @type {object} */ (j.judges)));
 
 /**
- * A seeded sample of already-judged pairs to re-judge (rule-graded pairs
- * excluded): round(rate × n), at least one when there are any.
  * @param {Qrels} qrels
  * @param {{ rate?: number, seed: number }} o
  */
@@ -906,16 +789,11 @@ export function sampleDrift(qrels, o) {
   return shuffle(pairs, rng(deriveSeed(o.seed, 'drift'))).slice(0, count);
 }
 
-// ---------------------------------------------------------------------------
-// human calibration
-
 /**
- * Greedy allocation of `total` across strata of `sizes`, toward targets
- * proportional to `weights`, never above a stratum's size.
  * @param {number[]} sizes
  * @param {number} total
  * @param {number[]} weights
- * @param {number} [minEach] given first to every non-empty stratum
+ * @param {number} [minEach]
  */
 export function allocate(sizes, total, weights, minEach = 0) {
   const alloc = sizes.map(() => 0);
@@ -941,9 +819,6 @@ export function allocate(sizes, total, weights, minEach = 0) {
 }
 
 /**
- * About `n` judged pairs (rule-graded excluded) stratified by final grade
- * (equal shares where available) and, within a grade, by the query's first
- * shape (proportional, at least one per shape where possible). Seeded.
  * @param {Qrels} qrels
  * @param {EvalQuery[]} queries
  * @param {{ n?: number, seed: number }} o
@@ -976,10 +851,7 @@ export function calibrationSample(qrels, queries, o) {
   return { pairs: shuffle(picked, rand), strata, available: pool.length };
 }
 
-/**
- * RFC 4180 CSV.
- * @param {(string | number | null | undefined)[][]} rows
- */
+/** @param {(string | number | null | undefined)[][]} rows */
 export function toCsv(rows) {
   const cell = (/** @type {unknown} */ v) => {
     const s = v === null || v === undefined ? '' : String(v);
@@ -989,7 +861,6 @@ export function toCsv(rows) {
 }
 
 /**
- * Parses RFC 4180 CSV (quoted fields, doubled quotes, CRLF or LF, optional BOM).
  * @param {string} text
  * @returns {string[][]}
  */
@@ -1029,7 +900,6 @@ export const CALIBRATION_COLUMNS = [
 ];
 
 /**
- * The calibration sheet Jacob fills in: one row per pair, no judge grades.
  * @param {ReturnType<typeof calibrationSample>['pairs']} pairs
  * @param {EvalQuery[]} queries
  * @param {Map<string, Candidate>} modules
@@ -1052,11 +922,7 @@ export function calibrationCsv(pairs, queries, modules) {
   return toCsv([CALIBRATION_COLUMNS, ...rows]);
 }
 
-/**
- * Jacob's grades from a filled-in sheet. Blank grades are skipped (counted);
- * any other value outside 0/1/2 is an error naming its row.
- * @param {string} text
- */
+/** @param {string} text */
 export function readCalibration(text) {
   const [header, ...rows] = parseCsv(text);
   if (!header) throw new Error('the calibration CSV is empty');
@@ -1082,9 +948,6 @@ export function readCalibration(text) {
 }
 
 /**
- * The grade a source gives a qrels judgment: `final` (the qrels grade), a
- * judge slot (A, B), or `adjudicator` (its pass-2 grade). Rule pairs are 0
- * for every source; a judgment without that source's grade gives null.
  * @param {import('./metrics.mjs').Judgment} j
  * @param {string} source
  */
@@ -1098,9 +961,6 @@ export function gradeBy(j, source) {
 }
 
 /**
- * How the calibration report names its graders, from the slots the qrels
- * record: two judges are adjudicated, A alone is "rule, else A", none is just
- * the qrels grade. `mixed`: the qrels also hold a single-judge round.
  * @param {Slot[]} slots
  * @param {boolean} [mixed]
  */
@@ -1112,8 +972,6 @@ export function graderLabels(slots, mixed = false) {
 }
 
 /**
- * The judge slots (A, B) whose grades the qrels record, in slot order. A
- * single-judge qrels gives ['A'].
  * @param {Qrels} qrels
  * @returns {Slot[]}
  */
@@ -1130,11 +988,9 @@ export function qrelsSlots(qrels) {
 }
 
 /**
- * Agreement of Jacob's grades with each judge the qrels record (A, and B in
- * a two-judge qrels) and the final grade.
  * @param {{ queryId: string, code: string, grade: number }[]} graded
  * @param {Qrels} qrels
- * @param {(a: number[], b: number[]) => unknown} block agreement.mjs agreementBlock
+ * @param {(a: number[], b: number[]) => unknown} block
  */
 export function humanAgreement(graded, qrels, block) {
   /** @type {Record<string, unknown>} */
@@ -1156,14 +1012,8 @@ export function humanAgreement(graded, qrels, block) {
 }
 
 /**
- * The qrels re-graded by one source. With `subset` (pair key -> grade, e.g.
- * Jacob's), only those pairs are kept: graded by the subset itself when
- * `source` is "human", else by `source`. A judge slot the qrels hold no
- * grades from (B in a single-judge qrels) is refused rather than silently
- * falling back to the final grade; in qrels that mix rounds, pairs a slot did
- * not grade are left out of its column (rule pairs are 0 for every slot).
  * @param {Qrels} qrels
- * @param {string} source final | A | B | human
+ * @param {string} source
  * @param {Map<string, number>} [subset]
  * @returns {Qrels}
  */
@@ -1191,8 +1041,6 @@ export function qrelsUnder(qrels, source, subset) {
 }
 
 /**
- * Δ nDCG@10 (candidate − baseline) over the primary answerable queries,
- * paired: the same number compare() reports, without the bootstrap.
  * @param {import('./metrics.mjs').RunFile} base
  * @param {import('./metrics.mjs').RunFile} cand
  * @param {EvalQuery[]} queries

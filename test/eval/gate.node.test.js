@@ -6,7 +6,6 @@ import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
 /** @typedef {import('../../eval/lib/metrics.mjs').QueryScore} QueryScore */
 
 /**
- * A synthetic per-query score.
  * @param {string} id
  * @param {number} ndcg
  * @param {Partial<QueryScore>} [extra]
@@ -18,7 +17,6 @@ const q = (id, ndcg, extra = {}) => ({
   top1: 'X', top1Grade: 2, ...extra,
 });
 
-/** n queries whose score moves from `from` to `to`. */
 const many = (/** @type {number} */ n, /** @type {number} */ from, /** @type {number} */ to, /** @type {Partial<QueryScore>} */ extra = {}) => ({
   base: Array.from({ length: n }, (_, i) => q(`q${i}`, from + (i % 3) * 0.01, extra)),
   cand: Array.from({ length: n }, (_, i) => q(`q${i}`, to + (i % 3) * 0.01, extra)),
@@ -27,7 +25,6 @@ const many = (/** @type {number} */ n, /** @type {number} */ from, /** @type {nu
 const names = (/** @type {{ checks: { name: string, pass: boolean }[] }} */ v) => Object.fromEntries(v.checks.map((c) => [c.name, c.pass]));
 const detail = (/** @type {{ checks: { name: string, detail: string }[] }} */ v, /** @type {string} */ name) => v.checks.find((c) => c.name === name)?.detail ?? '';
 
-/** Per-query variation, so the deltas have variance and the interval is not degenerate. */
 const spread = (/** @type {QueryScore[]} */ scores) => scores.map((s, i) => ({ ...s, ndcg: s.ndcg + (i % 4) * 0.01, p5: s.p5 + (i % 4) * 0.01, rr: s.rr + (i % 4) * 0.01 }));
 const ENOUGH = 'sufficient queries (>= 10 answerable)';
 
@@ -115,19 +112,16 @@ describe('holdoutGate', () => {
     const answerable = many(20, 0.5, 0.5);
     const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { shapes: ['noanswer'], answerable: false, noAnswer: true, empty: e, judged: 0, top: e ? 0 : 1 }));
     const base = [...answerable.base, ...noAnswer([false, false, false, false, false])];
-    // Correct-empty 0 -> 0.4 (+0.4); answerable nDCG down 0.005 (allowed, <= 0.01).
     const cand = [...answerable.cand.map((s) => ({ ...s, ndcg: s.ndcg - 0.005, p5: s.p5 - 0.05 })), ...noAnswer([true, true, false, false, false])];
     const cmp = compare(base, cand.map((s) => ({ ...s, judged: s.top })));
     const fixed = compare(base.map((s) => ({ ...s, judged: s.top })), cand.map((s) => ({ ...s, judged: s.top })));
-    expect(holdoutGate(fixed).verdict).toBe('fail'); // general rule: ΔP@5 < 0
+    expect(holdoutGate(fixed).verdict).toBe('fail');
     expect(holdoutGate(fixed, { kind: 'cutoff' }).verdict).toBe('pass');
     expect(devGate(fixed, { kind: 'cutoff' }).verdict).toBe('pass');
     expect(cmp.noAnswer.delta).toBe(0.4);
 
-    // A no-answer gain of 0.2 (< 0.25) fails.
     const small = compare(base.map((s) => ({ ...s, judged: s.top })), [...answerable.cand, ...noAnswer([true, false, false, false, false])].map((s) => ({ ...s, judged: s.top })));
     expect(holdoutGate(small, { kind: 'cutoff' }).verdict).toBe('fail');
-    // Too large an answerable loss fails.
     const lossy = compare(base.map((s) => ({ ...s, judged: s.top })), [...answerable.cand.map((s) => ({ ...s, ndcg: s.ndcg - 0.02 })), ...noAnswer([true, true, true, true, true])].map((s) => ({ ...s, judged: s.top })));
     expect(names(holdoutGate(lossy, { kind: 'cutoff' }))['answerable nDCG@10 loss <= 0.01']).toBe(false);
   });
@@ -175,7 +169,6 @@ describe('small samples and degenerate intervals', () => {
   });
 
   it('a CI-based check never passes on a degenerate (zero-variance) interval', () => {
-    // 30 queries that all move by exactly +0.2: the BCa interval has no width.
     const base = Array.from({ length: 30 }, (_, i) => q(`q${i}`, 0.3));
     const cand = Array.from({ length: 30 }, (_, i) => q(`q${i}`, 0.5));
     const cmp = compare(base, cand);
@@ -185,7 +178,6 @@ describe('small samples and degenerate intervals', () => {
     expect(names(dev)['ΔnDCG@10 BCa 95% lower bound > 0']).toBe(false);
     expect(detail(dev, 'ΔnDCG@10 BCa 95% lower bound > 0')).toMatch(/degenerate/);
     expect(testSetGate(cmp).verdict).toBe('fail');
-    // The holdout gate uses point estimates only, so it is unaffected.
     expect(holdoutGate(cmp).verdict).toBe('pass');
   });
 
@@ -201,7 +193,6 @@ describe('small samples and degenerate intervals', () => {
     expect(detail(down, tw)).toMatch(/^n 2 < 3: point estimate/);
     const up = devGate(withTypo([0.5, 0.5], [0.5, 0.7]), { targetShapes: ['typo'] });
     expect(names(up)[tw]).toBe(true);
-    // One query that did not move is not a confident regression either.
     expect(names(devGate(withTypo([0.5], [0.5]), { targetShapes: ['typo'] }))[tw]).toBe(true);
   });
 
@@ -212,22 +203,17 @@ describe('small samples and degenerate intervals', () => {
       [...core.base, ...from.map((x, i) => q(`a${i}`, x, { shapes: ['abbreviation'] }))],
       [...spread(core.cand), ...to.map((x, i) => q(`a${i}`, x, { shapes: ['abbreviation'] }))],
     );
-    // Five queries, none moved: a degenerate interval, and no regression.
     const still = devGate(withShape([0.2, 0.4, 0.6, 0.8, 1], [0.2, 0.4, 0.6, 0.8, 1]), { targetShapes: ['abbreviation'] });
     expect(names(still)[tw]).toBe(true);
     expect(detail(still, tw)).toMatch(/every query's ΔnDCG@10 is 0/);
-    // Every query down by the same amount is degenerate too, and still fails.
     const down = devGate(withShape([0.5, 0.5, 0.5], [0.4, 0.4, 0.4]), { targetShapes: ['abbreviation'] });
     expect(names(down)[tw]).toBe(false);
-    // Every query up by the same amount stays degenerate and fails, as before: only a zero change passes.
     const up = devGate(withShape([0.5, 0.5, 0.5], [0.6, 0.6, 0.6]), { targetShapes: ['abbreviation'] });
     expect(names(up)[tw]).toBe(false);
   });
 });
 
 describe('errored queries', () => {
-  // 8 identical answerable queries plus 4 no-answer ones; the candidate
-  // returns HTTP 500 with no codes on the 4 no-answer queries.
   const queries = [
     ...Array.from({ length: 8 }, (_, i) => ({ id: `a${i}`, text: 'x', shapes: ['topical'], persona: `p${i % 3}` })),
     ...Array.from({ length: 4 }, (_, i) => ({ id: `n${i}`, text: 'y', shapes: ['noanswer'], persona: 'p0' })),
@@ -296,7 +282,6 @@ describe('decisive-comparison floors', () => {
 
   it('the targeted dev route needs 3 distinct target-shape queries, counting a multi-shape query once', () => {
     const rest = many(10, 0.5, 0.5);
-    // One target query gains +1 while a non-target query loses 1: overall Δ 0.
     const one = compare(
       [...rest.base, q('t0', 0, { shapes: ['t'] })],
       [...rest.cand.map((s, i) => (i === 0 ? { ...s, ndcg: s.ndcg - 0.5 } : s)), q('t0', 0.5, { shapes: ['t'] })],
@@ -305,14 +290,12 @@ describe('decisive-comparison floors', () => {
     expect(v.verdict).toBe('fail');
     expect(v.checks.find((c) => c.name.startsWith('ΔnDCG@10 CI lower > 0'))?.detail).toMatch(/\(n 1, insufficient queries for the targeted route: need 3\)/);
 
-    // The same query under three target shapes is still one query.
     const shared = compare(
       [...rest.base, q('t0', 0, { shapes: ['a', 'b', 'c'] })],
       [...rest.cand, q('t0', 1, { shapes: ['a', 'b', 'c'] })],
     );
     expect(devGate(shared, { targetShapes: ['a', 'b', 'c'] }).verdict).toBe('fail');
 
-    // Three distinct target queries are enough.
     const three = compare(
       [...rest.base, ...['x', 'y', 'z'].map((id) => q(id, 0.2, { shapes: ['t'] }))],
       [...rest.cand, q('x', 0.6, { shapes: ['t'] }), q('y', 0.2, { shapes: ['t'] }), q('z', 0.2, { shapes: ['t'] })],
@@ -367,7 +350,6 @@ describe('assertTruncation: a cutoff only shortens result lists', () => {
 describe('change kinds no-loss and answerable-floor (dev screen only)', () => {
   const NOLOSS = 'ΔnDCG@10 >= 0 (no-loss)';
   const FLOOR = 'answerable ΔnDCG@10 >= -0.01';
-  /** 20 answerable queries; the candidate moves each by `d`. */
   const shifted = (/** @type {number} */ d) => {
     const base = spread(many(20, 0.5, 0.5).base);
     return compare(base, base.map((s) => ({ ...s, ndcg: s.ndcg + d })));
@@ -398,7 +380,6 @@ describe('change kinds no-loss and answerable-floor (dev screen only)', () => {
     const v = devGate(shifted(-0.0101), { kind: 'answerable-floor' });
     expect(v.verdict).toBe('fail');
     expect(names(v)[FLOOR]).toBe(false);
-    // The other dev checks still apply.
     expect(names(v)).toMatchObject({ 'no exact-code regression': true, 'no new errors': true, 'judged@10 = 100%': true });
   });
 

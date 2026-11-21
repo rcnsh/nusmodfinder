@@ -1,10 +1,4 @@
 // @ts-check
-// Screenshots of the page's main states, at 1280×800 and 390×664, in both
-// themes, for reviewing a visual change. Not a check: it runs only when asked,
-// in Chromium, and writes test-results/shots/ (the shortlist's states to
-// test-results/shots/shortlist/).
-//
-//   VNM_SHOTS=1 npx playwright test shots --project chromium
 import { expect, test } from '@playwright/test';
 
 test.skip(!process.env.VNM_SHOTS, 'screenshots only when VNM_SHOTS=1');
@@ -27,7 +21,6 @@ const STATES = [
   ['detail', '/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB', async (page) => {
     const region = page.locator('#results .detail:not([hidden])');
     await expect(region.locator('.detail-close')).toBeVisible();
-    // Scrolled so the opened entry sits under the header.
     await page.evaluate(() => {
       const open = document.querySelector('#results button[aria-expanded="true"]');
       const entry = open?.closest('li');
@@ -60,9 +53,6 @@ for (const scheme of /** @type {const} */ (['light', 'dark'])) {
   }
 }
 
-// The shortlist's states: results with picks, the view, a full-year list after
-// a Sem change, and the export question in browse mode, at both sizes and in
-// both themes.
 const OUT6 = 'test-results/shots/shortlist';
 const Q6 = 'ACC1701XB+CS2113+CS2030';
 /** @type {[string, string, (page: import('@playwright/test').Page) => Promise<void>][]} */
@@ -75,7 +65,6 @@ const STATES6 = [
   }],
   ['fullyear', `/?q=${Q6}&sem=1&ng=1&study=ug2&pick=CS2030.1&pick=CS3244.2&pick=GE2101.1&pick=HY1101E&pick=ACC1701XA.1&pick=EN3264.1&pick=PS3251.2&pick=MA3220.1&pick=ST2137.2&pick=GES1034.1&pick=LSM2212.1&alt=CS2113.1&alt=CM3267.1&alt=PC3232.1&alt=GESS1007.1&alt=PC4262.1&alt=TS2239.2&view=shortlist`, async (page) => {
     await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
-    // Sem changed to 2 in the view.
     if (await page.locator('#semSegOptions').isVisible()) await page.locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
     else {
       await page.getByRole('button', { name: /^Filters/ }).click();

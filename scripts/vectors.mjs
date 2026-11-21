@@ -1,51 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The vectors bundles and runbook step 8. One builder, three bundles:
-//
-//   node scripts/vectors.mjs build --corpus fixture
-//       test/fixtures/vectors.bin (committed): the fixture corpus
-//       (test/fixtures/corpus.json, ~400 modules) embedded by the fake
-//       embedder (test/fakes.js hashEmbed), so tests and `wrangler dev`
-//       search the vectors the fake Vectorize would hold.
-//   node scripts/vectors.mjs build --corpus pinned [--embedding <version>]
-//       .data/vectors/vec-pinned-<dataVersion>-<embedding>.bin: the 6,771
-//       modules of the pinned corpus, each vector looked up in the eval's
-//       corpus asset by embeddingKey(model, embeddingText). For full-corpus
-//       CI and the query suite. Upload it as a release asset (it prints how).
-//   node scripts/vectors.mjs build --corpus production --expect-count <D1 rows>
-//       [--embedding <version>] [--extra <cache.json> ...]
-//       .data/vectors/vec-production-<dataVersion>-<embedding>.bin: the
-//       corpus ingest will write, `current` in data/corpus.json
-//       (`npm run corpus -- restore` first), with the NG files of its year,
-//       vectors reused by key from the eval asset and the --extra caches.
-//       Texts in neither are written to .data/vectors/missing-production.json
-//       and the build stops: embed them with
-//       `npm run eval:embed -- --texts <that file> --out <cache.json>`, then
-//       rebuild with --extra <cache.json>. Also writes src/data-version.json,
-//       computed offline from the rows ingest will write, and
-//       data/vocabulary.json, the vocabulary of the same corpus
-//       (scripts/build-vocabulary.mjs), data/groups.json, the duplicate
-//       groups (scripts/build-groups.mjs), and data/ng-unscheduled.json, the
-//       NG-listed codes with no classes (scripts/build-ng-unscheduled.mjs).
-//
-// Each build records the bundle in data/vectors.json: data version, embedding
-// version, count, sha256 and rowsKey, the sha256 of the sorted
-// (code, textHash) pairs. A row with no textHash is refused.
-//
-//   node scripts/vectors.mjs fetch --corpus pinned|production
-//       Downloads the release asset into .data/vectors/ if absent (gh), checks
-//       its sha256 against data/vectors.json, and writes the module the
-//       `vectors-bundle` alias points at.
-//   node scripts/vectors.mjs data-version
-//       Prints the data version of the rows ingest would write.
-//   npm run remote -- vectors standby [--deletes <file>]
-//   node scripts/vectors.mjs standby --url <a wrangler dev --remote> [--deletes <file>]
-//       Runbook step 8: upsert every code with the production bundle's
-//       values and D1's metadata, delete step 4's deletions, wait for the
-//       mutation, then verify (metadata, the id list, and a getByIds sample
-//       of values against the bundle). Needs INGEST_SECRET, as ingest does,
-//       and --url or WORKER_URL (no default; ports 8787 and 8799 refused). Writes
-//       a run record (scripts/run-record.mjs).
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -75,7 +29,6 @@ import { DEFAULT_INDEX, listVectorIds } from './verify.mjs';
 import { formatReport, runVerify } from './verify-core.mjs';
 
 /**
- * Vectors by embeddingKey, from the eval corpus asset and any extra caches.
  * @param {string} version
  * @param {string[]} extras
  */
@@ -98,10 +51,6 @@ async function vectorSource(version, extras) {
   return { byKey, label: extras.length ? `${version}-x${extraHash.digest('hex').slice(0, 8)}` : version };
 }
 
-/**
- * The corpus `npm run ingest` would write, from the same source and normaliser: `current`
- * (data/corpus.json), sha-checked, with the NG files of its year.
- */
 export async function productionModules() {
   return (await productionCorpus()).modules;
 }
@@ -112,8 +61,6 @@ export async function offlineDataVersion(modules) {
 }
 
 /**
- * Looks up each module's vector by embeddingKey(model, text); shared texts
- * share one vector.
  * @param {NormalisedModule[]} modules
  * @param {Map<string, Float32Array>} byKey
  */
@@ -213,7 +160,6 @@ async function build(argv, log) {
     log(`  ${await writeProductionVocabulary(modules)} -> the vocabulary of the same corpus`);
     log(`  ${await writeProductionGroups(modules)} -> the duplicate groups of the same corpus`);
     log(`  ${await writeProductionNgUnscheduled(modules)} -> the NG-listed codes with no classes, from the same moduleInfo`);
-    // The catalogue codes, prefixes and catalogue-only rows of the same corpus.
     for (const [rel, bytes] of Object.entries(await build3b('production'))) {
       await writeFile(join(ROOT, rel), bytes);
       log(`  ${rel} -> the per-corpus catalogue file, from the same moduleInfo`);
@@ -238,7 +184,6 @@ async function entryFor(bytes, where) {
 }
 
 /**
- * What standby reaches for, injectable for tests.
  * @typedef {{
  *   fetchImpl?: typeof fetch, envVars?: Record<string, string | undefined>, runsDir?: string,
  *   loadBundle?: () => Promise<{ entry: { asset?: string }, bundle: ReturnType<typeof parseBundle> }>,
@@ -246,7 +191,6 @@ async function entryFor(bytes, where) {
  * }} StandbyDeps
  */
 
-/** The production bundle, sha-checked. */
 async function productionBundle() {
   const entry = (await readVectorsManifest()).bundles.production;
   if (!entry) throw new Error('data/vectors.json has no production bundle.');
@@ -273,7 +217,7 @@ async function standby(argv, log, deps = {}) {
   const unguard = record.guardExit();
   /** @param {number} code @param {import('./run-record.mjs').Outcome} outcome @param {string | null} message */
   const done = (code, outcome, message) => { unguard(); record.finish(outcome, { exitCode: code, message }); return code; };
-  /** Each `wrangler vectorize list-vectors` page is a Cloudflare API call. @type {import('./deploy.mjs').Exec} */
+  /** @type {import('./deploy.mjs').Exec} */
   const countedExec = (cmd, args, opts) => {
     if (cmd === 'npx' && args[0] === 'wrangler') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
     return run(cmd, args, opts);
@@ -318,7 +262,7 @@ async function dataVersionCommand(argv, log) {
 /**
  * @param {string[]} argv
  * @param {(line: string) => void} [log]
- * @param {StandbyDeps} [deps] for `standby`
+ * @param {StandbyDeps} [deps]
  */
 export async function main(argv, log = console.log, deps = {}) {
   const [command, ...rest] = argv;

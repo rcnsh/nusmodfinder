@@ -1,13 +1,9 @@
 // @ts-check
-// Drives scripts/ingest-core.mjs straight into the real Worker: its AdminApi
-// over `call()` with the test ingest secret, so a test exercises the same
-// routes `npm run ingest` does over HTTP.
 import { call, TEST_INGEST_SECRET } from './helpers.js';
 
 /**
- * @param {() => import('./fakes.js').Fakes} getFakes read on every call, so a
- *   test may re-seed between runs
- * @param {Record<string, unknown>} [extraEnv] e.g. `{ DB: meteredDb }`
+ * @param {() => import('./fakes.js').Fakes} getFakes
+ * @param {Record<string, unknown>} [extraEnv]
  * @returns {import('../scripts/ingest-core.mjs').AdminApi}
  */
 export function adminApi(getFakes, extraEnv = {}) {

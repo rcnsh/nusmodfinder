@@ -1,8 +1,4 @@
 // @ts-check
-// Runs one variant (ranker ref × embedding version × query set) through the
-// actual Worker in workerd and writes its run file. A variant is identified
-// by name; the run file records the ranker ref and sha, corpus version,
-// embedding version and query-set version.
 import { fork } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -54,8 +50,6 @@ export async function runVariant(options) {
   const fixtureCorpus = join(set.dir, 'corpus.json');
   const corpus = existsSync(fixtureCorpus) ? await loadCorpusFile(fixtureCorpus) : await loadPinnedWith(ws.root);
 
-  // Vectors: the set's query cache, plus the corpus release asset unless the
-  // set carries its own corpus (fixture), whose vectors live in the same cache.
   const cache = await readCache(setFile(set, 'embeddings.json'), key, set.name);
   /** @type {{ keys: string[], vectors: Float32Array }[]} */
   const parts = [cachePart(cache)];
@@ -64,7 +58,6 @@ export async function runVariant(options) {
   if (!existsSync(fixtureCorpus)) {
     const version = options.embedding ?? (await readManifest()).default;
     const emb = await loadCorpusEmbeddings(version);
-    // From the corpus version itself, never the query cache beside it.
     assertCorpusTextsEmbedded(corpus.modules, emb, ws.ranker.ref);
     parts.unshift({ keys: emb.keys, vectors: emb.vectors });
     embedding = { corpus: version, model: emb.model, textRef: emb.textRef };
@@ -77,21 +70,15 @@ export async function runVariant(options) {
     throw new Error(`${missingCorpus.length} of ${corpus.modules.length} corpus texts have no vector in ${embedding.corpus} `
       + `(the ranker's embedding text differs from the one embedded). Embed a new corpus version: npm run eval:embed -- --corpus --ref <ref> --version <new>`);
   }
-  // Both the raw and the canonical form (queryTextForms): which one a ranker embeds depends on its ref.
   const setDirArg = set.dir === layout(set.name).dir ? '' : ` --set-dir ${relative(REPO, set.dir) || '.'}`;
   const missingQueries = querySet.queries.filter((q) => queryTextForms(q.text).some((t) => !have.has(embeddingKey(MODEL, t))));
   if (missingQueries.length) {
     throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}${setDirArg}\` locally`);
   }
-  // The run corpus's catalogue codes and prefixes, never the production ones its ref commits.
   await writeRunCatalogue(ws.root);
-  // The ranker's typo vocabulary from this run's corpus (never the production
-  // one its ref commits), and, for a ranker that embeds corrected text, every
-  // corrected query text embedded.
   const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
   assertCorrectedEmbedded({ set: set.name, setDirArg, ref: ws.ranker.ref, queries: querySet.queries, corrector, have });
   const vocabulary = corrector ? await writeRankerVocabulary(ws.root, corrector) : null;
-  // The ranker's duplicate groups from this run's corpus.
   const groups = await writeRankerGroups(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
 
   const dense = await writeBundle(ws.root, corpus.modules, lookup, String(embedding.corpus));
@@ -103,7 +90,6 @@ export async function runVariant(options) {
     set: set.name,
     createdAt: new Date().toISOString(),
     ranker: ws.ranker,
-    // A digest of the constraint fields the Worker is seeded with, which the compliance rule checks its source against.
     corpus: { ...corpus.info, constraintFieldsSha256: fieldsDigest(corpus.modules) },
     embedding,
     queries: {
@@ -113,9 +99,7 @@ export async function runVariant(options) {
     },
     config: {
       topK: 'worker default', filters: !unfiltered, mode, dense,
-      // The persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
       studyMap: studyMapSha256(), ...(strip.length ? { strip } : {}),
-      // The explicit-params diagnostic: extra /search params per query, recorded as sent (a dev baseline, never a gate's).
       ...(options.explicit ? { explicit: options.explicit } : {}),
       ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}),
     },
@@ -150,17 +134,11 @@ export async function runVariant(options) {
 }
 
 /**
- * A ranker with in-Worker vectors (it has src/vector-bundle.js)
- * searches a bundle, not the fake Vectorize. Built here from this run's corpus
- * and vectors, by the ranker's own encoder, at the path its `vectors-bundle`
- * alias resolves to in the workspace (test/fixtures/vectors.js, which
- * vitest.eval.config.mjs aliases). Older rankers (eval-v0) keep the fake
- * Vectorize: the same exact cosine, with an id tiebreak.
- * @param {string} root the workspace
+ * @param {string} root
  * @param {NormalisedModule[]} modules
  * @param {{ keys: string[], b64: string }} lookup
  * @param {string} embedding
- * @returns {Promise<'bundle' | 'vectorize'>} which dense index the run searches
+ * @returns {Promise<'bundle' | 'vectorize'>}
  */
 async function writeBundle(root, modules, lookup, embedding) {
   const lib = join(root, 'src/vector-bundle.js');
@@ -182,10 +160,6 @@ async function writeBundle(root, modules, lookup, embedding) {
 }
 
 /**
- * Runs Vitest in a child process (eval/runner/vitest-child.mjs). Encrypted
- * sets (no per-query output) discard the child's stdout and stderr entirely:
- * workerd prints a Worker's uncaught exceptions itself, so no in-process
- * setting can keep holdout text out of the terminal.
  * @param {import('./vitest-child.mjs').ChildRequest} request
  * @param {string} workspace
  * @param {(line: string) => void} log

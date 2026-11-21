@@ -1,8 +1,4 @@
 // @ts-check
-// The faculty filter is a combobox (public/choice.js): the list opens under the
-// box, typing narrows it (a name that starts with the text first, then a word
-// that does), arrows and Enter or a click choose, and Escape or leaving puts the
-// chosen name back. In the phone's filters dialog Escape closes the list only.
 import { expect, test } from '@playwright/test';
 import { facultyOptions, openFaculty, query, searches, settled } from './support.mjs';
 
@@ -16,7 +12,6 @@ test('typing narrows the list, best match first; Down and Enter choose; the URL 
   await box.click();
   await expect(box).toHaveAttribute('aria-expanded', 'true');
   await page.keyboard.type('sci');
-  // "Science" starts with it; "Arts and Social Science" only has a word that does.
   await expect(facultyOptions(page).first()).toHaveText('Science');
   await expect(box).toHaveAttribute('aria-activedescendant', 'faculty-list-0');
   await page.keyboard.press('ArrowDown');
@@ -40,7 +35,6 @@ test('a choice from outside while the student types takes effect, and their text
   await page.keyboard.type('Law');
   await page.keyboard.press('Enter');
   await expect.poll(() => query(page)).toBe('q=databases&faculty=Law');
-  // A click on the focused box selects the name again, so typing replaces it.
   await box.click();
   await page.keyboard.type('sci');
   await expect(box).toHaveValue('sci');
@@ -84,7 +78,6 @@ test('in the phone\'s filters dialog the list opens under the box, and Escape cl
   const box = dialog.locator('#faculty');
   await box.click();
   await expect(box).toHaveAttribute('aria-expanded', 'true');
-  // Clear of the dialog's sticky head, with the list below it.
   const [head, b] = [await dialog.locator('.dlg-head').boundingBox(), await box.boundingBox()];
   if (!head || !b) throw new Error('no box');
   expect(b.y).toBeGreaterThanOrEqual(head.y + head.height);

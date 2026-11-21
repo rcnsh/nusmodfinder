@@ -1,8 +1,4 @@
 // @ts-check
-// A not-offered code's `related` on the Vectorize standby: with no constraint
-// param the neighbours come straight from Vectorize, with no D1 read; with
-// one, they are checked after hydrate, and a failed read gives none rather than
-// unfiltered neighbours or a 500.
 import { env } from 'cloudflare:test';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { adminCall, callJson, fixture, seed } from './helpers.js';

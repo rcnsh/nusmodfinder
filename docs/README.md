@@ -40,6 +40,9 @@ How NUS Mod Finder works and how to maintain it. For what the site is, start at 
 | [0017](decisions/0017-first-screen-for-everyone.md) | The first screen serves NUS and exchange students alike |
 | [0018](decisions/0018-course-review-scores.md) | Course review scores from NUSMods comments |
 | [0019](decisions/0019-uptime-check-on-a-cloudflare-cron.md) | The uptime check runs every 15 minutes from its own Worker's Cron Trigger |
+| [0020](decisions/0020-no-comments-in-code.md) | The code carries no comments; decisions live in ADRs and workarounds in issues |
+| [0021](decisions/0021-safe-writes-within-platform-limits.md) | Ingest and the admin routes write safely within the platform's limits |
+| [0022](decisions/0022-isolated-tests.md) | Tests run isolated from metered services and production, and never pass by skipping |
 
 A new decision gets the next number and a kebab-case title naming the decision. Change a record
 when the decision changes, and keep its reasons.

@@ -1,10 +1,4 @@
 // @ts-check
-// `prereq_cohort_only`: a prerequisite text that is only a cohort or
-// programme restriction, by the pattern list
-// (eval/query-rules/cohort-only-prereq.json, mirrored into
-// data/cohort-only-prereq.json by scripts/build-catalogue-data.mjs, since the eval
-// workspace and the Worker cannot read eval/). The same reading as
-// eval/query-rules/cohort-only.mjs; test/intents-data.node.test.js holds them equal.
 
 /**
  * @typedef {{ normalise: { find: string, flags: string, replace: string }[], remove: { pattern: string, flags: string }[],
@@ -14,7 +8,7 @@
 /**
  * @param {string | null | undefined} prerequisite
  * @param {CohortOnlySpec} spec
- * @returns {boolean} true iff the text is only a cohort or programme restriction (NULL is false)
+ * @returns {boolean}
  */
 export function isCohortOnly(prerequisite, spec) {
   if (prerequisite === null || prerequisite === undefined || prerequisite.trim() === '') return false;

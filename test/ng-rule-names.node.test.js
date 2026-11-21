@@ -1,7 +1,4 @@
 // @ts-check
-// The department and faculty check the oracle-node project runs over
-// the production corpus (test/oracle/oracle.node.test.js). The rules and the
-// oracle match on NUSMods' strings, so a renamed department must fail it.
 import { describe, expect, it } from 'vitest';
 import { unknownRuleNames } from '../scripts/ng-rule-names.mjs';
 

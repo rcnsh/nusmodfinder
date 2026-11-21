@@ -1,26 +1,4 @@
 // @ts-check
-// The query suite through the real Worker, over the pinned vectors bundle and
-// the pinned corpus loaded through /admin/ingest, with D1 catalogue_only loaded
-// from `catalogue-only-data` (the pinned rows, built in memory) and the
-// committed query embeddings (test/query-suite/embeddings.json, and
-// eval/dev/embeddings.json for the four dev texts the suite allows) answering
-// Workers AI. Typo-corrected forms come from
-// test/fixtures/query-suite-corrected-embeddings.json
-// (`npm run eval:embed -- --suite --corrected-from-ref <ref>`). Each item checks
-// its exact `interpreted` and its rule.
-//
-// An item runs when every feature it needs is in force in this ranker
-// (IN_FORCE). The row and the intents an item needs decide them: typo items
-// need typo correction, gibberish items the no-signal check, a level phrase the
-// level-phrase intent, an exam/S-U/workload/prerequisite phrase the constraint
-// phrases; `count = G` with variants needs duplicate-group collapse. Everything
-// else needs only code handling. Items not run are listed in one test, with the
-// feature they wait for: the full-corpus CI job fails on any skipped test, so
-// nothing here is it.skip. The typo, gibberish, non-existent-code and guard
-// items are never skipped: without their feature they are listed as pending.
-// When typo correction embeds its corrected text, an item whose corrected text
-// has no committed embedding is listed as waiting on an embedding, with the
-// command that makes it.
 import { describe, expect, inject, it, beforeAll } from 'vitest';
 import catalogueFile from 'catalogue-only-data';
 import groupsFile from '../../eval/groups.json';
@@ -40,33 +18,20 @@ import { adminCall, callJson, seed } from '../helpers.js';
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
-/**
- * The features in force in this ranker. Level phrases are not among them (`level-phrases` items
- * are listed as skipped). Parsed constraint phrases run only while `PARSE_PHRASES` is on (off,
- * ADR 0006); with it off, the `[constraint params]` test checks the explicit params on the
- * full corpus.
- */
 const IN_FORCE = new Set(['codes', 'typos', 'groups', 'no-signal', ...(PARSE_PHRASES ? ['constraint-phrases'] : [])]);
-/** The prereq semantics substituted for `$selected`: the variant in force's (src/intents.js). */
 const SELECTED_PREREQ = INTENT.prereq;
-/** Rows whose items are never skipped: without their feature they are listed as pending. */
 const NEVER_SKIPPED = new Set(['typo', 'gibberish', 'nonexistent-code', 'guard']);
 
 /** @typedef {{ id: string, row: string, text: string, topK: number, rule: string, params: any, interpreted: any, origin: string }} Item */
 const suite = /** @type {{ items: Item[], thresholds: { T: number, M: number } }} */ (/** @type {unknown} */ (suiteFile));
 
-/**
- * The features an item needs. `partial` lists the clauses of a run item
- * that wait for a feature not in force (checked once it is).
- * @param {Item} item
- */
+/** @param {Item} item */
 function ownership(item) {
   const i = item.interpreted;
   /** @type {Set<string>} */
   const needs = new Set(['codes']);
   if (item.row === 'typo') needs.add('typos');
   if (item.row === 'gibberish') needs.add('no-signal');
-  // A level from a phrase needs level phrases; `XX N000` (the prefix-level rule) is code handling.
   if (i.level !== null && item.rule !== 'prefix-level-mask') needs.add('level-phrases');
   if (i.exam !== null || i.su !== null || i.hoursBelow !== null || i.prereq !== null) needs.add('constraint-phrases');
   /** @type {string[]} */
@@ -75,7 +40,6 @@ function ownership(item) {
   return { needs: [...needs].sort(), waiting, partial };
 }
 
-/** The command that embeds the typo-corrected forms of the suite's texts. */
 const EMBED_CORRECTED_COMMAND = 'npm run eval:embed -- --suite --corrected-from-ref typo-corrector';
 
 const letters = (/** @type {string} */ c) => /** @type {RegExpExecArray} */ (/^[A-Z]+/.exec(c))[0];
@@ -86,12 +50,11 @@ const inRange = (code, p) => { const [lo, hi] = range(p); return code >= lo && c
 /** @returns {string[]} */
 const codesOf = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 
-/** groups-v1, a singleton its own group. */
 /** @type {Map<string, number>} */
 const groupOf = new Map();
 groupsFile.groups.forEach((g, i) => g.forEach((m) => groupOf.set(m, i)));
 const gkey = (/** @type {string} */ c) => (groupOf.has(c) ? `g${groupOf.get(c)}` : c);
-/** The group-first projection of a list. @param {string[]} list */
+/** @param {string[]} list */
 const projectGroups = (list) => { const seen = new Set(); return list.filter((c) => (seen.has(gkey(c)) ? false : (seen.add(gkey(c)), true))); };
 
 /** @param {string} s */
@@ -100,18 +63,11 @@ async function sha256Hex(s) {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** Every cache's entries: sha256(model + "\n" + text) → base64 float32. */
 /** @type {Record<string, string>} */
 const ENTRIES = { ...devEmbeddings.entries, ...suiteEmbeddings.entries, .../** @type {Record<string, string>} */ (correctedEmbeddings.entries) };
 for (const cache of [suiteEmbeddings, devEmbeddings, correctedEmbeddings]) if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error('unexpected embedding cache');
 
-/**
- * The texts the dense half embeds for what an item sends (its text, a typo
- * item's clean form, a constraint reference) beyond the canonical query, as
- * the Worker's own parse gives them (denseTexts): the typo-corrected form and
- * the constraint-stripped form. Those with no committed embedding wait for one.
- * @param {Item} item
- */
+/** @param {Item} item */
 async function missingCorrected(item) {
   const ctx = intentContext(() => false);
   /** @type {string[]} */
@@ -126,13 +82,12 @@ async function missingCorrected(item) {
 }
 
 const READY = suite.items.filter((it) => ownership(it).waiting.length === 0);
-/** Items whose features are in force but whose corrected forms have no committed embedding. @type {Item[]} */
+/** @type {Item[]} */
 const WAITING_EMBEDDING = [];
 for (const item of READY) if ((await missingCorrected(item)).length) WAITING_EMBEDDING.push(item);
 const RUN = READY.filter((it) => !WAITING_EMBEDDING.includes(it));
 const NOT_RUN = suite.items.filter((it) => ownership(it).waiting.length > 0);
 
-/** Workers AI answered from the committed caches; a text without a vector throws, never a made-up one. */
 class SuiteAI {
   /** @type {{ method: string, args: unknown[] }[]} */
   calls = [];
@@ -162,11 +117,14 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
   const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
   /** @param {string} p */
   const members = (p) => offered.filter((code) => inRange(code, p));
-  /** Results and their group variants. @param {any} body @returns {string[]} */
+  /**
+   * @param {any} body
+   * @returns {string[]}
+   */
   const shownOf = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
   /**
-   * Whether a module meets a constraint param (the `constraint` rule), under the selected prereq semantics.
-   * @param {string} code @param {Record<string, string>} param
+   * @param {string} code
+   * @param {Record<string, string>} param
    */
   const satisfies = (code, param) => {
     const m = /** @type {NormalisedModule} */ (moduleOf.get(code));
@@ -207,8 +165,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
       const p = item.params;
       const want = JSON.parse(JSON.stringify(item.interpreted).replace('"$selected"', JSON.stringify(SELECTED_PREREQ)));
       expect(body.interpreted, 'interpreted').toEqual(want);
-      // The dense half ran on the committed embedding, except a not-offered
-      // answer's `related`, whose catalogue text has none committed.
       if (!(item.rule === 'no-match' && p.reason === 'not-offered')) {
         expect(missing, 'texts with no committed embedding').toEqual([]);
         expect(body.degraded, 'degraded').toBeUndefined();
@@ -221,8 +177,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
           for (const code of p.allSatisfy ? shownOf(body) : []) expect(satisfies(code, p.allSatisfy), code).toBe(true);
           break;
         case 'constraint': {
-          // Every returned result, its group variants included, satisfies the param;
-          // the top 10 overlaps the reference searched with the explicit param.
           expect(body.count).toBeGreaterThan(0);
           for (const code of shownOf(body)) expect(satisfies(code, p.param), code).toBe(true);
           const qs = new URLSearchParams(p.param).toString();
@@ -251,7 +205,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
           for (const code of m) expect(shown.has(code), `member ${code}`).toBe(true);
           const G = new Set(m.map((code) => (groupOf.has(code) ? `g${groupOf.get(code)}` : code))).size;
           expect(G).toBe(p.G);
-          // Without group collapse every member is its own result; with it, count = G.
           expect(body.count).toBe(IN_FORCE.has('groups') ? p.G : m.length);
           break;
         }
@@ -322,15 +275,11 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
       expect(codesOf(cs.body).every((code) => /^CS\d/.test(code)), mode).toBe(true);
       const ges = await search('ges', 50, `&mode=${mode}`);
       expect(codesOf(ges.body).some((code) => code.startsWith('GESS')), mode).toBe(false);
-      // One result per duplicate group (a GES code can be cross-listed as a GESS variant).
       expect(new Set(codesOf(ges.body).map(gkey)), mode).toEqual(new Set(members('GES').map(gkey)));
     }
-    // In mode=lexical the members are in code order, one per duplicate group.
     expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(projectGroups(members('CS')).slice(0, 50));
   });
 
-  // The explicit constraint params (ADR 0006): each constraint item's reference, searched with its
-  // param, returns only modules that satisfy it, its group variants included.
   it('[constraint params] each constraint item\'s reference with its explicit param: every shown module satisfies it', async () => {
     const items = suite.items.filter((item) => item.rule === 'constraint');
     expect(items.length).toBe(12);
@@ -344,7 +293,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
     }
   });
 
-  // The no-signal check: ≥ 90% of the gibberish set's gate half answers count 0, under the τ in force.
   it.skipIf(!IN_FORCE.has('no-signal'))('[no-signal] the gibberish gate half: at least 90% answer count 0 with noMatch no-signal', async () => {
     const strings = new Map(gibberishFile.strings.map((g) => [g.id, g.text]));
     /** @param {string[]} ids */
@@ -359,8 +307,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
       }
       return out;
     };
-    // The derivation half is measured offline (scripts/no-signal-cosines.mjs): some of its typo-
-    // corrected forms (g-23 `gatt`) have no committed embedding.
     const gate = await outcome(gibberishFile.split.gate);
     const empty = (/** @type {{ count: number }[]} */ xs) => xs.filter((x) => x.count === 0).length;
     console.log(`[no-signal] gate half ${empty(gate)}/${gate.length} count 0 (not: ${gate.filter((x) => x.count).map((x) => x.id).join(' ')})`);
@@ -379,9 +325,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pi
     console.log(`[query suite] ${RUN.length} run (${partial.length} with a clause pending), ${NOT_RUN.length} not run, `
       + `${WAITING_EMBEDDING.length} waiting on an embedding\n${[...lines, ...embedding, ...partial].join('\n')}`);
     expect(RUN.length + NOT_RUN.length + WAITING_EMBEDDING.length).toBe(90);
-    // Only typo correction that embeds its corrected text can wait on an embedding.
     if (!EMBED_CORRECTED) expect(WAITING_EMBEDDING).toEqual([]);
-    // No item that needs only code handling is left out, and a never-skipped item is only pending while its feature is off.
     for (const item of NOT_RUN) expect(ownership(item).waiting.length, item.id).toBeGreaterThan(0);
     for (const item of suite.items.filter((x) => x.row === 'nonexistent-code' || x.row === 'not-offered-code')) expect(RUN, item.id).toContain(item);
   });

@@ -1,12 +1,7 @@
 // @ts-check
-// SQLite's FTS5 (node:sqlite), configured as modules_fts is
-// (migrations/0006_fts_external.sql: `porter unicode61`, prefix '2 3 4'), as
-// the reference the typo vocabulary and corrector are checked against.
 import { DatabaseSync } from 'node:sqlite';
 
 /**
- * The FTS5 index term of each string, which the tests pass one token at a
- * time: what porter unicode61 makes of it, or '' when it folds to nothing.
  * @param {string[]} words
  * @returns {string[]}
  */
@@ -23,12 +18,7 @@ export function sqliteTerms(words) {
   return out;
 }
 
-/**
- * An FTS5 table over modules' titles and descriptions, as modules_fts indexes
- * them. `matches(expr)` counts the rows a MATCH expression finds; `terms()` is
- * the index's distinct terms (fts5vocab 'row').
- * @param {{ title: string, description?: string | null }[]} modules
- */
+/** @param {{ title: string, description?: string | null }[]} modules */
 export function ftsIndex(modules) {
   const db = new DatabaseSync(':memory:');
   db.exec(`CREATE VIRTUAL TABLE t USING fts5(title, description, tokenize = 'porter unicode61', prefix = '2 3 4');
@@ -45,7 +35,7 @@ export function ftsIndex(modules) {
   };
 }
 
-/** Deterministic PRNG (mulberry32). @param {number} seed */
+/** @param {number} seed */
 export function rng(seed) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -56,9 +46,6 @@ export function rng(seed) {
 }
 
 /**
- * Typo-shaped variants of each letter-only word of 4+ letters: one seeded
- * deletion, transposition, doubling and truncation each, the shapes a prefix
- * or a correction has to handle.
  * @param {string[]} words
  * @param {number} seed
  */

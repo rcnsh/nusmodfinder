@@ -1,39 +1,4 @@
 // @ts-check
-// The NUSMods drift check and the monthly reminder (ADR 0011), run by
-// .github/workflows/drift.yml. It reads NUSMods' public API and writes GitHub issues, and talks
-// to nothing else: not the hosting platform, not the live site. Refreshing stays a command run
-// on the Mac.
-//
-//   node scripts/drift.mjs weekly  [--cache-dir <dir>] [--dry-run]
-//   node scripts/drift.mjs monthly [--dry-run]
-//   node scripts/drift.mjs failure            (a step before the check failed)
-//
-// With no check named, the schedule in $SCHEDULE picks it (CHECK_FOR_SCHEDULE).
-//
-// Weekly:
-// - fetch this year's moduleInfo.json (a conditional GET with the ETag kept in --cache-dir, which
-//   the workflow keeps with actions/cache) and next year's moduleList.json;
-// - compute the data version offline with corpusDataVersion (scripts/corpus-manifest.mjs: the
-//   function CI checks src/data-version.json with, offeredModules over HEAD's NG files,
-//   rowHash, dataVersion), and compare it with src/data-version.json, production's;
-// - keep one "pending refresh" issue updated while they differ, with what changed in each check
-//   by D1 column, and close it once they match;
-// - open a separate issue when next year appears, which it never closes;
-// - open an issue on its own failure (a NUSMods shape change, an HTTP error), and close it after
-//   the next good run.
-// Monthly: one reminder issue a month to check the Registrar's and YST's pages and to run the
-// usage report, with a warning when the last commit is more than 45 days old. The weekly run also
-// opens that warning as its own issue, once per quiet stretch, since a monthly run can miss the
-// window between day 45 and day 60.
-//
-// Issues are found by label and a hidden marker in the body, never by title.
-//
-// NUSMods controls the codes the pending issue names, so a code reaches an issue only
-// if it has the course-code shape the rest of the repo uses (scripts/lib.mjs MODULE_CODE_RE: letters,
-// digits, at most 13 characters); any other is counted, never shown. The issue's hidden state is
-// read from the last `vnm-drift:state` block of the body the check writes, keeps only entries of the
-// shape the check writes, and is written with `<` and `>` escaped, so no value can close the block
-// or open another.
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
@@ -59,30 +24,26 @@ export const MARKERS = Object.freeze({
   failure: '<!-- vnm-drift:failure -->',
   /** @param {string} year */
   nextYear: (year) => `<!-- vnm-drift:next-year ${year} -->`,
-  /** @param {string} month yyyy-mm */
+  /** @param {string} month */
   reminder: (month) => `<!-- vnm-drift:reminder ${month} -->`,
-  /** One per quiet stretch, keyed by the last commit. @param {string} sha */
+  /** @param {string} sha */
   quiet: (sha) => `<!-- vnm-drift:quiet ${sha} -->`,
 });
 const STATE_RE = /<!-- vnm-drift:state (.*?) -->/g;
 
-/** The workflow's two crons (drift.yml), and the check each one runs. */
 export const SCHEDULES = Object.freeze({ weekly: '17 1 * * 1', monthly: '41 1 1 * *' });
 /** @type {Readonly<Record<string, 'weekly' | 'monthly'>>} */
 export const CHECK_FOR_SCHEDULE = Object.freeze({ [SCHEDULES.weekly]: 'weekly', [SCHEDULES.monthly]: 'monthly' });
 
-/** The last commit's age at which the reminder warns, and the age at which GitHub stops schedules. */
 export const QUIET_WARN_DAYS = 45;
 export const QUIET_STOP_DAYS = 60;
-/** How many checks the pending issue keeps rows for, and how many codes a row names. */
 const HISTORY_ROWS = 26;
 const CODES_SHOWN = 20;
 const DAY_MS = 86_400_000;
 
-/** The D1 columns a module row binds, after the key (the comparison's fields). */
 const FIELDS = ROW_COLUMNS.slice(1);
 
-/** @param {string} acadYear yyyy-yyyy */
+/** @param {string} acadYear */
 export function nextAcadYear(acadYear) {
   const m = /^(\d{4})-(\d{4})$/.exec(acadYear);
   if (!m || Number(m[2]) !== Number(m[1]) + 1) throw new Error(`"${acadYear}" is not an acad year (yyyy-yyyy)`);
@@ -103,21 +64,18 @@ export function nextAcadYear(acadYear) {
  *   offered: { added: number, removed: number, changed: number, byField: Record<string, number>, addedCodes: string[], removedCodes: string[],
  *     oddCodes?: number },
  *   catalogue: { added: number, removed: number, changed: number },
- * }} CompactComparison `oddCodes`: added or removed codes not in the course-code shape, counted and never shown
+ * }} CompactComparison
  * @typedef {{ date: string, dataVersion: string, comparison: Comparison | CompactComparison | null, unchanged?: boolean }} HistoryEntry
  */
 
 /**
- * What ingest would write from these records: the offered modules' D1 rows (boundTuple) and the
- * catalogue-only codes, and the data version, computed as ingest computes it.
- * @param {any[]} records moduleInfo.json
+ * @param {any[]} records
  * @param {string} acadYear
  * @param {import('./lib.mjs').NgCourses} ngCourses
  * @returns {Promise<Summary>}
  */
 export async function summarise(records, acadYear, ngCourses) {
   const { modules, skipped } = offeredModules(records, acadYear, ngCourses);
-  // The data version by the function CI checks src/data-version.json with.
   const version = await corpusDataVersion(records, acadYear, ngCourses);
   const catalogue = new Map(catalogueOnlyRecords(records).map((r) => [r.code, JSON.stringify([r.title, r.description])]));
   return {
@@ -130,9 +88,8 @@ export async function summarise(records, acadYear, ngCourses) {
 }
 
 /**
- * Codes added, removed and changed between two summaries, and for offered modules how many
- * changed in each D1 column.
- * @param {Summary} before @param {Summary} after
+ * @param {Summary} before
+ * @param {Summary} after
  * @returns {Comparison}
  */
 export function compareSummaries(before, after) {
@@ -169,15 +126,14 @@ export function compareSummaries(before, after) {
   };
 }
 
-/** Whether NUSMods' code may be shown in an issue: the course-code shape, and nothing else. @param {unknown} c */
+/** @param {unknown} c */
 export const showableCode = (c) => typeof c === 'string' && MODULE_CODE_RE.test(c);
-/** A count read back from the state: a whole number, else 0. @param {unknown} v */
+/** @param {unknown} v */
 const count = (v) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : 0);
 
 /**
- * A comparison as the pending issue keeps it: counts, and the first codes only, each of the
- * course-code shape (the rest counted in `oddCodes`). Safe on a comparison read back from an issue.
- * @param {Comparison | CompactComparison} c @returns {CompactComparison}
+ * @param {Comparison | CompactComparison} c
+ * @returns {CompactComparison}
  */
 function compact(c) {
   const n = (/** @type {unknown} */ v) => (Array.isArray(v) ? v.length : count(v));
@@ -212,10 +168,8 @@ const minute = (d) => `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(1
 const fmt = (n) => n.toLocaleString('en-US');
 
 /**
- * The history a pending issue carries in its hidden marker: the last `vnm-drift:state` block (the
- * one the check writes at the end of its body), with only entries of the shape the check writes
- * (compact() drops any code not of the course-code shape and any field not a D1 column).
- * @param {string} body @returns {{ history: HistoryEntry[] }}
+ * @param {string} body
+ * @returns {{ history: HistoryEntry[] }}
  */
 export function parseState(body) {
   const m = [...String(body ?? '').matchAll(STATE_RE)].at(-1);
@@ -235,7 +189,6 @@ export function parseState(body) {
 }
 
 /**
- * The pending-refresh issue.
  * @param {{ acadYear: string, production: { dataVersion: string, sha: string | null }, nusmods: { dataVersion: string, counts: Summary['counts'] },
  *   checkedAt: Date, history: HistoryEntry[] }} o
  */
@@ -258,7 +211,6 @@ export function pendingIssue({ acadYear, production, nusmods, checkedAt, history
       odd ? `${fmt(odd)} code${odd === 1 ? '' : 's'} not in the course-code shape (not shown).` : null,
     ].filter(Boolean)
     : [];
-  // No value can close the block (`-->`) or open another (`<!--`).
   const state = JSON.stringify({ history: kept }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
   const body = [
     MARKERS.pending,
@@ -329,18 +281,19 @@ export function failureIssue({ error, runUrl, checkedAt, check = 'weekly' }) {
 /** @param {{ error: unknown, runUrl: string | null, checkedAt: Date }} o */
 const failureComment = ({ error, runUrl, checkedAt }) => [`Failed again on ${minute(checkedAt)}:`, '', '```', errorText(error), '```', ...(runUrl ? ['', `Run: ${runUrl}`] : [])].join('\n');
 
-/** Whole days from `then` to `now`. @param {Date} then @param {Date} now */
+/**
+ * @param {Date} then
+ * @param {Date} now
+ */
 export const daysBetween = (then, now) => Math.floor((now.getTime() - then.getTime()) / DAY_MS);
 
 /**
- * The warning for a quiet repo: GitHub disables a public repo's scheduled workflows after 60
- * days without activity. Null at 45 days or fewer.
- * @param {Date} lastCommit @param {Date} today
+ * @param {Date} lastCommit
+ * @param {Date} today
  * @returns {string | null}
  */
 export function quietNote(lastCommit, today) {
   const days = daysBetween(lastCommit, today);
-  // "More than 45 days" by the clock, not by whole days: 45 days and an hour is more.
   if (lastCommit.getTime() + QUIET_WARN_DAYS * DAY_MS >= today.getTime()) return null;
   const by = day(new Date(lastCommit.getTime() + QUIET_STOP_DAYS * DAY_MS));
   return `**The repo has had no commit for ${days} days** (the last on ${day(lastCommit)}). GitHub stops a public repo's scheduled workflows after `
@@ -348,7 +301,7 @@ export function quietNote(lastCommit, today) {
     + `and these checks would stop with them. Commit something ${by > day(today) ? `before ${by}` : 'now'}, such as last month's usage report, to keep them running.`;
 }
 
-/** The month before a yyyy-mm. @param {string} month */
+/** @param {string} month */
 const monthBefore = (month) => {
   const [y, m] = month.split('-').map(Number);
   return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
@@ -356,10 +309,7 @@ const monthBefore = (month) => {
 /** @param {Date} d */
 const monthOf = (d) => d.toISOString().slice(0, 7);
 
-/**
- * The month's reminder.
- * @param {{ month: string, today: Date, lastCommit: { sha: string | null, date: Date }, ngUpdatedAsAt: string | null, acadYear?: string }} o
- */
+/** @param {{ month: string, today: Date, lastCommit: { sha: string | null, date: Date }, ngUpdatedAsAt: string | null, acadYear?: string }} o */
 export function reminderIssue({ month, today, lastCommit, ngUpdatedAsAt, acadYear = DEFAULT_ACAD_YEAR }) {
   const report = monthBefore(month);
   const note = quietNote(lastCommit.date, today);
@@ -379,8 +329,6 @@ export function reminderIssue({ month, today, lastCommit, ngUpdatedAsAt, acadYea
 }
 
 /**
- * The weekly run's own warning for a quiet repo. The monthly reminder alone could miss the window:
- * a last commit 31 to 45 days before the 1st reaches 60 days before the next reminder.
  * @param {{ today: Date, lastCommit: { sha: string, date: Date } }} o
  * @returns {{ title: string, body: string, labels: string[] } | null}
  */
@@ -394,8 +342,6 @@ export function quietIssue({ today, lastCommit }) {
   };
 }
 
-// ---- GitHub ----
-
 /**
  * @typedef {{ number: number, title: string, body: string, state: string, labels: string[] }} Issue
  * @typedef {{
@@ -408,7 +354,6 @@ export function quietIssue({ today, lastCommit }) {
  */
 
 /**
- * The issue with this label whose body carries this marker.
  * @param {Pick<GitHub, 'listIssues'>} github
  * @param {{ label: string, marker: string, state: 'open' | 'all' }} q
  */
@@ -421,7 +366,6 @@ export async function findIssue(github, { label, marker, state }) {
 const LABEL_COLOURS = { [LABELS.pending]: 'fbca04', [LABELS.nextYear]: '0e8a16', [LABELS.failure]: 'b60205', [LABELS.reminder]: '1d76db' };
 
 /**
- * GitHub's REST API for one repo's issues, with the run's token in the header only.
  * @param {{ repo: string, token: string, fetchImpl?: typeof fetch }} o
  * @returns {GitHub}
  */
@@ -440,7 +384,7 @@ export function githubRest({ repo, token, fetchImpl = fetch }) {
     if (allow404 && res.status === 404) return null;
     if (!res.ok) {
       let why = '';
-      try { why = String(/** @type {any} */ (await res.json())?.message ?? ''); } catch { /* no JSON */ }
+      try { why = String(/** @type {any} */ (await res.json())?.message ?? ''); } catch {}
       throw new Error(`GitHub ${method} /repos/${repo}${path.split('?')[0]} -> HTTP ${res.status}${why ? `: ${why}` : ''}`);
     }
     return res.status === 204 ? null : res.json();
@@ -476,7 +420,6 @@ export function githubRest({ repo, token, fetchImpl = fetch }) {
 }
 
 /**
- * A GitHub that changes nothing and logs what it would do (--dry-run): it sees no issues.
  * @param {(line: string) => void} log
  * @returns {GitHub}
  */
@@ -491,7 +434,10 @@ export function dryRunGitHub(log) {
   };
 }
 
-/** Opens the failure issue, or comments on the open one. @param {GitHub} github @param {{ error: unknown, runUrl: string | null, checkedAt: Date, check?: string }} o */
+/**
+ * @param {GitHub} github
+ * @param {{ error: unknown, runUrl: string | null, checkedAt: Date, check?: string }} o
+ */
 export async function reportFailure(github, o) {
   const open = await findIssue(github, { label: LABELS.failure, marker: MARKERS.failure, state: 'open' });
   if (open) { await github.comment(open.number, failureComment(o)); return open.number; }
@@ -500,7 +446,11 @@ export async function reportFailure(github, o) {
   return (await github.createIssue(issue)).number;
 }
 
-/** Closes an open failure issue after a good run. @param {GitHub} github @param {Date} checkedAt @param {string} check */
+/**
+ * @param {GitHub} github
+ * @param {Date} checkedAt
+ * @param {string} check
+ */
 async function recovered(github, checkedAt, check) {
   const open = await findIssue(github, { label: LABELS.failure, marker: MARKERS.failure, state: 'open' });
   if (!open) return;
@@ -508,12 +458,9 @@ async function recovered(github, checkedAt, check) {
   await github.updateIssue(open.number, { state: 'closed' });
 }
 
-// ---- The checks ----
-
 /**
- * Next year's moduleList.json: its course count, or null while NUSMods answers 404. Anything else
- * is an error.
- * @param {string} year @param {typeof fetch} fetchImpl
+ * @param {string} year
+ * @param {typeof fetch} fetchImpl
  */
 async function nextYearCount(year, fetchImpl) {
   const url = `${NUSMODS}/${year}/moduleList.json`;
@@ -527,7 +474,10 @@ async function nextYearCount(year, fetchImpl) {
   return list.length ? list.length : null;
 }
 
-/** The moduleInfo.json the last check cached, if it parses. @param {string} cacheDir @param {string} acadYear */
+/**
+ * @param {string} cacheDir
+ * @param {string} acadYear
+ */
 async function cachedRecords(cacheDir, acadYear) {
   try {
     const records = JSON.parse(await readFile(resolve(cacheDir, `${acadYear}-moduleInfo.json`), 'utf8'));
@@ -539,7 +489,6 @@ async function cachedRecords(cacheDir, acadYear) {
 }
 
 /**
- * The weekly check.
  * @param {{ acadYear?: string, cacheDir: string, fetchImpl?: typeof fetch, github: GitHub, now?: () => Date,
  *   ngCourses?: import('./lib.mjs').NgCourses, committed: { dataVersion: string, sha: string | null },
  *   lastCommit?: { sha: string | null, date: Date }, runUrl: string | null, log?: (line: string) => void }} o
@@ -615,7 +564,6 @@ export async function weeklyCheck(o) {
 }
 
 /**
- * The monthly reminder: one issue a month.
  * @param {{ github: GitHub, now?: () => Date, lastCommit: { sha: string | null, date: Date }, ngUpdatedAsAt: string | null,
  *   acadYear?: string, log?: (line: string) => void }} o
  */
@@ -629,8 +577,6 @@ export async function monthlyCheck({ github, now = () => new Date(), lastCommit,
   log(`opened #${(await github.createIssue(issue)).number}: the reminder for ${month}`);
   return { exitCode: 0 };
 }
-
-// ---- The command ----
 
 /** @param {string[]} args */
 const git = (args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();

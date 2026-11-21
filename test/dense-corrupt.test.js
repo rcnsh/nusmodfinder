@@ -1,14 +1,9 @@
 // @ts-check
-// A bundle that does not parse (missing, truncated, the wrong
-// schema) never fails a search. Hybrid answers keyword-only, flagged
-// degraded with source "dense-index"; mode=vector is a 502 naming it.
 import { describe, expect, it, vi } from 'vitest';
 import * as dense from '../src/dense.js';
 import { parseBundle } from '../src/vector-bundle.js';
 import { callJson, seed } from './helpers.js';
 
-// What src/dense.js throws for a bundle that does not parse (test/vector-bundle.node.test.js
-// covers parseBundle on each kind of damage).
 const corrupt = () => {
   parseBundle(/** @type {ArrayBuffer} */ (new TextEncoder().encode('VNMVEC01 but truncated').buffer));
   return [];
@@ -33,7 +28,6 @@ describe('a corrupt vectors bundle', () => {
       expect(vector.body.message).toMatch(/vectors bundle/);
       expect(fakes.vectorize.calls).toEqual([]);
 
-      // The standby still answers under the flip.
       const flipped = await callJson('/search?q=programming%20methodology&mode=vector', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
       expect(flipped.status).toBe(200);
       expect(flipped.body.retrieval.vector).toBeGreaterThan(0);

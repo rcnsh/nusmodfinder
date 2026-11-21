@@ -1,9 +1,4 @@
 // @ts-check
-// In-memory stand-ins for the bindings the test config deliberately omits
-// (AI, VECTORIZE, SEARCH_LIMIT, SEARCH_LIMIT_MINUTE). They model the parts of the real services the
-// Worker depends on, and enforce the real limits where breaking them would be
-// a bug (Vectorize topK ceilings, unknown filter operators). Every fake can be
-// told to throw or to hang, for upstream-failure tests.
 
 export const EMBEDDING_DIMS = 384;
 
@@ -11,11 +6,9 @@ export const EMBEDDING_DIMS = 384;
  * @typedef {{ kind: 'ok' } | { kind: 'throw', error: Error } | { kind: 'hang' }} Behaviour
  */
 
-/** Shared throw/hang switch. */
 class Switchable {
   /** @type {Behaviour} */
   behaviour = { kind: 'ok' };
-  /** Every call, in order: `{ method, args }`. */
   /** @type {{ method: string, args: unknown[] }[]} */
   calls = [];
 
@@ -25,7 +18,6 @@ class Switchable {
     return this;
   }
 
-  /** Every later call returns a promise that never settles. */
   hangs() {
     this.behaviour = { kind: 'hang' };
     return this;
@@ -37,7 +29,6 @@ class Switchable {
   }
 
   /**
-   * Records the call, then applies the current behaviour.
    * @param {string} method
    * @param {unknown[]} args
    * @returns {Promise<void>}
@@ -49,10 +40,7 @@ class Switchable {
   }
 }
 
-/**
- * FNV-1a, 32-bit. Deterministic and dependency-free.
- * @param {string} s
- */
+/** @param {string} s */
 function fnv1a(s) {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {
@@ -63,10 +51,6 @@ function fnv1a(s) {
 }
 
 /**
- * Deterministic bag-of-words embedding: each lower-cased token is hashed to a
- * dimension and a sign, then the vector is L2-normalised. Texts that share
- * words have positive cosine similarity, which is enough for retrieval tests
- * to be meaningful without any model.
  * @param {string} text
  * @returns {number[]}
  */
@@ -81,12 +65,8 @@ export function hashEmbed(text) {
   return norm === 0 ? v : v.map((x) => x / norm);
 }
 
-/** Fake Workers AI binding. Only text-embedding models are modelled. */
 export class FakeAI extends Switchable {
-  /**
-   * Replace to return a malformed response, e.g. `() => ({})`.
-   * @type {((model: string, input: { text: string[] }) => unknown) | null}
-   */
+  /** @type {((model: string, input: { text: string[] }) => unknown) | null} */
   respond = null;
 
   /**
@@ -101,7 +81,6 @@ export class FakeAI extends Switchable {
   }
 }
 
-/** The metadata properties production has indexes for (docs/operations.md, "Setup"). */
 export const INDEXED_PROPERTIES = ['sem1', 'sem2', 'sem3', 'sem4', 'level', 'credits', 'faculty', 'ng'];
 
 /**
@@ -112,8 +91,6 @@ export const INDEXED_PROPERTIES = ['sem1', 'sem2', 'sem3', 'sem4', 'level', 'cre
 function validateFilter(filter) {
   for (const [key, cond] of Object.entries(filter)) {
     if (cond === null || typeof cond !== 'object' || Array.isArray(cond)) continue;
-    // Cloudflare docs: an operator object holds one operator, except that one
-    // upper bound ($lt/$lte) may pair with one lower bound ($gt/$gte).
     const ops = Object.keys(cond);
     const ranged = ops.length === 2
       && ops.filter((o) => o === '$lt' || o === '$lte').length === 1
@@ -137,7 +114,6 @@ function validateFilter(filter) {
 }
 
 /**
- * Assumes validateFilter() already accepted `filter`.
  * @param {Record<string, unknown> | undefined} metadata
  * @param {Record<string, unknown>} filter
  */
@@ -170,13 +146,6 @@ function cosine(a, b) {
   return na === 0 || nb === 0 ? 0 : dot / Math.sqrt(na * nb);
 }
 
-/**
- * Fake Vectorize index with cosine similarity. topK ceiling: 50 when values or
- * metadata are returned, else 100; exceeding it throws as the real service
- * does. Filters support implicit equality, $eq, $ne, $in, $nin, and range
- * operators ($lt/$lte/$gt/$gte, string or number values, at most one upper plus
- * one lower bound per key); anything else throws rather than silently matching.
- */
 export class FakeVectorize extends Switchable {
   /** @type {Map<string, StoredVector>} */
   vectors = new Map();
@@ -243,31 +212,14 @@ export class FakeVectorize extends Switchable {
     return { mutationId, count: ids.length, ids };
   }
 
-  /**
-   * Mutation ids in the order they were accepted. By default the data changes
-   * at once and only describe()'s report of it lags; with `deferApply` the
-   * data lags too, as with the real async mutations.
-   * @type {string[]}
-   */
+  /** @type {string[]} */
   mutations = [];
-  /** How many mutations describe() reports as processed. */
   processed = 0;
-  /**
-   * Mutations describe() marks processed per call: Infinity = all at once, 0 =
-   * stalled (the wait must time out), n = catches up over several polls.
-   */
   processPerDescribe = Infinity;
-  /**
-   * When true, an upsert or delete changes what query/getByIds see only once
-   * describe() (or applyAll()) processes it, in mutation order: a reader
-   * between the two sees the values from before.
-   */
   deferApply = false;
-  /** Deferred mutations not yet applied, in order: their index in `mutations`. */
   /** @type {{ index: number, apply: () => void }[]} */
   pending = [];
 
-  /** When each mutation in `mutations` was accepted (Date.now()), for processedUpToDatetime. */
   /** @type {number[]} */
   mutationTimes = [];
 
@@ -281,13 +233,12 @@ export class FakeVectorize extends Switchable {
     return id;
   }
 
-  /** @param {number} n marks n more mutations processed, applying any deferred ones among them */
+  /** @param {number} n */
   process(n) {
     this.processed = Math.min(this.mutations.length, this.processed + n);
     while (this.pending.length && this.pending[0].index < this.processed) this.pending.shift()?.apply();
   }
 
-  /** Processes and applies every accepted mutation. */
   applyAll() {
     this.process(Infinity);
   }
@@ -299,9 +250,6 @@ export class FakeVectorize extends Switchable {
       vectorCount: this.vectors.size,
       dimensions: EMBEDDING_DIMS,
       processedUpToMutation: this.processed ? this.mutations[this.processed - 1] : null,
-      // ISO 8601, as `wrangler vectorize info` prints it (workers-types declares
-      // `number`; ingest accepts either): when the last processed mutation was
-      // accepted.
       processedUpToDatetime: this.processed ? new Date(this.mutationTimes[this.processed - 1]).toISOString() : null,
     };
   }
@@ -316,10 +264,6 @@ export class FakeVectorize extends Switchable {
   }
 }
 
-/**
- * Fake rate limiter. Allows everything by default; set `allow` to false, or
- * `limitPerKey` to a number, to exercise the 429 path.
- */
 export class FakeRateLimit extends Switchable {
   allow = true;
   /** @type {number | null} */
@@ -337,15 +281,9 @@ export class FakeRateLimit extends Switchable {
   }
 }
 
-/**
- * A fresh, independent set of fakes.
- * @returns {Fakes}
- */
+/** @returns {Fakes} */
 export function createFakes() {
   return { ai: new FakeAI(), vectorize: new FakeVectorize(), limit: new FakeRateLimit(), limitMinute: new FakeRateLimit() };
 }
 
-/**
- * `limit` is SEARCH_LIMIT (per 10 s), `limitMinute` SEARCH_LIMIT_MINUTE (per 60 s).
- * @typedef {{ ai: FakeAI, vectorize: FakeVectorize, limit: FakeRateLimit, limitMinute: FakeRateLimit }} Fakes
- */
+/** @typedef {{ ai: FakeAI, vectorize: FakeVectorize, limit: FakeRateLimit, limitMinute: FakeRateLimit }} Fakes */

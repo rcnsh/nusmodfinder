@@ -1,9 +1,4 @@
 // @ts-check
-// The two baseline pins (ADR 0003): the test-set baseline is eval-v0 =
-// 5c5cce4 and never moves; the shipped-ranker pin, which per-change holdout
-// looks compare against, moves only in the PR that ships a change, with a
-// line in ADR 0003's "Shipped-ranker pin" section. The CLI's use of each is
-// tested end to end in gate-custody.node.test.js.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

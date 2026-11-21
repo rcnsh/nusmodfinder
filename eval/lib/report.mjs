@@ -1,8 +1,4 @@
 // @ts-check
-// Plain-text tables for the CLI. Dev output is full; holdout/test output is
-// produced only by `verdictOnly()` (and, for the compliance rule,
-// `complianceVerdictOnly()`), which print the verdict, the overall deltas
-// with CIs and counts, and nothing per query or per shape.
 
 /** @param {number} x @param {number} [d] */
 export const fmt = (x, d = 3) => (Number.isFinite(x) ? x.toFixed(d) : '—');
@@ -11,12 +7,9 @@ const pct = (x) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : '—');
 /** @param {number} x */
 const signed = (x) => (Number.isFinite(x) ? `${x >= 0 ? '+' : ''}${x.toFixed(3)}` : '—');
 
-/** What an unscored query is, as every report says it. */
 export const UNSCORED_NOTE = 'untagged, no grade-≥1 document; in neither set';
 
-/**
- * @param {string[][]} rows first row is the header
- */
+/** @param {string[][]} rows */
 export function table(rows) {
   const widths = rows[0].map((_, i) => Math.max(...rows.map((r) => (r[i] ?? '').length)));
   const line = (/** @type {string[]} */ r) => r.map((c, i) => (i === 0 ? c.padEnd(widths[i]) : c.padStart(widths[i]))).join('  ');
@@ -46,7 +39,6 @@ export function summaryTable(runs) {
   return table(rows);
 }
 
-/** A qrels version as printed: only [A-Za-z0-9._-], at most 40 characters. */
 export const qrelsLabel = (/** @type {unknown} */ v) => String(v).replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40);
 
 /**
@@ -66,8 +58,8 @@ export function comparisonTable(cmp, base, cand, qrelsVersion) {
 }
 
 /**
- * @param {Record<string, any>} baseShapes byShape() of the baseline
- * @param {Record<string, any>} candShapes byShape() of the candidate
+ * @param {Record<string, any>} baseShapes
+ * @param {Record<string, any>} candShapes
  * @param {import('./metrics.mjs').Comparison | null} cmp
  */
 export function shapeTable(baseShapes, candShapes, cmp) {
@@ -86,16 +78,11 @@ export function verdictBlock(v) {
   return [`gate (${v.set}): ${v.verdict.toUpperCase()}${v.rule ? ` · rule ${v.rule}` : ''}`, ...v.checks.map((c) => `  [${c.pass ? 'pass' : 'FAIL'}] ${c.name} — ${c.detail}`)].join('\n');
 }
 
-/** What an unscored query is under the compliance rule. */
 export const COMPLIANCE_UNSCORED_NOTE = 'no grade-≥1 document, or none left once the constraints filter the qrels; in neither set';
 
 /**
- * The compliance rule's output on an encrypted set: the verdict,
- * the Δ lines (primary nDCG@10 and P@5 with their CIs, the constraint block's
- * nDCG@10) and the counts (scored, unscored, parsed). Never an id, a text, a
- * check's detail or which check failed.
  * @param {import('./gate.mjs').Verdict} v
- * @param {import('./metrics.mjs').Comparison} cmp the comparison on filtered qrels
+ * @param {import('./metrics.mjs').Comparison} cmp
  * @param {{ block: { n: number, delta: number }, counts: { parsed: number, primary: number, block: number, unscored: number } }} c
  * @param {string} qrelsVersion
  * @param {string} baseline
@@ -117,9 +104,6 @@ export function complianceVerdictOnly(v, cmp, c, qrelsVersion, baseline) {
 }
 
 /**
- * The only output an encrypted set ever produces. The first line names the
- * rule applied (gate.mjs `ruleOf`) and the baseline ranker it was taken
- * against ("eval-v0 5c5cce4"); the last gives the unscored count, never ids.
  * @param {import('./gate.mjs').Verdict} v
  * @param {import('./metrics.mjs').Comparison} cmp
  * @param {string} qrelsVersion

@@ -1,17 +1,4 @@
 // @ts-check
-// Lexical search over the full pinned corpus (6,771 modules, loaded through
-// /admin/ingest): migration 0006 applied on top of a populated 0001–0005
-// database, as it was remotely, then
-// - ranking neutrality: unfiltered lexical top-50 unchanged by 0006 for every
-//   query in test/fixtures/lexical-queries.json (only exact-bm25 tie groups may
-//   reorder);
-// - filtered lexical (filters in SQL, before the depth cut) equals brute force for every query x single filter
-//   value, every two-filter combination and a sample of 3-5-filter ones on
-//   broad queries, with and without the facets counts that pick the driver;
-// - worst-case D1 rows read per filtered search <= 8,000 (with counts);
-// - the counts are read once per isolate, only on the filter-driven path;
-// - re-ingest and per-row update costs under the rowid-keyed FTS triggers.
-// Each measured block logs one `[lexical-cost] {...}` JSON line.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
@@ -25,9 +12,7 @@ import queryFixture from '../fixtures/lexical-queries.json';
 const corpus = inject('corpus');
 const SAMPLED = inject('lexicalGrid') === 'sample';
 
-/** The most D1 rows a filtered search may read. */
 const ROWS_READ_GATE = 8000;
-/** MAX_TOPK: the deepest list either retriever is ever asked for. */
 const DEPTH = 50;
 const QUERIES = [...new Set(/** @type {string[]} */ (queryFixture.queries))];
 
@@ -36,7 +21,6 @@ const QUERIES = [...new Set(/** @type {string[]} */ (queryFixture.queries))];
 /** @typedef {import('../../src/lexical.js').FilterKey} FilterKey */
 
 /**
- * Wraps env.DB so the D1 meta of every batch the Worker runs is summed.
  * @param {{ read: number, written: number, statements: number }} sum
  * @returns {D1Database}
  */
@@ -52,7 +36,6 @@ function meteredDb(sum) {
 }
 
 /**
- * Posts modules to /admin/ingest in batches.
  * @param {NormalisedModule[]} modules
  * @param {number} size
  * @param {D1Database} [db]
@@ -73,13 +56,7 @@ async function ingest(modules, size, db) {
   }
 }
 
-/**
- * Loads modules into a pre-0006 database the way production's rows were
- * written: the column list from before row_hash, no row_hash. (/admin/ingest now
- * writes row_hash, which exists only from 0006 on, so it fails on this schema
- * by design; see scripts/ingest-core.mjs's schema guard.)
- * @param {NormalisedModule[]} modules
- */
+/** @param {NormalisedModule[]} modules */
 async function legacyLoad(modules) {
   const stmt = env.DB.prepare(
     `INSERT INTO modules (code, title, description, credits, department, faculty, level, semesters, workload,
@@ -92,10 +69,7 @@ async function legacyLoad(modules) {
   }
 }
 
-/**
- * Unfiltered lexical top-DEPTH for every query, with each code's bm25 rank.
- * @returns {Promise<Map<string, { codes: string[], rank: Map<string, number> }>>}
- */
+/** @returns {Promise<Map<string, { codes: string[], rank: Map<string, number> }>>} */
 async function unfilteredTopN() {
   const out = new Map();
   for (const q of QUERIES) {
@@ -111,13 +85,10 @@ async function unfilteredTopN() {
 }
 
 /**
- * Filter oracle that does not use the generated columns: semesters straight
- * from the JSON, like the Worker did before 0006.
  * @param {Row} row
  * @param {FilterEcho} echo
  */
 function passes(row, echo) {
-  // Under ng, sem picks the allow-mask bit instead of testing the semesters.
   if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
   if (echo.ng === true && (row.ng_allow & bitOf(echo.sem === 1 || echo.sem === 2 ? echo.sem : 'any', /** @type {any} */ (echo.study))) === 0) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
@@ -127,7 +98,10 @@ function passes(row, echo) {
   return true;
 }
 
-/** @param {number[]} xs sorted ascending @param {number} p */
+/**
+ * @param {number[]} xs
+ * @param {number} p
+ */
 const pct = (xs, p) => xs[Math.min(xs.length - 1, Math.floor(xs.length * p))];
 
 describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
@@ -146,7 +120,6 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     await legacyLoad(c.modules);
     before = await unfilteredTopN();
     await applyD1Migrations(env.DB, rest);
-    // The allow mask (0009), as ingest computes it, for the ng filter.
     const set = env.DB.prepare('UPDATE modules SET ng_allow = ? WHERE code = ?');
     for (let i = 0; i < c.modules.length; i += 100) await env.DB.batch(c.modules.slice(i, i + 100).map((m) => set.bind(m.ngAllow, m.code)));
   }, 600_000);
@@ -161,8 +134,6 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
       const a = /** @type {{ codes: string[], rank: Map<string, number> }} */ (after.get(q));
       for (const code of b.codes) if (a.rank.has(code) && a.rank.get(code) !== b.rank.get(code)) rankValueChanges++;
       if (a.codes.join() === b.codes.join()) { identical++; continue; }
-      // Allowed: the same rank sequence, and the same set of codes at every
-      // rank value except the last (a tie group cut by the depth limit).
       const ranksB = b.codes.map((x) => b.rank.get(x));
       const ranksA = a.codes.map((x) => a.rank.get(x));
       const last = ranksB.at(-1);
@@ -176,14 +147,8 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     expect(rankValueChanges).toBe(0);
   }, 600_000);
 
-  /**
-   * Runs every case through lexicalSearch and compares it with brute force:
-   * every match of the MATCH expression sorted by (rank, rowid), filtered in
-   * JS from the JSON semesters and the plain columns, cut to the depth.
-   * @param {{ q: string, echo: FilterEcho, limits: number[] }[]} all
-   */
+  /** @param {{ q: string, echo: FilterEcho, limits: number[] }[]} all */
   async function grid(all) {
-    // A fixed 1-in-10 sample under LEXICAL_GRID=sample: every 10th case, in grid order.
     const cases = SAMPLED ? all.filter((_, i) => i % 10 === 0) : all;
     const { results: rows } = /** @type {D1Result<Row>} */ (await env.DB.prepare(
       'SELECT rowid AS r, code, semesters, level, faculty, credits, ng, ng_allow FROM modules').all());
@@ -240,10 +205,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     };
   }
 
-  /**
-   * Every value each filter can take on this corpus, as single-key echoes.
-   * @returns {Promise<Record<FilterKey, FilterEcho[]>>}
-   */
+  /** @returns {Promise<Record<FilterKey, FilterEcho[]>>} */
   async function filterValues() {
     const distinct = async (/** @type {string} */ col) => /** @type {any[]} */ ((await env.DB.prepare(
       `SELECT DISTINCT ${col} AS v FROM modules WHERE ${col} IS NOT NULL ORDER BY ${col}`).all()).results).map((r) => r.v);
@@ -256,12 +218,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     };
   }
 
-  /**
-   * Every two-filter combination of values (two different filters), and a
-   * sample of three-to-five-filter ones: all combinations of each filter's
-   * two most common values (sem: all four), plus 200 seeded uniform draws.
-   * @param {Record<FilterKey, FilterEcho[]>} values
-   */
+  /** @param {Record<FilterKey, FilterEcho[]>} values */
   function combinations(values) {
     const keys = /** @type {FilterKey[]} */ (Object.keys(values));
     /** @param {FilterKey[]} ks @param {Record<FilterKey, FilterEcho[]>} vs @returns {FilterEcho[]} */
@@ -290,16 +247,10 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
       const ks = [...keys].sort(() => rand() - 0.5).slice(0, n);
       many.push(Object.assign({}, ...ks.map((k) => values[k][Math.floor(rand() * values[k].length)])));
     }
-    // /search never sends ng with a special term (it answers ng-special-term), so neither does the grid.
     const sendable = (/** @type {FilterEcho} */ e) => !(e.ng === true && (e.sem === 3 || e.sem === 4));
     return { pairs: pairs.filter(sendable), many: many.filter(sendable) };
   }
 
-  /**
-   * Broad queries for the multi-filter grids: each matches more than 2,000
-   * modules (asserted), so every search can reach the filter-driven plan.
-   * The fixed-order grids use the first four (the worst ones measured).
-   */
   const BROAD = ['and', 'the', 'in', 'students will learn', 'how to', 'students', 'of', 'to', 'for', 'with',
     'is', 'course'];
 
@@ -321,8 +272,6 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     }
     expect(broad).toEqual(BROAD);
 
-    // Shallower depths (topK 1 and 5) for the selective single filters, where
-    // the cap/fallback boundary moves.
     const shallow = (/** @type {FilterEcho} */ e) => e.sem === 3 || e.sem === 4 || e.level === 8 || e.credits === 8
       || (e.faculty !== undefined && e.faculty.length % 3 === 0);
     const singles = Object.values(values).flat();
@@ -331,11 +280,6 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     const two = await grid(broad.flatMap((q) => pairs.map((echo) => ({ q, echo, limits: [DEPTH] }))));
     const more = await grid(broad.flatMap((q) => many.map((echo) => ({ q, echo, limits: [DEPTH] }))));
 
-    // The same multi-filter grids without counts in the facets row (a row
-    // written before they existed): the driver comes from FIXED_DRIVER_ORDER.
-    // Exact, but not inside the gate: no per-filter order can know that
-    // level=5 (2,713 rows) is a worse driver than credits=5 (407) but a
-    // better one than credits=4 (5,081). Measured, not asserted.
     await env.DB.prepare("UPDATE meta SET value = json_remove(value, '$.credits') WHERE key = 'facets'").run();
     resetFilterCounts();
     const fixedQueries = broad.slice(0, 4);
@@ -370,9 +314,9 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
       return trace.d1.queries;
     };
     expect(await queries('in', {})).toBe(1);
-    expect(await queries('in', { credits: 4, level: 2 })).toBe(1); // bounded pass fills the page
-    expect(await queries('in', { level: 8 })).toBe(2); // one indexed filter: no choice to make
-    expect(await queries('in', { faculty: 'Computing', credits: 4 })).toBe(3); // bounded, counts, filter-driven
+    expect(await queries('in', { credits: 4, level: 2 })).toBe(1);
+    expect(await queries('in', { level: 8 })).toBe(2);
+    expect(await queries('in', { faculty: 'Computing', credits: 4 })).toBe(3);
     expect(await queries('in', { faculty: 'Computing', credits: 4 })).toBe(2);
     expect(await queries('in', { faculty: 'Computing', level: 4 })).toBe(2);
   });
@@ -391,14 +335,12 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
     expect(full.statements).toBe(c.modules.length);
     expect(await ftsState()).toEqual(stateBefore);
 
-    // One changed row through the same route.
     const m = /** @type {NormalisedModule} */ (c.modules.find((x) => x.code === 'CS1010S'));
     const one = { read: 0, written: 0, statements: 0 };
     await ingest([{ ...m, title: `${m.title} (revised)` }], 50, meteredDb(one));
     expect(await ftsState()).not.toEqual(stateBefore);
     await env.DB.prepare("INSERT INTO modules_fts(modules_fts, rank) VALUES('integrity-check', 1)").run();
 
-    // A direct title update: constant cost, not a scan of 6,771 FTS rows.
     const update = await env.DB.prepare("UPDATE modules SET title = title || ' x' WHERE code = 'CS1010S'").run();
     const reingestCost = {
       forcedReingest: { modules: c.modules.length, batchSize: 50, rowsRead: full.read, rowsWritten: full.written },
@@ -406,8 +348,6 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
       titleUpdate: { rowsRead: update.meta.rows_read, rowsWritten: update.meta.rows_written },
     };
     console.log(`[lexical-cost] ${JSON.stringify(reingestCost)}`);
-    // One row read per updated row (a BEFORE UPDATE trigger would make SQLite
-    // re-read each row, doubling these).
     expect(update.meta.rows_read).toBe(1);
     expect(one.read).toBe(1);
     expect(full.read).toBe(c.modules.length);

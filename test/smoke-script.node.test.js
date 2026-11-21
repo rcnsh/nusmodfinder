@@ -1,10 +1,4 @@
 // @ts-check
-// `npm run smoke -- [--expect <sha>]` (scripts/smoke.mjs), five checks, each request at
-// least 4 s after the last: /health (the tag, asked again for up to 30 s while another answers, the data version, the production bundle), / (200
-// with the CSP header), /module/<code> for an ungrouped, uniquely titled code of the expected
-// commit's corpus, /search for that title (a cache miss, not degraded, the code in the top 5)
-// and /facets. The data version, groups and bundle come from that commit's files (`git show
-// <sha>:…`). A fake site, git and clock: nothing here sends a request.
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -18,7 +12,6 @@ const OTHER = '8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690';
 const DVS = { [SHA]: 'd820d578cf81', [OTHER]: '0123456789ab' };
 const URL_BASE = 'https://nusmodfinder.rcn.sh';
 const PRODUCTION_ENTRY = { corpus: 'production', release: 'vec-production-x', asset: 'vec-production-x.bin', sha256: 'abc', count: 5 };
-/** The corpus: CS1010 is grouped, CS2030/CS2040 share a title, CS3230 is unique, CS9999 is not in the bundle. */
 const CORPUS = [
   { code: 'CS1010', title: 'Programming Methodology' },
   { code: 'CS1010E', title: 'Programming Methodology II' },
@@ -28,7 +21,6 @@ const CORPUS = [
   { code: 'CS9999', title: 'A Title Nobody Else Has' },
 ];
 const BUNDLE_CODES = ['CS1010', 'CS1010E', 'CS2030', 'CS2040', 'CS3230'];
-/** The expected commit's corpus manifest: its `current` is the corpus titles come from. */
 const CORPUS_ENTRY = { year: Y, release: `prod-${Y}-29991231`, asset: `${Y}-moduleInfo.json.gz`, sha256: 'c'.repeat(64), bytes: 1, fetchedAt: '2999-12-31T00:00:00Z' };
 const CORPUS_MANIFEST = { schema: 'vnm-corpus-manifest/1', current: CORPUS_ENTRY.release, corpora: { [CORPUS_ENTRY.release]: CORPUS_ENTRY } };
 const GROUPS = { schema: 'vnm-groups/1', groups: [['CS1010', 'CS1010E']] };
@@ -53,8 +45,6 @@ function fakeExec(sha = SHA, o = {}) {
 }
 
 /**
- * The live site, healthy unless told otherwise; a fake clock that sleep() advances.
- * `tags` gives /health's tag per ask, the last repeating (a promote still propagating).
  * @param {{ sha?: string, tag?: string, tags?: string[], dataVersion?: string, corpus?: string, cache?: string, degraded?: boolean, csp?: boolean,
  *   top?: (code: string) => string[], moduleStatus?: number }} [o]
  */
@@ -68,7 +58,7 @@ function fakeSite(o = {}) {
   const fetchImpl = async (input) => {
     const u = new URL(String(input));
     sent.push({ path: u.pathname + u.search, at: clock });
-    clock += 250; // each request takes a while
+    clock += 250;
     if (u.pathname === '/health') {
       const tag = o.tags ? o.tags[Math.min(healthAsks++, o.tags.length - 1)] : o.tag ?? sha.slice(0, 7);
       return Response.json({ ok: true, versionId: 'v', versionTag: tag, dataVersion: o.dataVersion ?? DVS[sha], vectors: { corpus: o.corpus ?? 'production', count: 5, dataVersion: o.dataVersion ?? DVS[sha] } });
@@ -163,7 +153,7 @@ describe('npm run smoke', () => {
     expect(code).toBe(1);
     expect(out).toMatch(/the version tag feedfac is not a prefix/);
     const health = site.sent.filter((s) => s.path === '/health');
-    expect(health.length).toBe(8); // the first ask and up to 7 more, as docs/operations.md says
+    expect(health.length).toBe(8);
     for (let i = 1; i < health.length; i++) expect(health[i].at - health[i - 1].at).toBeGreaterThanOrEqual(SMOKE_GAP_MS);
     expect(health[health.length - 1].at - health[0].at).toBeLessThanOrEqual(HEALTH_SETTLE_MS);
     expect(out).toMatch(/after 8 asks over \d+ s/);

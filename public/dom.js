@@ -1,13 +1,8 @@
 // @ts-check
-// Building DOM nodes. Text only ever enters the page as a Text node or through
-// textContent, so data can never become markup; lint bans every HTML-string
-// sink in public/ (eslint.config.mjs).
 
 /** @typedef {Node | string | number | null | undefined | false} Child */
 
 /**
- * An element with a class, attributes and children. Strings and numbers become
- * Text nodes; null, undefined and false are skipped.
  * @template {keyof HTMLElementTagNameMap} K
  * @param {K} tag
  * @param {{ class?: string, attrs?: Record<string, string> } | null} [props]
@@ -31,7 +26,6 @@ export function nodes(children) {
 }
 
 /**
- * Replaces an element's children.
  * @param {Element} el
  * @param {...Child} children
  */

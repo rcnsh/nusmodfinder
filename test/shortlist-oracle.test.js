@@ -1,8 +1,4 @@
 // @ts-check
-// The exchange-eligibility oracle over the shortlist on the fixture: all 434 fixture modules
-// and the fixture's NG-listed codes with no classes, in the workers project so
-// `npm test` runs it. The pinned run over 6,771 codes is in
-// test/oracle/paths.test.js; the check itself is test/shortlist-oracle.js.
 import { beforeAll, describe, expect, it } from 'vitest';
 import fixture from './fixtures/corpus.json';
 import { unscheduled } from '../src/ng-unscheduled.js';

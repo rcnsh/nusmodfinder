@@ -1,6 +1,4 @@
 // @ts-check
-// The vectors bundle format and the exact in-Worker search over it. Pure code,
-// so it runs in Node; test/dense.test.js covers the same search through /search.
 import { describe, expect, it } from 'vitest';
 import {
   BUNDLE_SCHEMA, ROW_STRIDE, compileMask, decodeFilterRow, encodeBundle, exactSearch, parseBundle, rowsKey,
@@ -20,7 +18,11 @@ const mod = (code, over = {}) => ({
   ng: false, ngSemesters: [], ...over,
 });
 
-/** A unit-ish vector pointing mostly along `axis`, with a small `tilt` along axis + 1. @param {number} axis @param {number} [tilt] @param {number} [scale] */
+/**
+ * @param {number} axis
+ * @param {number} [tilt]
+ * @param {number} [scale]
+ */
 const vec = (axis, tilt = 0, scale = 1) => {
   const v = new Array(DIMS).fill(0);
   v[axis] = scale;
@@ -50,14 +52,11 @@ describe('encodeBundle / parseBundle', () => {
     expect(b.header.rowStride).toBe(ROW_STRIDE);
     expect(b.header.rowsKey).toBe(await rowsKey(modules));
     expect(b.header.dataVersion).toBe(await dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) })))));
-    // CS2040 was scaled by 3: stored L2-normalised.
     const row = (/** @type {number} */ i) => b.vectors.subarray(i * DIMS, (i + 1) * DIMS);
     expect(row(2)[1]).toBe(1);
     const n = Math.hypot(...row(1));
     expect(Math.abs(n - 1)).toBeLessThan(1e-6);
-    // The intent fields a hand-built row leaves out read as their neutral values (test/intents-data.node.test.js sets them).
     const none = { examSemesters: [], su: false, suGrading: false, workloadHours: null, prereqNone: false, prereqCohortOnly: false };
-    // A row without ngAllow reads 0: closed in exchange mode everywhere.
     expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [], ngAllow: 0, ...none });
     expect(decodeFilterRow(b, 1)).toEqual({ semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts', ng: false, ngSemesters: [], ngAllow: 0, ...none });
     expect(decodeFilterRow(b, 2)).toEqual({ semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ngAllow: 0x7fe0, ...none });
@@ -114,24 +113,20 @@ describe('exactSearch', () => {
   const query = (q) => Float32Array.from(q);
 
   it('ranks by cosine, desc, and breaks exact ties by code asc', async () => {
-    // Shared text: B and C have the same vector (ties), A is closer, D farther.
     const modules = ['D4000', 'C3000', 'B2000', 'A1000'].map((c) => mod(c));
     const b = await build(modules, { A1000: vec(0, 0.1), B2000: vec(0, 0.5), C3000: vec(0, 0.5), D4000: vec(0, 2) });
     const hits = exactSearch(b, query(vec(0)), {}, 10);
     expect(hits.map((h) => h.code)).toEqual(['A1000', 'B2000', 'C3000', 'D4000']);
     expect(hits[1].score).toBe(hits[2].score);
     expect(hits[0].score).toBeGreaterThan(hits[1].score);
-    // Scores are cosines: the query's norm does not matter.
     expect(exactSearch(b, query(vec(0, 0, 7)), {}, 10)).toEqual(hits);
     expect(Math.abs(hits[0].score - 1 / Math.hypot(1, 0.1))).toBeLessThan(1e-6);
   });
 
   it('keeps only the top `depth`, bounded, with ties at the cut going to the earlier code', async () => {
     const codes = Array.from({ length: 30 }, (_, i) => `M${String(1000 + i)}`);
-    // Every vector identical: the page is the first `depth` codes.
     const b = await build(codes.map((c) => mod(c)), Object.fromEntries(codes.map((c) => [c, vec(9)])));
     expect(exactSearch(b, query(vec(9)), {}, 5).map((h) => h.code)).toEqual(codes.slice(0, 5));
-    // Scores rising with code: the last five, best first.
     const b2 = await build(codes.map((c) => mod(c)), Object.fromEntries(codes.map((c, i) => [c, vec(9, 1 / (i + 1))])));
     expect(exactSearch(b2, query(vec(9)), {}, 5).map((h) => h.code)).toEqual(codes.slice(-5).reverse());
   });
@@ -142,7 +137,6 @@ describe('exactSearch', () => {
     const codes = Array.from({ length: 200 }, (_, i) => `R${String(1000 + i)}`);
     /** @type {Record<string, number[]>} */
     const vs = Object.fromEntries(codes.map((c) => [c, Array.from({ length: DIMS }, rand)]));
-    // A few exact duplicates (shared texts).
     vs[codes[10]] = vs[codes[50]];
     vs[codes[11]] = vs[codes[50]];
     const b = await build(codes.map((c) => mod(c)), vs);
@@ -162,10 +156,8 @@ describe('exactSearch', () => {
 
   it('applies the filter mask first, with the same semantics as the Vectorize metadata filter', async () => {
     const modules = [
-      // A1000: exchange-open in Sem 1 at every study level (bits 0-4) and so either semester (10-14).
       mod('A1000', { semesters: [1], level: 1, credits: 4, faculty: 'Arts', ng: true, ngSemesters: [1], ngAllow: 0x1f | 0x7c00 }),
       mod('B2000', { semesters: [2], level: 2, credits: 2, faculty: 'Computing', ng: false }),
-      // C3000: exchange-open in Sem 2 only (bits 5-9, 10-14), though NUSMods offers it in both.
       mod('C3000', { semesters: [1, 2], level: 3, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ngAllow: 0x3e0 | 0x7c00 }),
       mod('D4000', { semesters: [3], level: null, credits: null, faculty: null, ng: false }),
     ];
@@ -180,12 +172,10 @@ describe('exactSearch', () => {
     expect(codes({ credits: 0 })).toEqual([]);
     expect(codes({ faculty: 'Computing' })).toEqual(['B2000', 'C3000']);
     expect(codes({ faculty: 'Nowhere' })).toEqual([]);
-    // Under ng the allow-mask bit for (sem, study) decides, and sem tests no NUSMods semester.
     expect(codes({ ng: true, study: 'ug2' })).toEqual(['A1000', 'C3000']);
     expect(codes({ ng: true, sem: 1, study: 'ug2' })).toEqual(['A1000']);
     expect(codes({ ng: true, sem: 2, study: 'grad' })).toEqual(['C3000']);
     expect(codes({ ng: true, sem: 2, faculty: 'Computing', credits: 4, level: 3, study: 'ug3' })).toEqual(['C3000']);
-    // No study (which /search answers 400) shows nothing.
     expect(codes({ ng: true })).toEqual([]);
     expect(compileMask(b, {})).toBeNull();
   });

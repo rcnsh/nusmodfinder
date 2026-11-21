@@ -1,21 +1,10 @@
 // @ts-check
-// The bundled corpus vectors. `vectors-bundle` is a wrangler
-// `alias` (wrangler.jsonc; resolve.alias in the Vitest configs) to a small
-// module that re-exports a `.bin` Data module: by default the committed
-// fixture (test/fixtures/vectors.js), and for a deploy the production bundle
-// (scripts/deploy.mjs passes --alias). Parsed once per isolate, on the first
-// dense search, so isolate startup never pays for it.
 import bundleBytes from 'vectors-bundle';
 import { exactSearch, parseBundle } from './vector-bundle.js';
 
 /** @type {{ ok: true, value: import('./vector-bundle.js').Bundle } | { ok: false, error: Error } | null} */
 let loaded = null;
 
-/**
- * The parsed bundle. A bundle that does not parse throws, every time, with
- * the same error: /search then answers keyword-only, `degraded.source`
- * "dense-index".
- */
 export function denseBundle() {
   if (!loaded) {
     try {
@@ -29,8 +18,6 @@ export function denseBundle() {
 }
 
 /**
- * The top `depth` corpus codes by exact cosine with `query`, after the filter
- * mask, with their scores.
  * @param {ArrayLike<number>} query
  * @param {import('./vector-bundle.js').FilterEcho} echo
  * @param {number} depth

@@ -2,9 +2,6 @@
 import { describe, expect, it } from 'vitest';
 import { bcaInterval, clusteredInterval, normCdf, normInv, quantile, rng, signFlipP } from '../../eval/lib/stats.mjs';
 
-// Reference intervals from scipy 1.x `scipy.stats.bootstrap((d,), np.mean,
-// method="BCa", n_resamples=200_000, random_state=1)`. Ours uses 10k
-// resamples, so agreement is to Monte Carlo error (~0.003 here).
 const D1 = [0.12, -0.05, 0.30, 0.0, 0.08, 0.22, -0.10, 0.15, 0.05, 0.40, -0.02, 0.18, 0.0, 0.07, 0.25, -0.15, 0.11, 0.09, 0.33, 0.02];
 const D1_SCIPY = { lower: 0.044, upper: 0.1685 };
 const D2 = [1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -63,7 +60,6 @@ describe('bcaInterval', () => {
     expect(bcaInterval([0.3])).toMatchObject({ estimate: 0.3, lower: 0.3, upper: 0.3, degenerate: true });
     expect(bcaInterval([0.1, 0.1, 0.1]).degenerate).toBe(true);
     expect(bcaInterval([]).degenerate).toBe(true);
-    // Equal up to float noise is still no variance.
     expect(bcaInterval([0.4 - 0.3, 0.41 - 0.31, 0.42 - 0.32]).degenerate).toBe(true);
     expect(bcaInterval(D1).degenerate).toBe(false);
     expect(bcaInterval([0, 0, 0.01]).degenerate).toBe(false);
@@ -79,11 +75,8 @@ describe('bcaInterval', () => {
 
 describe('signFlipP', () => {
   it('enumerates small samples exactly', () => {
-    // ±1 ±2 ±3 → sums 6, 4, 2, 0, 0, -2, -4, -6; |sum| >= 6 in 2 of 8.
     expect(signFlipP([1, 2, 3])).toEqual({ p: 0.25, exact: true, n: 3 });
-    // ±1 ±1 with observed sum 0: every assignment is at least as extreme.
     expect(signFlipP([1, -1]).p).toBe(1);
-    // Zero deltas are ignored; [1, 0, 2, 0, 3] is the same test as [1, 2, 3].
     expect(signFlipP([1, 0, 2, 0, 3]).p).toBe(0.25);
   });
 
@@ -92,8 +85,6 @@ describe('signFlipP', () => {
   });
 
   it('uses Monte Carlo with the +1 correction above the exact limit', () => {
-    // 30 identical +1s: only the two all-same assignments reach |30|, so the
-    // true p is 2^-29; Monte Carlo floors at 1 / (R + 1).
     const r = signFlipP(new Array(30).fill(1));
     expect(r.exact).toBe(false);
     expect(r.p).toBeCloseTo(1 / 10001, 10);

@@ -1,35 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// NUS's source documents, archived per revision: an AES-256-GCM archive of a
-// revision's documents, uploaded as release asset `sources-<year>-<yyyymmdd>`, its sha256 written
-// into that revision in data/ng-sources-<year>.json. NUS's legal notice allows a copy for one's own
-// study, not republication (ADR 0014), so the documents are never published in the clear.
-//
-//   npm run sources -- keygen --out <path>
-//       a random 256-bit key (64 hex), mode 0600; refuses to overwrite; never prints the key
-//   npm run sources -- hash --from <dir>
-//       each file's sha256, to fill in a new revision's documents by hand
-//   npm run sources -- publish --from <dir> [<year>] [--revision <date>] [--key <path>]
-//       checks every document of the revision against its sha256 (and each text extraction
-//       against its textSha256, when the manifest has one), packs and encrypts them, uploads the
-//       asset (gh release create), and writes the archive's sha256 and each text's textSha256 into
-//       the manifest; leaves a run record; commit the manifest afterwards. Every file and text
-//       name must be a plain base name.
-//   npm run sources -- restore [<year>] [--revision <date>] [--key <path>] [--out <dir>]
-//       downloads the asset (gh release download), checks its sha256 and every file's (text
-//       extractions included: a file the manifest doesn't pin is refused), checks each entry's
-//       name is a plain base name, and unpacks into a fresh temp dir (or --out), printing the dir;
-//       the restrictions builder and `year check --full` read that dir
-//
-// The key: --key <path>, else $VNM_SOURCES_KEY_FILE, else ~/.config/vnm/sources-archive.key. It
-// is never the holdout key, and no default reads that key's path. Back it up in Bitwarden
-// Secrets Manager as nusmodfinder/sources-archive-key (project apps): losing it blocks the next
-// source change, never a deploy (docs/year-refresh/README.md).
-//
-// The archive: "VNMSRC1\n", a 12-byte IV, the ciphertext, a 16-byte GCM tag. The plaintext is
-// gzip of: a 4-byte big-endian length, a JSON index { year, revision, files: [{ name, sha256,
-// bytes }] }, then each file's bytes in that order. The year and revision are also the GCM
-// additional data, so an archive can't be passed off as another revision's.
 import { spawnSync } from 'node:child_process';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -43,23 +13,16 @@ import { ROOT, isPlainName, manifestRel, notPlain, readManifest, revisionOf } fr
 import { startRun } from './run-record.mjs';
 
 export const MAGIC = Buffer.from('VNMSRC1\n');
-/** The default key path: beside the holdout key, never it. */
 export const DEFAULT_KEY_PATH = join(homedir(), '.config/vnm/sources-archive.key');
-/** The holdout key's file name (scripts/holdout.mjs), which this script never reads. */
 export const HOLDOUT_KEY_NAME = 'holdout.key';
 
 /** @param {Buffer | string} b */
 export const sha256 = (b) => createHash('sha256').update(b).digest('hex');
 
-/**
- * Where the key is: --key, then $VNM_SOURCES_KEY_FILE, then the default. Refuses the holdout
- * key's file name, so a slip in either never points this script at it.
- * @param {{ key?: string, env?: NodeJS.ProcessEnv }} [o]
- */
+/** @param {{ key?: string, env?: NodeJS.ProcessEnv }} [o] */
 export function keyPath({ key, env = process.env } = {}) {
   const path = resolve(key ?? env.VNM_SOURCES_KEY_FILE ?? DEFAULT_KEY_PATH);
   const holdout = resolve(env.VNM_HOLDOUT_KEY_FILE ?? join(homedir(), '.config/vnm', HOLDOUT_KEY_NAME));
-  // macOS's file system ignores case, so the names compare without it.
   if (isHoldoutName(path) || path.toLowerCase() === holdout.toLowerCase()) {
     throw new Error(`${path} is the holdout key's path; the sources archive has its own key (--key, VNM_SOURCES_KEY_FILE, default ${DEFAULT_KEY_PATH})`);
   }
@@ -70,10 +33,9 @@ export function keyPath({ key, env = process.env } = {}) {
 const isHoldoutName = (path) => basename(path).toLowerCase() === HOLDOUT_KEY_NAME;
 
 /**
- * Reads a key file (64 hex, a newline allowed). Before reading, it follows symlinks and refuses a
- * file that is the holdout key under another name: one named holdout.key in any case, or the file
- * VNM_HOLDOUT_KEY_FILE names (same device and inode). It never opens the holdout key to compare.
- * @param {string} path @param {NodeJS.ProcessEnv} [env] @returns {Buffer}
+ * @param {string} path
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {Buffer}
  */
 export function readKey(path, env = process.env) {
   if (!existsSync(path)) throw new Error(`no sources key at ${path} (npm run sources -- keygen --out <path>, or restore it from Bitwarden: nusmodfinder/sources-archive-key)`);
@@ -90,10 +52,7 @@ export function readKey(path, env = process.env) {
   return Buffer.from(text, 'hex');
 }
 
-/**
- * Writes a new random key. Refuses an existing file; prints nothing of the key.
- * @param {string} out
- */
+/** @param {string} out */
 export function keygen(out) {
   const path = resolve(out);
   if (isHoldoutName(path)) throw new Error(`${path} is the holdout key's name; choose another`);
@@ -108,7 +67,6 @@ export function keygen(out) {
 const aad = (year, revision) => Buffer.from(`vnm-sources ${year} ${revision}`);
 
 /**
- * Packs and encrypts files.
  * @param {{ year: string, revision: string, files: { name: string, bytes: Buffer }[], key: Buffer }} o
  * @returns {Buffer}
  */
@@ -126,7 +84,6 @@ export function seal({ year, revision, files, key }) {
 }
 
 /**
- * Decrypts and unpacks an archive, checking every file's sha256 against its index.
  * @param {{ archive: Buffer, key: Buffer, year: string, revision: string }} o
  * @returns {{ name: string, bytes: Buffer, sha256: string }[]}
  */
@@ -160,9 +117,6 @@ export function open({ archive, key, year, revision }) {
 export const releaseName = (year, date) => `sources-${year}-${date.replaceAll('-', '')}`;
 
 /**
- * The files a revision archives: every document's file and its text extraction, each with the
- * sha256 the manifest pins it to (the text's is `textSha256`; null until publish
- * writes it).
  * @param {import('./ng-sources.mjs').Revision} rev
  * @returns {{ name: string, sha256: string | null, id: string }[]}
  */
@@ -176,10 +130,7 @@ export function archivedFiles(rev) {
   return out;
 }
 
-/**
- * The names among `files` that are not plain base names, as refusals.
- * @param {{ name: string, id?: string }[]} files
- */
+/** @param {{ name: string, id?: string }[]} files */
 const pathNames = (files) => files.filter((f) => !isPlainName(f.name)).map((f) => notPlain(f.id ? `${f.id}'s` : 'the archive entry', f.name));
 
 /**
@@ -200,8 +151,6 @@ async function ghDownload(release, asset, destDir) {
 }
 
 /**
- * Publishes a revision's documents: checks them, seals them, uploads the asset and writes its
- * sha256 into the manifest. Refuses a revision that already has an archive.
  * @param {{ from: string, year?: string, revision?: string, key?: string, root?: string, upload?: Upload,
  *   log?: (m: string) => void, runsDir?: string, args?: string[], env?: NodeJS.ProcessEnv }} o
  */
@@ -243,7 +192,6 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
     record.detail('sha256', digest);
     record.detail('files', files.length);
     rev.archive = { release, asset, sha256: digest };
-    // Each text extraction's sha256, so restore, --full and the builder check it.
     for (const d of rev.documents) {
       const text = d.text && !d.unarchived ? files.find((f) => f.name === d.text) : undefined;
       if (text) d.textSha256 = sha256(text.bytes);
@@ -261,7 +209,6 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
 }
 
 /**
- * Restores a revision's documents into a fresh temp dir (or `out`), sha-checked.
  * @param {{ year?: string, revision?: string, key?: string, out?: string, root?: string, download?: Download,
  *   log?: (m: string) => void, env?: NodeJS.ProcessEnv }} [o]
  * @returns {Promise<{ dir: string, revision: string, files: string[] }>}
@@ -306,7 +253,7 @@ export async function restore({ year = DEFAULT_ACAD_YEAR, revision, key, out, ro
   }
 }
 
-/** Each regular file's sha256 in a directory. @param {string} dir */
+/** @param {string} dir */
 export function hashDir(dir) {
   return readdirSync(dir).filter((n) => statSync(join(dir, n)).isFile()).sort().map((name) => ({ name, sha256: sha256(readFileSync(join(dir, name))) }));
 }

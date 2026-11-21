@@ -1,17 +1,4 @@
 // @ts-check
-// One year source: DEFAULT_ACAD_YEAR
-// (scripts/lib.mjs) is the only year. This scan reads every tracked text file
-// under src/, public/ and scripts/, and the tests under test/ that read
-// production or pinned data, and fails on any `\b20\d\d\b` that is not on the
-// allow list below. Each allow-list entry gives its reason; the live-year and
-// pinned entries are also checked equal to what they must match, so a year
-// switch that misses one fails here.
-//
-// Tests that only use years as fixture data (fake timestamps, fake rows, the
-// fixture corpus's year, aria snapshots) are fixture-year tests and are not
-// scanned: a test is scanned when it reads production or pinned data (the
-// pinned corpus, the corpus manifest, an injected corpus, or a year-named NG
-// file), since those must load their NG files by the corpus's year.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -24,19 +11,13 @@ import { DEFAULT_ACAD_YEAR as PAGE_YEAR } from '../public/year.js';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const YEAR = /\b20\d\d\b/g;
 
-/** Tokens that look like years and are not: each with its reason. */
 const NOT_YEARS = [
   { re: /U\+[0-9A-F]{4}(?:-[0-9A-F]{4})?/g, why: 'a CSS unicode-range code point (Google Fonts\' @font-face ranges)' },
   { re: /www\.w3\.org\/2000\//g, why: 'the SVG and XML namespace URIs, fixed by the W3C' },
 ];
 
-/**
- * A year's own file, named by its year: the overlay and the exchange oracle hold their
- * year's readings by design, and `npm run year -- check` checks the year's manifest names them.
- */
 const PER_YEAR_FILE = /^(?:scripts\/ng-overlay\/|test\/oracle\/oracle-)\d{4}-\d{4}(?:\.node)?\.mjs$/;
 
-/** Whole files that are not about years. */
 const FILES = {
   'src/fts-separators.js': 'generated hex code-point ranges (scripts/gen-fts-separators.mjs)',
   'public/fonts/OFL.txt': 'the fonts\' licence, as its authors wrote it',
@@ -44,31 +25,24 @@ const FILES = {
 
 const yearLabel = (/** @type {string} */ y) => `${y.slice(0, 4)}/${y.slice(7, 9)}`;
 
-/**
- * Lines that hold a year on purpose. `live` and `pinned` lines name the year they must hold,
- * checked in the tests below; `cited` lines quote a past year from a source.
- * @type {{ file: string, text: string, kind: 'live' | 'pinned' | 'cited', why: string }[]}
- */
+/** @type {{ file: string, text: string, kind: 'live' | 'pinned' | 'cited', why: string }[]} */
 const ALLOWED = [
   { file: 'scripts/lib.mjs', text: `export const DEFAULT_ACAD_YEAR = '${DEFAULT_ACAD_YEAR}';`, kind: 'live', why: 'the one year source' },
   { file: 'public/year.js', text: `export const DEFAULT_ACAD_YEAR = '${DEFAULT_ACAD_YEAR}';`, kind: 'live', why: 'the page has no import from scripts/; checked equal' },
   { file: 'public/index.html', text: `Academic year ${yearLabel(DEFAULT_ACAD_YEAR)}`, kind: 'live', why: 'the header before any row loads; checked equal' },
   { file: 'scripts/pinned-corpus.mjs', text: `export const PINNED_ACAD_YEAR = '${PINNED_ACAD_YEAR}';`, kind: 'pinned', why: 'the eval\'s corpus never moves (ADR 0003)' },
   { file: 'scripts/pinned-corpus.mjs', text: `export const PINNED_RELEASE = '${PINNED_RELEASE}';`, kind: 'pinned', why: 'the pinned corpus\'s release asset; checked to name the pinned year' },
-  { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
   { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
 ];
 
-/** A test that reads production or pinned data, so it is scanned. */
 const READS_REAL_DATA = /pinned-corpus|corpus-manifest|inject\('corpus'\)|data\/ng-(?:courses|restrictions)-|loadNg(?:Courses|Restrictions)\(/;
 const TEXT = /\.(?:js|mjs|cjs|ts|mts|html|css|json|jsonc|svg|txt|md|py|webmanifest)$|\/_headers$/;
 
 /**
- * The year-like tokens in `text` that nothing allows.
  * @param {string} file
  * @param {string} text
- * @returns {string[]} `file:line: token in context`
+ * @returns {string[]}
  */
 export function unallowedYears(file, text) {
   if (Object.hasOwn(FILES, file) || PER_YEAR_FILE.test(file)) return [];
@@ -93,13 +67,11 @@ export function unallowedYears(file, text) {
   return out;
 }
 
-/** The files the scan reads. */
 function scannedFiles() {
   const r = spawnSync('git', ['ls-files', 'src', 'public', 'scripts', 'test'], { cwd: ROOT, encoding: 'utf8' });
   if (r.status !== 0) throw new Error(r.stderr);
   return r.stdout.split('\n').filter((f) => f && TEXT.test(f)).filter((f) => {
     if (!f.startsWith('test/')) return true;
-    // test/fixtures/ is fixture data: the fixture corpus, its snapshots and sources, a fixed year.
     if (f === 'test/year-scan.node.test.js' || f.startsWith('test/fixtures/')) return false;
     return READS_REAL_DATA.test(readFileSync(join(ROOT, f), 'utf8'));
   });

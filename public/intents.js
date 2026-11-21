@@ -1,21 +1,13 @@
 // @ts-check
-// The parsed-phrase chips' words: what /search read from the query's words ("no
-// final exam", "under 10 hours", "no prerequisites", S/U), from its
-// `interpreted` echo. Pure, so test/web runs it in Node; the chip row is
-// intent-chips.js. Only the four phrase intents get a chip (the Worker reads
-// them when PARSE_PHRASES is on).
 
-/** The intents a chip can undo, in the order chips show (src/query-intent.js INTERPRETED_KEYS). */
 export const PHRASE_INTENTS = Object.freeze(/** @type {const} */ (['exam', 'su', 'hoursBelow', 'prereq']));
 
 /** @typedef {typeof PHRASE_INTENTS[number]} PhraseIntent */
 /** @typedef {{ intent: PhraseIntent, label: string }} IntentChip */
 
 /**
- * The chips for a /search `interpreted` echo: one per parsed phrase intent the
- * student hasn't already undone. Values the Worker never sends give no chip.
  * @param {unknown} interpreted
- * @param {readonly string[]} [ignore] the intents the URL already undoes
+ * @param {readonly string[]} [ignore]
  * @returns {IntentChip[]}
  */
 export function intentChips(interpreted, ignore = []) {

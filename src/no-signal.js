@@ -1,16 +1,6 @@
 // @ts-check
-// The no-signal threshold τ: /search answers
-// `noMatch: { reason: "no-signal" }` when parsed.noSignal holds and the top
-// exact cosine of the query as typed is below τ. The candidates come from the
-// gibberish set's derivation half (noSignalCandidates); the variant in force
-// is the largest candidate that passes every dev condition, the next smaller
-// one its fallback. `off` never fires.
 
-/**
- * τ per variant (null: off), from the derivation half's measured cosines
- * (scripts/no-signal-cosines.mjs).
- * @type {Readonly<Record<string, number | null>>}
- */
+/** @type {Readonly<Record<string, number | null>>} */
 export const NO_SIGNAL_VARIANTS = Object.freeze({
   off: null,
   p90: 0.5693180883526313,
@@ -18,16 +8,11 @@ export const NO_SIGNAL_VARIANTS = Object.freeze({
   max: 0.6012585039510654,
 });
 
-/** The variant in force. */
 export const NO_SIGNAL_VARIANT = 'max';
 
-/** τ in force (null: the no-signal answer never fires). */
 export const NO_SIGNAL_TAU = NO_SIGNAL_VARIANTS[NO_SIGNAL_VARIANT];
 
 /**
- * The τ candidates from the derivation half's top-1 cosines: the 90th and
- * 95th percentiles by nearest rank (the ⌈p·n⌉-th smallest) and the maximum,
- * each + 1e-6, as distinct values, ascending.
  * @param {number[]} cosines
  * @returns {number[]}
  */

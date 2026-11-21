@@ -1,29 +1,14 @@
 // @ts-check
-// The fetch layer. Each search aborts the one before it and gives up after 10
-// s; a non-JSON body (Cloudflare's HTML or plain-text error pages) is caught
-// before parsing; 429 reads Retry-After. Callers get an outcome, never a
-// rejection, and never the server's message text: the codes here are mapped to
-// sentences by messages.js.
 
-/** How long a /search or /facets request may take, body included. */
 export const SEARCH_TIMEOUT_MS = 10_000;
 
-/**
- * `code` is the Worker's `error` field, or one of the fetch layer's own:
- * `timeout`, `network`, `not_json` (an answer that is not JSON), `http` (a
- * JSON error without a code). `retryAfter` is seconds, 429 only. `detail`
- * is a JSON error body's other fields, its `message` left out, when it
- * has any: a /module 404's `kind`, `acadYear` and the course's fields.
- * @typedef {{ code: string, status?: number, retryAfter?: number | null, detail?: Record<string, unknown> }} ApiError
- */
+/** @typedef {{ code: string, status?: number, retryAfter?: number | null, detail?: Record<string, unknown> }} ApiError */
 /** @typedef {{ kind: 'ok', body: any } | { kind: 'error', error: ApiError } | { kind: 'superseded' }} Outcome */
 /** @typedef {{ fetch?: typeof fetch }} Deps */
 
 /**
- * Seconds to wait from a Retry-After header: delta-seconds or an HTTP date
- * (RFC 9110 §10.2.3); null when absent or unreadable.
  * @param {string | null} value
- * @param {number} [now] ms since the epoch
+ * @param {number} [now]
  */
 export function parseRetryAfter(value, now = Date.now()) {
   const v = value?.trim() ?? '';
@@ -33,14 +18,10 @@ export function parseRetryAfter(value, now = Date.now()) {
   return Number.isNaN(at) ? null : Math.max(0, Math.ceil((at - now) / 1000));
 }
 
-/** Thrown into a request's signal when its time runs out. */
 const TIMEOUT = Symbol('timeout');
-/** Thrown into a request's signal when a newer search replaces it. */
 const SUPERSEDED = Symbol('superseded');
 
 /**
- * A JSON error body's fields but `error` and `message`, as `{ detail }`, or
- * nothing when there are none. The server's message never reaches the page.
  * @param {unknown} body
  * @returns {{ detail?: Record<string, unknown> }}
  */
@@ -53,10 +34,9 @@ function errorDetail(body) {
 }
 
 /**
- * GETs `url` as JSON with a timeout, mapping every failure to an ApiError.
  * @param {typeof fetch} doFetch
  * @param {string} url
- * @param {AbortController} ctrl aborted with SUPERSEDED by the caller to cancel
+ * @param {AbortController} ctrl
  * @returns {Promise<Outcome>}
  */
 async function getJson(doFetch, url, ctrl) {
@@ -92,9 +72,6 @@ async function getJson(doFetch, url, ctrl) {
 }
 
 /**
- * A search function whose every call aborts the call before it: the
- * aborted one settles as `superseded`, so a stale answer can never be shown.
- * `abort()` cancels the one in flight the same way (the query was cleared).
  * @param {Deps} [deps]
  * @returns {((params: URLSearchParams) => Promise<Outcome>) & { abort: () => void }}
  */
@@ -115,9 +92,6 @@ export function createSearchClient({ fetch: doFetch = (...a) => fetch(...a) } = 
 }
 
 /**
- * A one-off /search that aborts nothing and is aborted by nothing but its
- * timeout: the partial-code state asks whether the other semester has results
- * without cancelling the search on screen.
  * @param {URLSearchParams} params
  * @param {Deps} [deps]
  * @returns {Promise<Outcome>}
@@ -127,11 +101,6 @@ export function fetchSearch(params, { fetch: doFetch = (...a) => fetch(...a) } =
 }
 
 /**
- * GET /module/:code for the detail and the hidden-code lines, each code
- * fetched once per page (the response is also browser-cached for 5 minutes).
- * Answers and requests in flight are shared. A 404 is an answer and is kept
- * (its `detail` says which kind of miss); any other failure is not, so
- * asking again retries.
  * @param {Deps} [deps]
  * @returns {{ get: (code: string) => Promise<Outcome> }}
  */
@@ -154,8 +123,6 @@ export function createModuleClient({ fetch: doFetch = (...a) => fetch(...a) } = 
 }
 
 /**
- * GET /facets: the faculty list and the exchange-mode sources. Resolves null
- * on any failure, so nothing on the page waits on it or breaks without it.
  * @param {Deps} [deps]
  * @returns {Promise<any | null>}
  */

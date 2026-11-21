@@ -1,35 +1,4 @@
 // @ts-check
-// The vectors bundle: every corpus vector, L2-normalised
-// float32, with a per-row filter table, in one binary file the Worker imports
-// as a `Data` module (an ArrayBuffer, read zero-copy). Shared by the Worker
-// (parseBundle, exactSearch: src/dense.js) and the Node builders
-// (encodeBundle: scripts/vectors.mjs, eval/runner/run.mjs), so both sides
-// agree on the bytes. WebCrypto and TextEncoder only: no bindings, no Node APIs.
-//
-// Layout, little-endian:
-//   0   8 B   magic "VNMVEC01"
-//   8   4 B   u32 header length H
-//   12  H B   header, UTF-8 JSON (BundleHeader below), then zero padding to a
-//             multiple of 8
-//   T   count × ROW_STRIDE B   filter table, one row per code, in code order
-//   V   count × dims × 4 B     vectors, float32, same row order
-//
-// Filter row (ROW_STRIDE = 32 B; offsets within the row):
-//   0  u8   semesters 1–4 as bits 0–3
-//   1  u8   level, 255 = null
-//   2  u8   flags: bit 0 = ng
-//   3  u8   NG semesters 1–4 as bits 0–3
-//   4  u16  faculty id, an index into header.faculties; 0xFFFF = null
-//   6  u16  ng_allow, the exchange-mode allow mask (src/ng-bit.js); 0 = closed
-//   8  f64  credits, NaN = null
-//   16 4 B  reserved, zero: a group id slot (groups live in data/groups.json)
-//   20 u8   exam semesters 1–4 as bits 0–3
-//   21 u8   S/U flags: bit 0 = attributes.su, bit 1 = graded CS/CU
-//   22 u8   prerequisite flags: bit 0 = none, bit 1 = cohort-only
-//   23 1 B  reserved, zero
-//   24 f64  workload hours a week, NaN = null
-// A change that adds a field fills its slot and bumps BUNDLE_SCHEMA, so
-// an old reader refuses a new bundle.
 import { INTENT } from './intents.js';
 import { ngBit } from './ng-bit.js';
 import { dataVersion, rowHash, sha256Hex } from './rowhash.js';
@@ -41,11 +10,6 @@ const NULL_LEVEL = 255;
 const NULL_FACULTY = 0xffff;
 
 /**
- * What a bundle was built from.
- * - fixture: test/fixtures/corpus.json, fake embedder (npm test, wrangler dev);
- * - pinned: the 6,771-module pinned corpus, eval corpus asset (full-corpus CI, the query suite);
- * - production: the corpus D1 holds (npm run deploy only);
- * - eval: built by the eval harness for one run (eval/runner/run.mjs).
  * @typedef {'fixture' | 'pinned' | 'production' | 'eval'} BundleCorpus
  * @typedef {{
  *   schema: string, corpus: BundleCorpus, model: string, embedding: string, dims: number, count: number,
@@ -58,55 +22,35 @@ const NULL_FACULTY = 0xffff;
  * @typedef {import('./rowhash.js').RowFields} RowFields
  * @typedef {{ sem?: number, level?: number | number[], credits?: number | number[], faculty?: string, ng?: boolean,
  *   study?: import('./ng-bit.js').Study, exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} FilterEcho
- *   `level` and `credits` are one value, or two or more (sorted, distinct) of which a row matches any.
- *   `exam`, `su`, `hoursBelow` and `prereq` are the constraints (explicit params or parsed from q).
- *   `study` is exchange mode's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
- * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
+ * @typedef {[string, string]} CodeRange
  * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null }, ngIgnoreAllow?: true }} Constraints
- *   The filters plus the code parse's routes: `ranges`, the codes a mask admits (a partial
- *   code, the GE pillars), and `levelWindow`, a parsed level (`XX N000`; level
- *   phrases would add windows). Built from the bundle's code list, which is in code order,
- *   so a range is a contiguous block of rows: the filter table needs no prefix id.
- *   `ngIgnoreAllow` is the oracle trace's ignore mode only (src/search.js oracleTraceMode, never
- *   live): under ng, the yearly flag without the allow-mask bit.
  */
 
 /**
- * A level or credits filter's values as a list (one value is a list of one).
  * @param {number | number[]} v
  * @returns {number[]}
  */
 export const filterValues = (v) => (Array.isArray(v) ? v : [v]);
 
-/** Code order: by UTF-16 code unit, which for NUS codes ([A-Z0-9]) is also localeCompare's order. */
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
 
-/**
- * Whether a grading basis is CS/CU, which `su=1` also admits.
- * @param {string | null | undefined} basis
- */
+/** @param {string | null | undefined} basis */
 export const suGrading = (basis) => basis === 'Completed Satisfactory/Unsatisfactory';
 
-/** @param {number[]} sems semesters (1–4) as bits 0–3 */
+/** @param {number[]} sems */
 const semBits = (sems) => sems.reduce((bits, s) => (Number.isInteger(s) && s >= 1 && s <= 4 ? bits | (1 << (s - 1)) : bits), 0);
 /** @param {number} bits */
 const bitsSems = (bits) => [1, 2, 3, 4].filter((s) => bits & (1 << (s - 1)));
 
 /**
- * The manifest's `rowsKey`: sha256 over the sorted "code<TAB>textHash"
- * lines, so the deploy guard can tell whether D1 holds exactly the texts the
- * bundle embeds.
  * @param {{ code: string, textHash: string }[]} rows
- * @returns {Promise<string>} 64 hex characters
+ * @returns {Promise<string>}
  */
 export async function rowsKey(rows) {
   return sha256Hex(rows.map((r) => `${r.code}\t${r.textHash}`).sort().join('\n'));
 }
 
 /**
- * Builds a bundle. Rows are sorted by code; each vector is L2-normalised in
- * double precision, then stored as float32. Deterministic: no timestamps, so
- * the same input gives the same bytes (and sha256).
  * @param {{
  *   corpus: BundleCorpus, embedding: string, model: string, modules: RowFields[],
  *   vectorOf: (m: RowFields) => ArrayLike<number> | undefined, dims?: number,
@@ -118,7 +62,6 @@ export async function encodeBundle({ corpus, embedding, model, modules, vectorOf
   for (const m of modules) {
     if (seen.has(m.code)) throw new Error(`vectors bundle: duplicate code ${m.code}`);
     seen.add(m.code);
-    // A-N6: the manifest's rowsKey and the deploy guard need every row's text hash.
     if (typeof m.textHash !== 'string' || m.textHash === '') throw new Error(`vectors bundle: ${m.code} has no textHash`);
   }
   const rows = [...modules].sort((a, b) => byCode(a.code, b.code));
@@ -178,9 +121,6 @@ export async function encodeBundle({ corpus, embedding, model, modules, vectorOf
 const align8 = (n) => Math.ceil(n / 8) * 8;
 
 /**
- * Reads a bundle without copying its vectors. Throws on anything that is not
- * a whole bundle of this schema (the Worker then serves keyword-only results
- * with `degraded.source` "dense-index").
  * @param {ArrayBuffer} buffer
  * @returns {Bundle}
  */
@@ -222,7 +162,6 @@ export function parseBundle(buffer) {
 }
 
 /**
- * Row `i`'s filter fields, decoded (verify compares them with D1).
  * @param {Bundle} b
  * @param {number} i
  */
@@ -249,8 +188,8 @@ export function decodeFilterRow(b, i) {
 }
 
 /**
- * The first row whose code is >= `code` (rows are in code order).
- * @param {string[]} codes @param {string} code
+ * @param {string[]} codes
+ * @param {string} code
  */
 function lowerBound(codes, code) {
   let lo = 0, hi = codes.length;
@@ -262,8 +201,6 @@ function lowerBound(codes, code) {
 }
 
 /**
- * The row blocks [from, to) that code ranges cover, in row order, merged. A
- * range with no rows gives no block.
  * @param {Bundle} b
  * @param {CodeRange[]} ranges
  * @returns {[number, number][]}
@@ -283,20 +220,16 @@ export function rowBlocks(b, ranges) {
   return merged;
 }
 
-/** Whether the bundle holds `code` (an offered module, for code resolution). @param {Bundle} b @param {string} code */
+/**
+ * @param {Bundle} b
+ * @param {string} code
+ */
 export function hasCode(b, code) {
   const i = lowerBound(b.codes, code);
   return i < b.count && b.codes[i] === code;
 }
 
 /**
- * The filter mask for a search's structured filters, or null when there are
- * none. The same semantics as the Vectorize metadata filter it replaces
- * (src/search.js parseFilters): every given filter must hold; null fields
- * never match.
- * A parsed level window (`XX N000`) admits levels min..max; a null level
- * never matches it. Code ranges are not tested here: exactSearch walks only
- * the rows they cover (rowBlocks).
  * @param {Bundle} b
  * @param {Constraints} echo
  * @returns {((i: number) => boolean) | null}
@@ -305,14 +238,12 @@ export function compileMask(b, echo) {
   /** @type {((i: number) => boolean)[]} */
   const tests = [];
   const { table, view } = b;
-  // Under ng, sem only picks the allow-mask bit.
   const allowBit = ngBit(echo);
   if (echo.sem !== undefined && echo.ng !== true) {
     const bit = 1 << (echo.sem - 1);
     tests.push((i) => (table[i * ROW_STRIDE] & bit) !== 0);
   }
   if (echo.level !== undefined) {
-    // One value keeps the plain comparison: this runs on every row of the scan.
     const levels = filterValues(echo.level);
     const [level] = levels;
     tests.push(levels.length === 1 ? (i) => table[i * ROW_STRIDE + 1] === level : (i) => levels.includes(table[i * ROW_STRIDE + 1]));
@@ -324,7 +255,6 @@ export function compileMask(b, echo) {
   }
   if (echo.ng === true) tests.push((i) => (table[i * ROW_STRIDE + 2] & 1) === 1);
   if (echo.ng === true && !echo.ngIgnoreAllow) {
-    // No study (a caller /search's 400 never lets through) is closed, not unfiltered.
     const bit = allowBit ?? 0;
     tests.push((i) => (view.getUint16(i * ROW_STRIDE + 6, true) & bit) !== 0);
   }
@@ -340,8 +270,6 @@ export function compileMask(b, echo) {
       ? (i) => view.getFloat64(i * ROW_STRIDE + 8, true) === one
       : (i) => credits.includes(view.getFloat64(i * ROW_STRIDE + 8, true)));
   }
-  // The constraints: no exam in the selected semester (any offered one
-  // without sem); su or CS/CU; workload under N (NULL excluded); prereq by the semantics in force.
   if (echo.exam === 0) {
     const bits = echo.sem !== undefined ? 1 << (echo.sem - 1) : 0xf;
     tests.push((i) => (table[i * ROW_STRIDE + 20] & bits) === 0);
@@ -360,12 +288,6 @@ export function compileMask(b, echo) {
 }
 
 /**
- * Exact cosine search: the rows the code ranges cover (all rows without
- * ranges) that the mask admits, scored by dot product with
- * the L2-normalised query (rows are stored normalised, so this is cosine, the
- * index metric), keeping the top `depth` with a bounded insertion, ordered by
- * score desc, then code asc. Rows are in code order, so a later row never
- * displaces an equal-scoring earlier one.
  * @param {Bundle} b
  * @param {ArrayLike<number>} query
  * @param {Constraints} echo
@@ -414,11 +336,7 @@ export function exactSearch(b, query, echo, depth) {
   return Array.from({ length: n }, (_, i) => ({ code: b.codes[topRow[i]], score: topScore[i] }));
 }
 
-/**
- * Little-endian float32 values as base64 (/admin/vectors bodies, /admin/verify
- * samples), decoded into a fresh, aligned array.
- * @param {string} b64
- */
+/** @param {string} b64 */
 export function base64ToFloat32(b64) {
   const bin = atob(b64);
   const out = new Float32Array(Math.floor(bin.length / 4));

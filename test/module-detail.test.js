@@ -1,7 +1,4 @@
 // @ts-check
-// /module/:code answers the exam
-// dates, the workload as named hours, and the NUSMods link, with a short
-// public cache on a 200 and none on a failure.
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { sha256Hex } from '../src/rowhash.js';
 import { adminCall, callJson, fixture, seed } from './helpers.js';
@@ -9,7 +6,7 @@ import { adminCall, callJson, fixture, seed } from './helpers.js';
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
 
-/** A fixture module that `pick` matches. @param {(m: NormalisedModule) => boolean} pick */
+/** @param {(m: NormalisedModule) => boolean} pick */
 const find = (pick) => {
   const m = fixture.modules.find(pick);
   if (!m) throw new Error('no fixture module matches');
@@ -18,7 +15,6 @@ const find = (pick) => {
 const twoExams = find((m) => m.examDates.length >= 2);
 const noExam = find((m) => m.examDates.length === 0);
 const zeroWorkload = find((m) => m.workload === '[0,0,0,0,0]');
-/** MLE3104's workload as normalise() stores it: a moduleInfo string. */
 const unparseable = { ...fixture.modules[0], code: 'XX3104', workload: JSON.stringify('3-.5-0--0-6.5') };
 
 beforeAll(async () => {
@@ -103,16 +99,8 @@ describe('/module/:code caching', () => {
   });
 });
 
-// A course's other codes, its
-// grading basis, and a 404 that says which kind of miss it is.
 describe('/module/:code for the shortlist', () => {
-  /**
-   * The sha256 of every fixture code's 200 body, in code order, one JSON line each, without the
-   * shortlist's fields (gradingBasis, otherCodes) and GRO's level 4000 note. The test strips those,
-   * so any other change to the answer shows here.
-   */
   const CORE_BODIES_SHA256 = '8e9e4e8b9c5bb426b65cbb9faac40591ee9ae00ced94d9e3e97c261f06ca678b';
-  /** A catalogue-only code, seeded through /admin/catalogue as ingest loads them. */
   const CATALOGUE_ONLY = { code: 'CS1010J', title: 'Introduction to Programming', description: 'An introductory course in Java.', acadYear: '2026-2027' };
 
   beforeAll(async () => {
@@ -142,7 +130,6 @@ describe('/module/:code for the shortlist', () => {
       expect(body.gradingBasis, m.code).toBe(m.gradingBasis);
       delete body.gradingBasis;
       delete body.otherCodes;
-      // GRO's level 4000 note (ADR 0007) is stripped with the shortlist fields.
       for (const e of body.exchange) {
         const kept = e.reasons.filter((/** @type {any} */ r) => r.id !== 'gro:level-4000');
         gro += e.reasons.length - kept.length;
@@ -184,7 +171,6 @@ describe('/module/:code for the shortlist', () => {
       const ids = e.reasons.map((/** @type {{ id: string }} */ r) => r.id);
       if (e.sem === 2) expect(e, `sem 2 ${e.study}`).toMatchObject({ status: 'closed' });
       if (e.sem === 2) expect(ids).toContain('ng-list:not-in-semester');
-      // NUS lists it for Sem 1, NUSMods shows no class: never plain open.
       if (e.sem !== 2) expect(e.status, `sem ${e.sem} ${e.study}`).not.toBe('open');
       if (e.status !== 'closed') expect(ids).toContain('ng-list:nusmods-semester-differs');
     }
@@ -237,7 +223,6 @@ describe('/module/:code for the shortlist', () => {
     const failed = await callJson('/module/CS1010J', { env: { DB: failing } });
     expect(failed.status).toBe(502);
     expect(failed.headers.get('cache-control')).toBe('no-store');
-    // An ng-listed code makes no catalogue read, so the same failure never reaches it.
     expect((await callJson('/module/EE4407', { env: { DB: failing } })).body.kind).toBe('ng-listed');
   });
 });

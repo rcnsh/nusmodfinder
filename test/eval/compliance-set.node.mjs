@@ -1,11 +1,4 @@
 // @ts-check
-// A synthetic set for the compliance rule's tests: its own corpus.json
-// (every constraint field, so the rule needs no pinned snapshot), queries
-// whose constraint phrases the frozen reference parse (tag 3h) reads over that
-// corpus's vocabulary, qrels, and a baseline and candidate run. The candidate
-// applies each parsed constraint (a compliant list) and records the parse it
-// "answered" in `intents`; unparsed queries keep the baseline's list. No
-// workerd, no Cloudflare, no real holdout file.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,15 +7,12 @@ import { textSha } from '../../eval/lib/corpus.mjs';
 import { REPO, studyMapSha256 } from '../../eval/lib/sets.mjs';
 
 export const CSCU = 'Completed Satisfactory/Unsatisfactory';
-/** Every allow-mask bit (5 study levels × sem 1, 2, either). */
 const ALL = (1 << 15) - 1;
-/** The pinned corpus the qrels and groups record. */
 export const CORPUS_SHA = JSON.parse(readFileSync(join(REPO, 'eval', 'groups.json'), 'utf8')).corpus.moduleInfoSha256;
 
 /**
- * One corpus module. Its text carries the phrase words, so the reference's
- * typo correction leaves them alone on this corpus's vocabulary.
- * @param {string} code @param {Record<string, unknown>} [f]
+ * @param {string} code
+ * @param {Record<string, unknown>} [f]
  */
 export function mod(code, f = {}) {
   const description = 'An intro course with no final exam, no prerequisites, a light workload under ten hours, s/u grading and a project.';
@@ -35,11 +25,7 @@ export function mod(code, f = {}) {
   };
 }
 
-/**
- * The parsed queries: id, text, filters, shapes, the parse the reference
- * gives, and per document [grade, constraint fields].
- * @type {{ id: string, text: string, filters?: Record<string, unknown>, shapes: string[], parse: Record<string, unknown>, docs: [number, Record<string, unknown>][] }[]}
- */
+/** @type {{ id: string, text: string, filters?: Record<string, unknown>, shapes: string[], parse: Record<string, unknown>, docs: [number, Record<string, unknown>][] }[]} */
 export const PARSED = [
   {
     id: 'syn-p1', text: 'intro programming no prerequisites', shapes: ['topical'], parse: { prereq: { value: 'none', semantics: 'ii' } },
@@ -59,7 +45,6 @@ export const PARSED = [
   },
 ];
 
-/** Unparsed queries: identical lists in both runs. */
 export const UNPARSED = Array.from({ length: 12 }, (_, i) => ({ id: `syn-u${String(i + 1).padStart(2, '0')}`, text: `synthetic topical query number ${i + 1} about ${['robots', 'markets', 'poetry', 'cells'][i % 4]}` }));
 const UNPARSED_GRADES = [2, 1, 1, 0, 0];
 
@@ -77,8 +62,7 @@ const compliant = (m, parse, filters = {}) => {
 };
 
 /**
- * The whole set; `tweak` edits it before the runs are derived.
- * @param {string} set the set name the runs record
+ * @param {string} set
  * @param {{ ranker: { base: any, cand: any } }} o
  */
 export function syntheticSet(set, o) {
@@ -113,7 +97,6 @@ export function syntheticSet(set, o) {
   const querySet = { schema: 'vnm-eval-queries/1', set, version: 'synthetic-compliance-v1', queries };
   const qrels = { schema: 'vnm-eval-qrels/1', set, version: 'qrels-synthetic-compliance-v1', corpus: { moduleInfoSha256: CORPUS_SHA }, groups: [], queries: judged };
   const corpus = { source: { generator: 'compliance tests' }, count: modules.length, modules };
-  // What a run of this corpus records (eval/runner/run.mjs): its text and its constraint fields.
   const byCode = new Map(modules.map((m) => [m.code, m]));
   const recorded = { moduleInfoSha256: CORPUS_SHA, textSha256: textSha(/** @type {any} */ (modules)), constraintFieldsSha256: constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c)) };
   /** @param {string} variant @param {any} ranker @param {Record<string, string[]>} lists @param {Record<string, unknown> | null} [ints] */
@@ -130,7 +113,6 @@ export function syntheticSet(set, o) {
     querySet, qrels, corpus,
     base: run('base', o.ranker.base, base),
     cand: run('cand', o.ranker.cand, cand, intents),
-    /** Every query id, text and code, which no encrypted-set output may contain. */
     secrets: [...queries.flatMap((q) => [q.id, q.text]), ...modules.map((m) => m.code)],
   };
 }

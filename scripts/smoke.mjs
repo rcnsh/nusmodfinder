@@ -1,31 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run smoke -- [--expect <sha>] [--url <url>]`: five checks of the live site, one request
-// at a time, each sent at least 4 s after the last answered:
-//
-//   /health          versionTag is a prefix of the expected commit, its data version is the
-//                    commit's src/data-version.json, and the bundle is `production`; while it
-//                    names another tag (the promote still propagating), asked again for up to 30 s
-//   /                200, with the Content-Security-Policy header
-//   /module/<code>   200, for a code in no group whose title is unique in that commit's corpus
-//   /search?q=<title from /module>   `cache;desc=miss`, not degraded, the code in the top 5
-//   /facets          200
-//
-// The expected commit (default HEAD; after a rollback, the target's) supplies the data version,
-// the groups and the production bundle's code list (`git show <sha>:…`; the bundle from its
-// release asset, sha-checked), so a rolled-back site is checked against its own data. Titles
-// come from that commit's production corpus: `current` in its data/corpus.json,
-// restored from its release asset and sha-checked; a commit from before the manifest uses the
-// working tree's `current`, and says so. The draw is random, so the search is a cache miss. The URL is wrangler.jsonc's Custom Domain at
-// that commit unless --url is given. Writes a run record.
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { run } from './deploy.mjs';
 import { startRun } from './run-record.mjs';
 
-/** The least time between one answer and the next request. */
 export const SMOKE_GAP_MS = 4000;
-/** How long /health may keep answering with another version's tag before the check fails. */
 export const HEALTH_SETTLE_MS = 30_000;
 const TOP = 5;
 
@@ -36,7 +16,6 @@ const TOP = 5;
  */
 
 /**
- * The codes in a commit's production bundle: its release asset, downloaded if absent, sha-checked.
  * @param {ManifestEntry} entry
  * @returns {Promise<string[]>}
  */
@@ -49,8 +28,6 @@ async function bundleCodesOf(entry) {
 }
 
 /**
- * A production corpus's offered modules (code and title): the manifest entry's asset, restored
- * into .data/prod/ (gh, sha-checked) if absent, as ingest read it.
  * @param {import('./corpus-manifest.mjs').CorpusEntry} entry
  * @returns {Promise<{ code: string, title: string }[]>}
  */
@@ -62,9 +39,7 @@ async function productionTitles(entry) {
 }
 
 /**
- * The expected commit's production corpus entry: `current` in its data/corpus.json, else (a
- * commit from before the manifest) the working tree's, with a note saying so.
- * @param {(path: string) => Promise<string>} show `git show <sha>:<path>`
+ * @param {(path: string) => Promise<string>} show
  * @param {string} sha
  * @param {(m: string) => void} log
  */
@@ -72,7 +47,7 @@ async function corpusEntryAt(show, sha, log) {
   const { currentEntry, readCorpusManifest } = await import('./corpus-manifest.mjs');
   /** @type {string | null} */
   let text = null;
-  try { text = await show('data/corpus.json'); } catch { /* no manifest at that commit */ }
+  try { text = await show('data/corpus.json'); } catch {}
   if (text !== null) return currentEntry(JSON.parse(text));
   const entry = currentEntry(await readCorpusManifest());
   log(`smoke: note: ${sha.slice(0, 7)} predates data/corpus.json; drawing from the working tree's current (${entry.release}).`);
@@ -88,10 +63,7 @@ function parseArgs(argv) {
   return { expect: val('--expect') ?? 'HEAD', url: val('--url'), bad };
 }
 
-/**
- * Codes the smoke may draw: in the bundle, in no group, with a title no other offered module has.
- * @param {{ codes: string[], groups: string[][], corpus: { code: string, title: string }[] }} o
- */
+/** @param {{ codes: string[], groups: string[][], corpus: { code: string, title: string }[] }} o */
 export function candidates({ codes, groups, corpus }) {
   const inBundle = new Set(codes);
   const grouped = new Set(groups.flat());
@@ -152,7 +124,7 @@ export async function smoke({
   const counted = record.countingFetch(fetchImpl);
   /** @type {number | null} */
   let lastAnswered = null;
-  /** One request, sent at least SMOKE_GAP_MS after the last answer. @param {string} path */
+  /** @param {string} path */
   const send = async (path) => {
     if (lastAnswered !== null) {
       const wait = lastAnswered + SMOKE_GAP_MS - now();
@@ -178,9 +150,6 @@ export async function smoke({
   try {
     log(`smoke: ${base}, expecting ${sha.slice(0, 7)} at data version ${dataVersion}; drew ${pick.code}`);
     {
-      // A promoted version takes a few seconds to reach every edge, so a smoke right after the
-      // promote can meet the previous one. While /health answers with another tag, ask again
-      // (still SMOKE_GAP_MS apart) until HEALTH_SETTLE_MS has passed since the first ask.
       /** @param {any} x */
       const tagOk = (x) => Boolean(x?.versionTag) && sha.startsWith(String(x.versionTag));
       const first = now();
