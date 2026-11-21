@@ -75,11 +75,13 @@ function list(paths) {
   for (const file of jsFiles(paths)) {
     const src = readFileSync(file, 'utf8');
     const lines = src.split('\n');
-    for (const { id, comments, endLine, text } of banned(file, src)) {
+    for (const { id, comments, line, endLine, text } of banned(file, src)) {
       const c = comments[0];
       const kind = isJsdoc(c) ? 'jsdoc' : c.block ? 'block' : 'line';
       const keeps = kind === 'jsdoc' ? jsdocSkeleton(c.value).kept : [];
-      const code = lines.slice(endLine - (c.block || comments.length > 1 ? 0 : 1), endLine + 4).join('\n');
+      const last = comments[comments.length - 1];
+      const alone = src.slice(src.lastIndexOf('\n', c.start - 1) + 1, c.start).trim() === '' && (src.slice(last.end).split('\n', 1)[0] ?? '').trim() === '';
+      const code = lines.slice(alone ? endLine : line - 1, endLine + 4).join('\n');
       process.stdout.write(`${JSON.stringify({ id, kind, text, ...(keeps.length ? { typesKept: keeps } : {}), code })}\n`);
     }
   }
@@ -117,7 +119,7 @@ function count(paths) {
 
 /** @param {string} src */
 const shape = (src) => JSON.stringify(parse(src, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true, allowReturnOutsideFunction: true }),
-  (k, v) => (k === 'start' || k === 'end' || k === 'raw' ? undefined : v));
+  (k, v) => (k === 'start' || k === 'end' || k === 'raw' ? undefined : typeof v === 'bigint' ? `${v}n` : v));
 
 /** @param {string} ledgerPath */
 function apply(ledgerPath) {
@@ -141,12 +143,13 @@ function apply(ledgerPath) {
   for (const [file, ids] of byFile) {
     const src = readFileSync(file, 'utf8');
     const found = banned(file, src).filter((b) => ids.has(b.id));
+    const before = problems.length;
     for (const [id, text] of ids) {
       const b = found.find((x) => x.id === id);
       if (!b) problems.push(`${id}: no banned comment here`);
       else if (b.text !== text) problems.push(`${id}: the comment here is not the one the ledger names`);
     }
-    if (problems.length) continue;
+    if (problems.length > before) continue;
     const next = removeComments(src, found.flatMap((b) => b.comments));
     if (shape(next) !== shape(src)) { problems.push(`${file}: removing these comments changes the program`); continue; }
     writes.push([file, next]);

@@ -18,6 +18,7 @@ import { restore as restoreSources } from './sources.mjs';
 
 export const COUNT_TOLERANCE = 0.25;
 const STUB_LINE = /^export const stub = true;?\s*$/m;
+const STUB_GUIDE = { transcription: 'docs/year-refresh/brief-transcription.md', overlay: 'docs/year-refresh/overlay.md', oracle: 'docs/year-refresh/brief-oracle.md', register: 'docs/year-refresh/register.md' };
 const STUB_MARK = '<!-- stub: year next -->';
 
 /** @param {string} root @param {string} rel */
@@ -77,7 +78,7 @@ export function yearCheck({ root = ROOT, year } = {}) {
   for (const k of /** @type {const} */ (['transcription', 'overlay', 'oracle', 'register'])) {
     const text = readText(root, manifest[k]);
     if (text === null) { problems.push(`${manifestRel(y)} names ${k} ${manifest[k]}, which doesn't exist`); continue; }
-    if (STUB_LINE.test(text) || text.includes(STUB_MARK)) problems.push(`${manifest[k]} is a stub (year next); its author hasn't written it yet`);
+    if (STUB_LINE.test(text) || text.includes(STUB_MARK)) problems.push(`${manifest[k]} is a stub (year next); its author hasn't written it yet (${STUB_GUIDE[k]})`);
   }
   if (manifest.oracle !== oracleRel(y)) problems.push(`${manifestRel(y)} names oracle ${manifest.oracle}; the selector (test/oracle/oracle.mjs) reads ${oracleRel(y)}`);
   if (manifest.overlay !== overlayRel(y)) problems.push(`${manifestRel(y)} names overlay ${manifest.overlay}, not ${overlayRel(y)}`);

@@ -3,7 +3,11 @@
 /** @typedef {{ block: boolean, value: string, start: number, end: number }} Comment */
 /** @typedef {{ kept: string[], dropped: boolean }} Skeleton */
 
-const DIRECTIVE = /^\s*(?:(?:eslint-disable(?:-next-line|-line)?|eslint-enable)(?:\s+[\w@/-]+(?:\s*,\s*[\w@/-]+)*)?(?:\s+--\s.*)?|@ts-(?:check|nocheck)|@ts-(?:expect-error|ignore)(?:\s.*)?|globals?\s+[\w$]+(?:\s*,\s*[\w$]+)*)\s*$/;
+const RULES = String.raw`\s+[\w@/-]+(?:\s*,\s*[\w@/-]+)*(?:\s+--\s.*)?`;
+const ANYWHERE = String.raw`eslint-disable-(?:next-)?line${RULES}|@ts-(?:check|nocheck)|@ts-(?:expect-error|ignore)(?:\s.*)?|prettier-ignore`;
+const LINE_DIRECTIVE = new RegExp(String.raw`^\s*(?:${ANYWHERE})\s*$`);
+const BLOCK_DIRECTIVE = new RegExp(String.raw`^\s*(?:${ANYWHERE}|eslint-(?:disable|enable)${RULES}|globals?\s+[\w$]+(?:\s*,\s*[\w$]+)*|[@#]__(?:PURE|NO_SIDE_EFFECTS)__|(?:c8|v8|istanbul)\s+ignore(?:\s.*)?|@vite-ignore|webpackIgnore:\s*true)\s*$`);
+const SELF = /local\/no-comments/;
 const REFERENCE = /^\/\s*<reference\s+[^>]*\/>\s*$/;
 const JSDOC_DIRECTIVE = /^\*\s*@ts-(?:expect-error|ignore)\b[^\n]*$/;
 
@@ -17,8 +21,10 @@ const BARE = new Set(['overload', 'readonly', 'private', 'protected', 'public', 
  */
 export function isDirective(c) {
   if (!c.block && REFERENCE.test(c.value)) return true;
+  if (SELF.test(c.value)) return false;
   if (c.block && JSDOC_DIRECTIVE.test(c.value.trim())) return true;
-  return !c.value.startsWith('*') && DIRECTIVE.test(c.value);
+  if (c.value.startsWith('*')) return false;
+  return (c.block ? BLOCK_DIRECTIVE : LINE_DIRECTIVE).test(c.value);
 }
 
 /** @param {Comment} c */

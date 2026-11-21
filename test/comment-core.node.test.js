@@ -1,4 +1,6 @@
 // @ts-check
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { parse } from 'acorn';
 import { describe, expect, it } from 'vitest';
 import { allowed, jsdocSkeleton, removeComments } from '../scripts/comment-core.mjs';
@@ -22,6 +24,10 @@ describe('allowed', () => {
     '/** @type {string} */',
     '/** @param {number} a @returns {number} */',
     '/** @import { Env } from "./env" */',
+    '/* eslint-disable no-console */',
+    '/* @__PURE__ */',
+    '/* c8 ignore next */',
+    '// prettier-ignore',
   ])('lets %s through', (src) => {
     expect(commentsOf(`${src}\nlet x;`).every(allowed)).toBe(true);
   });
@@ -32,6 +38,10 @@ describe('allowed', () => {
     '/** Returns x. @returns {number} */',
     '/** @param {number} a the count */',
     '// @ts-check because reasons',
+    '// global fallback',
+    '// eslint-disable foo',
+    '/* eslint-disable local/no-comments */',
+    '// eslint-disable-next-line local/no-comments',
   ])('bans %s', (src) => {
     expect(commentsOf(`${src}\nlet x;`).some((c) => !allowed(c))).toBe(true);
   });
@@ -86,5 +96,16 @@ describe('removeComments', () => {
     const out = strip(src);
     expect(out).toBe('const re = /a\\/\\/b/;\nconst s = "// not a comment";\nexport { re, s };\n');
     expect(commentsOf(out)).toEqual([]);
+  });
+});
+
+describe('the repo', () => {
+  it('has no eslint directive that switches off every rule or local/no-comments, which would hide its own report', () => {
+    const files = execFileSync('git', ['ls-files', '*.js', '*.mjs', '*.cjs'], { encoding: 'utf8' }).trim().split('\n');
+    const bypasses = files.flatMap((f) => commentsOf(readFileSync(f, 'utf8').replace(/^#!.*/, ''))
+      .map((c) => /^\s*eslint-(?:disable(?:-next-line|-line)?|enable)\b(.*)$/s.exec(c.value))
+      .filter((m) => m && (/local\/no-comments/.test(m[1]) || !/^\s+[\w@/-]/.test(m[1])))
+      .map((m) => `${f}: ${m?.[0].trim()}`));
+    expect(bypasses).toEqual([]);
   });
 });

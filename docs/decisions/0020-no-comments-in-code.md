@@ -17,8 +17,14 @@ had drifted from the ADRs or duplicated them.
 - **No comments in `*.js`, `*.mjs` or `*.cjs`.** The ESLint rule `local/no-comments`
   (`scripts/eslint-no-comments.mjs`, over `scripts/comment-core.mjs` `allowed()`) fails any
   comment except:
-  - tool directives: `@ts-check`, `@ts-nocheck`, `@ts-expect-error` and `@ts-ignore`; `eslint-*`
-    directives, with or without a `-- reason`; `global`/`globals`; and `/// <reference … />`;
+  - tool directives: `@ts-check`, `@ts-nocheck`, `@ts-expect-error` and `@ts-ignore`;
+    `eslint-disable-next-line` and `eslint-disable-line` naming their rules, with or without a
+    `-- reason`; `prettier-ignore`; `/// <reference … />`; and, in `/* */` form only (the form
+    the tools read), `eslint-disable`/`eslint-enable` naming their rules, `global`/`globals`,
+    `@__PURE__`, `c8`/`v8`/`istanbul ignore`, `@vite-ignore` and `webpackIgnore: true`. A
+    directive that names `local/no-comments`, or one with no rules (which switches off every
+    rule), is banned; it would hide its own report, so `test/comment-core.node.test.js` scans
+    the repo for one;
   - JSDoc that holds only types: `@type`, `@param {T} name`, `@returns`, `@typedef`, `@template`,
     `@import`, `@property`, `@callback`, `@satisfies` and the like, with no prose. tsc reads
     these under `checkJs`, so they are code, not comments.
