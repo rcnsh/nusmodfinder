@@ -143,10 +143,10 @@ function assertComparable(runs) {
   const key = (/** @type {import('./lib/metrics.mjs').RunFile} */ r) => JSON.stringify([r.set, /** @type {any} */ (r.queries)?.sha256, /** @type {any} */ (r.corpus)?.moduleInfoSha256]);
   const first = key(runs[0]);
   for (const r of runs.slice(1)) {
-    if (key(r) !== first) fail(`runs ${runs[0].variant} and ${r.variant} differ in set, query-set sha256 or corpus; they cannot be compared`);
+    if (key(r) !== first) throw new RunFileError(`runs ${runs[0].variant} and ${r.variant} differ in set, query-set sha256 or corpus; they cannot be compared`);
   }
   const restrictions = new Set(runs.map((r) => /** @type {any} */ (r.corpus)?.ngRestrictionsSha256).filter((v) => v !== undefined));
-  if (restrictions.size > 1) fail(`the runs were normalised with different NG restrictions (${[...restrictions].map((v) => String(v).slice(0, 12)).join(', ')}); they cannot be compared`);
+  if (restrictions.size > 1) throw new RunFileError(`the runs were normalised with different NG restrictions (${[...restrictions].map((v) => String(v).slice(0, 12)).join(', ')}); they cannot be compared`);
 }
 
 /** @param {import('./lib/metrics.mjs').RunFile[]} runs */

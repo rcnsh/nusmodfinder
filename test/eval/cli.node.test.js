@@ -2,6 +2,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -57,7 +58,7 @@ function syntheticRun(querySet, qrels, variant, order) {
 
 /**
  * @param {string} name
- * @param {{ qrels?: (q: any) => void, as?: string }} [edit]
+ * @param {{ qrels?: (q: any) => void, cand?: (run: any) => void, as?: string }} [edit]
  */
 async function makeSet(name, edit = {}) {
   const as = edit.as ?? SET;
@@ -67,6 +68,7 @@ async function makeSet(name, edit = {}) {
   const base = syntheticRun(querySet, qrels, 'base', 'worst');
   const cand = syntheticRun(querySet, qrels, 'cand', 'best');
   edit.qrels?.(qrels);
+  edit.cand?.(cand);
   await writeEncryptedJson(join(dir, 'queries.json.enc'), querySet, key, as);
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key, as);
   await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), base, key, as);
@@ -102,6 +104,16 @@ describe('holdout errors are withheld', () => {
     const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { VNM_HOLDOUT_KEY_FILE: wrong });
     expect(r.code).toBe(1);
     expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (DecryptionError); details withheld\n`);
+  });
+});
+
+describe('refusals under the ledger lock', () => {
+  it('runs that cannot be compared are refused with the withheld line, and the lock is released', async () => {
+    const { dir } = await makeSet('incomparable', { cand: (run) => { run.queries.sha256 = 'f'.repeat(64); } });
+    const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (RunFileError); details withheld\n`);
+    expect(existsSync(join(dir, 'ledger.md.lock'))).toBe(false);
   });
 });
 
