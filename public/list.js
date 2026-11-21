@@ -13,7 +13,7 @@ export const MAX_ENTRIES = 40;
 /** @type {readonly Invite[]} */
 export const INVITES = Object.freeze(/** @type {Invite[]} */ (['biz', 'law']));
 
-const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
+export const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 const VALUE = /^([A-Z]{1,4}\d{4}[A-Z0-9]{0,5})(?:\.([12]))?$/;
 
 /** @param {string} s */

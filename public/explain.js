@@ -217,7 +217,7 @@ export function partialCodeLine({ prefix, sem, study, otherHasResults }) {
 }
 
 export const MAX_PINS = 3;
-const MAX_CODES = 10;
+export const MAX_CODES = 10;
 
 /** @param {string} query */
 export function typedCodes(query) {

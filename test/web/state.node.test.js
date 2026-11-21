@@ -1,11 +1,12 @@
 // @ts-check
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { IGNORABLE_INTENTS } from '../../src/query-intent.js';
-import { emptyList, parseList } from '../../public/list.js';
+import { IGNORABLE_INTENTS, MAX_CODES as WORKER_MAX_CODES, MAX_PINS as WORKER_MAX_PINS } from '../../src/query-intent.js';
+import { MAX_CODES, MAX_PINS } from '../../public/explain.js';
+import { CODE, emptyList, parseList } from '../../public/list.js';
 import { searchAgain, searchKey, transition } from '../../public/nav.js';
 import {
-  CREDITS, IGNORABLE, LEVELS, MAX_QUERY_CHARS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, shortlistUrl, stateToParams, urlFor,
+  CREDITS, IGNORABLE, LEVELS, MAX_FILTER_VALUES, MAX_QUERY_CHARS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, shortlistUrl, stateToParams, urlFor,
 } from '../../public/state.js';
 
 const parse = (/** @type {string} */ qs) => parseState(new URLSearchParams(qs));
@@ -86,6 +87,14 @@ describe('URL state (F3, C-7)', () => {
     expect(parse('q=x&ignore=bogus').ignore).toEqual([]);
     expect(parse(`q=${'a'.repeat(250)}`).q).toHaveLength(MAX_QUERY_CHARS);
     expect(parse(`q=${'%20'.repeat(5)}${'a'.repeat(200)}`).q).toBe('a'.repeat(200));
+  });
+
+  it('the page\'s copies of Worker limits equal the Worker\'s: pins, codes, the code shape and filter values', () => {
+    expect([MAX_PINS, MAX_CODES]).toEqual([WORKER_MAX_PINS, WORKER_MAX_CODES]);
+    const src = (/** @type {string} */ f) => readFileSync(new URL(`../../src/${f}`, import.meta.url), 'utf8');
+    expect(src('modules.js')).toContain(`export const MODULE_CODE_RE = ${CODE};`);
+    expect(src('search.js')).toContain(`export const MAX_FILTER_VALUES = ${MAX_FILTER_VALUES};`);
+    expect(parse(`level=${[1, 2, 3, 4, 5, 6, 7, 8].join(',')}&credits=${Array.from({ length: 20 }, (_, i) => i + 1).join(',')}`).credits.split(',')).toHaveLength(MAX_FILTER_VALUES);
   });
 
   it('ignore= is a sorted, de-duplicated list, as /search parses it', () => {

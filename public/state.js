@@ -53,12 +53,14 @@ const facultyOk = (v) => v.length <= 60 && !hasHidden(v);
 /** @param {string | null} v @param {(v: string) => boolean} ok */
 const keep = (v, ok) => (v !== null && ok(v) ? v : '');
 
+export const MAX_FILTER_VALUES = 12;
+
 /**
  * @param {string | null} v
  * @param {(part: string) => boolean} ok
  */
 const keepList = (v, ok) => [...new Set((v ?? '').split(',').map((p) => p.trim()).filter(ok).map(Number))]
-  .sort((a, b) => a - b).slice(0, 12).join(',');
+  .sort((a, b) => a - b).slice(0, MAX_FILTER_VALUES).join(',');
 
 /** @param {string} v */
 export const listValues = (v) => (v ? v.split(',') : []);
