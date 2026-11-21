@@ -36,8 +36,8 @@ answer is in [architecture.md](architecture.md).
 - **Constraints**, each a hard filter: `exam=0` (no final exam listed, in the `sem` asked for when
   there is one), `su=1` (S/U-able, or graded CS/CU), `hoursBelow=N` (NUSMods' weekly workload
   below N hours, 1 to 99) and `prereq=none` (no prerequisite). The same constraints are read from
-  the query's own words (*no final exam*, *S/U*, *light workload*; the tighter hour limit holds),
-  with level phrases. `ignore=` names parsed phrases to undo, as the page's chips do
+  the query's own words (*no final exam*, *S/U*, *light workload*; the tighter hour limit holds).
+  A level is read only from a prefix-level code such as `CS3000`. `ignore=` names parsed phrases to undo, as the page's chips do
   (`parseFilters`, `parseIgnore` in `src/search.js`). Every one is part of the cache key.
 - `topK`: results returned, 20 by default, at most 50 (the candidate depth of each retriever).
 - `mode`: `hybrid` (default), `vector` or `lexical`. It lets the eval measure each retriever on

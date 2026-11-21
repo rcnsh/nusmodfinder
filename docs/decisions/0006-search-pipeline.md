@@ -60,11 +60,17 @@ were the account's binding allowance (about 4,100 uncached searches a day).
   `data/vocabulary.json`), and a corrected query is embedded once more.
 - **No signal, no answer.** A query with no route and no catalogue word whose best cosine is below
   τ answers `noMatch: { reason: "no-signal" }` instead of the least-bad results.
-- **A beginner phrase is a hard exclusion.** An explicit beginner phrase removes level ≥ 5 and
-  adds a soft prior for levels 1–2. It is echoed in `interpreted` and undone with `ignore=level`.
-- **Year as a level window.** `3rd year` means 3 ≤ level ≤ 4, because the judged answers to a
-  "3rd year" query are level 4000 courses as well as 3000. `level 3000`, `3000 level` and `3k` stay exact.
-  Several level phrases take the union.
+- **Level phrases are specified, not in force.** The Worker reads a level only from a code token
+  (`CS3000`, a prefix with its level). The query suite's reference parser
+  (`test/query-suite/intents.node.mjs`) defines the level phrases below, and
+  `test/full/query-suite.test.js` skips the items that need them (`level-phrases`). Reading them
+  in `src/query-intent.js` moves ranked lists, so it ships as a ranking change through the eval
+  gate, with a holdout look.
+  - **A beginner phrase is a hard exclusion.** An explicit beginner phrase removes level ≥ 5 and
+    adds a soft prior for levels 1–2. It is echoed in `interpreted` and undone with `ignore=level`.
+  - **Year as a level window.** `3rd year` means 3 ≤ level ≤ 4, because the judged answers to a
+    "3rd year" query are level 4000 courses as well as 3000. `level 3000`, `3000 level` and `3k`
+    stay exact. Several level phrases take the union.
 - **Constraints are hard filters.** `exam=0`, `su=1`, `hoursBelow=N` and `prereq=none` filter
   exactly, as params and as phrases read from the query (*no final exam*, *S/U*, *light
   workload*). Each parsed phrase is echoed so the page can show a chip that undoes it

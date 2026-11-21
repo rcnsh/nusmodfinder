@@ -139,9 +139,6 @@ function joinCodes(words, ctx) {
 }
 
 
-/** @type {(text: string) => { min: number, max: number | null, source: string }[]} */
-const levelPhrases = () => [];
-
 /** @returns {Interpreted} */
 const emptyInterpreted = () => ({ pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null });
 
@@ -252,7 +249,8 @@ export function parseQuery(q, ctx, ignore = []) {
     }
     lexical = lexical.replace(/\s+/g, ' ').trim();
   }
-  const levelWindows = levelPhrases(masked);
+  /** @type {{ min: number, max: number | null, source: string }[]} */
+  const levelWindows = [];
   parsed.lexical = lexical;
 
   if (pillars.size) {

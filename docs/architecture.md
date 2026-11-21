@@ -32,8 +32,9 @@ NUSMods, exchange availability from the NUS Registrar; both are loaded by a loca
 2. **Parse the query** ([`src/query-intent.js`](../src/query-intent.js)): typed course codes to
    pin (up to 3), partial codes, code prefixes and GE pillars as code ranges, a spelling
    correction against the catalogue's own words ([`src/typo.js`](../src/typo.js),
-   [`src/vocabulary.js`](../src/vocabulary.js)), and the no-exam, S/U, workload, prerequisite and
-   level phrases as constraints ([`src/intents.js`](../src/intents.js)). The parse picks one of
+   [`src/vocabulary.js`](../src/vocabulary.js)), and the no-exam, S/U, workload and prerequisite
+   phrases as constraints ([`src/intents.js`](../src/intents.js)); a level comes only from a code
+   token (level phrases are specified but not in force, ADR 0006). The parse picks one of
    three routes.
 3. **`no-match`:** a whole query that is one code not offered this year answers `count: 0` with
    its reason (`unknown-code`, `not-offered` or `ng-unscheduled`) and, as `related`, the dense
@@ -229,8 +230,8 @@ A change to any of these changes the note in the same PR.
   key is backed up in Bitwarden. Without it the next source change can't be checked
   (`year check --full`), though deploys that touch no source-derived input still work.
 - **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
-- **Only some constraints are read from the query.** *No final exam*, *S/U*, *light workload* and
-  level phrases become filters. Others, such as "no Friday classes", are not understood, and
+- **Only some constraints are read from the query.** *No final exam*, *S/U* and *light workload*
+  become filters; level phrases such as "3rd year" do not yet (ADR 0006). Others, such as "no Friday classes", are not understood, and
   there is no filter for class days.
 - **The PDF is the browser's print.** Only Chromium's is checked as a PDF (tagged, real text);
   WebKit's print page by screenshot; iOS's Share, Print path is untested on a phone. A system font
