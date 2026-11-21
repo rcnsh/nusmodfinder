@@ -171,6 +171,9 @@ function summarize(env, record) {
   try { appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`); } catch {}
 }
 
+/** @param {Stage} stage */
+const signalledOf = (stage) => stage.signalled;
+
 /**
  * @param {DeployDeps & { exec: Exec, log: (m: string) => void, error: (m: string) => void, env: Record<string, string | undefined> }} deps
  * @param {ReturnType<typeof parseArgs>} args
@@ -296,7 +299,7 @@ async function deployRun(deps, args, record, stage) {
   } else {
     log(`deploy: tagged ${name} on ${short} and pushed it.`);
   }
-  const late = /** @type {Stage['signalled']} */ (stage.signalled);
+  const late = signalledOf(stage);
   if (late) {
     error(`deploy: stopped by ${late.signal} after the promote: ${versionId} is live${tag.created ? ` and tagged ${name}` : ''}. `
       + 'The Custom Domain was not re-applied: run `npx wrangler triggers deploy`.');
