@@ -3,7 +3,7 @@ import { CATALOGUE_ROWS_SQL, adminHashes, d1Query, storedCatalogueKey, verifiedC
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, UPSERT_SET, boundTuple, catalogueRowHash, fieldsFromRow, rowHash, storedVectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, UPSERT_SET, boundTuple, catalogueRowHash, fieldsFromRow, rowHash, storedVectorMetadata, vectorizeMetadata } from './rowhash.js';
 import { base64ToFloat32, float32ToBase64, suGrading } from './vector-bundle.js';
 
 /**
@@ -231,17 +231,6 @@ export async function handleVectorizeInfo(request, env) {
   } catch (err) {
     return upstream('vectorize', err);
   }
-}
-
-/**
- * @param {import('./rowhash.js').RowFields} m
- * @returns {Record<string, VectorizeVectorMetadata>}
- */
-function vectorizeMetadata(m) {
-  /** @type {Record<string, VectorizeVectorMetadata>} */
-  const out = {};
-  for (const [k, v] of Object.entries(storedVectorMetadata(m))) if (v !== null) out[k] = v;
-  return out;
 }
 
 /** @param {Record<string, unknown> | undefined} m */

@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
 import devQueries from '../../eval/dev/queries.json';
 import studyMap from '../../eval/study-map.json';
 import { denseBundle } from '../../src/dense.js';
-import { storedVectorMetadata } from '../../src/rowhash.js';
+import { vectorizeMetadata } from '../../src/rowhash.js';
 import { createFakes } from '../fakes.js';
 import { callJson, seed } from '../helpers.js';
 import { CacheAI, COMBOS, QUERIES, ngDevRequests, shownCodes } from '../oracle/shared.js';
@@ -27,7 +27,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the oracle over the pinned 
     const b = denseBundle();
     standbyFakes.vectorize.vectors = new Map(b.codes.map((code, i) => [code, {
       id: code, values: Array.from(b.vectors.subarray(i * b.dims, (i + 1) * b.dims)),
-      metadata: storedVectorMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
+      metadata: vectorizeMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
     }]));
   }, 600_000);
 

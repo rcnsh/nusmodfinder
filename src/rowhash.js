@@ -60,6 +60,17 @@ export function storedVectorMetadata(m) {
   return { ...vectorMetadata(m), textHash: m.textHash };
 }
 
+/**
+ * @param {RowFields} m
+ * @returns {Record<string, string | number | boolean>}
+ */
+export function vectorizeMetadata(m) {
+  /** @type {Record<string, string | number | boolean>} */
+  const out = {};
+  for (const [k, v] of Object.entries(storedVectorMetadata(m))) if (v !== null) out[k] = v;
+  return out;
+}
+
 /** @param {string} text */
 export async function sha256Hex(text) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));

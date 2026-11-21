@@ -7,7 +7,7 @@ import { groups } from '../../src/group-data.js';
 import { filterSql } from '../../src/lexical.js';
 import { RESULT_COLUMNS } from '../../src/modules.js';
 import { unscheduled } from '../../src/ng-unscheduled.js';
-import { storedVectorMetadata } from '../../src/rowhash.js';
+import { vectorizeMetadata } from '../../src/rowhash.js';
 import { localMatchesFilters } from '../../src/search.js';
 import { STUDIES } from '../../src/ng-bit.js';
 import { compileMask } from '../../src/vector-bundle.js';
@@ -53,7 +53,7 @@ describe.skipIf(!corpus)('every exchange-mode path agrees with the oracle', () =
     const b = denseBundle();
     fakes.vectorize.vectors = new Map(b.codes.map((code, i) => [code, {
       id: code, values: Array.from(b.vectors.subarray(i * b.dims, (i + 1) * b.dims)),
-      metadata: storedVectorMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
+      metadata: vectorizeMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
     }]));
     const rows = /** @type {[string, string, string | null][]} */ (catalogueFile.rows).slice(0, 200);
     const upsert = rows.map(([code, title, description]) => ({ code, title, description, acadYear: c.acadYear }));

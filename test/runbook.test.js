@@ -5,7 +5,7 @@ import { runIngest } from '../scripts/ingest-core.mjs';
 import { runStandby } from '../scripts/vectors-core.mjs';
 import { runPreDeployVerify, runVerify } from '../scripts/verify-core.mjs';
 import { EMBEDDING_TEXT_VERSION } from '../src/embedding-text-version.js';
-import { dataVersion, fieldsFromRow, rowHash, sha256Hex, storedVectorMetadata } from '../src/rowhash.js';
+import { dataVersion, fieldsFromRow, rowHash, sha256Hex, vectorizeMetadata } from '../src/rowhash.js';
 import { encodeBundle, float32ToBase64, parseBundle } from '../src/vector-bundle.js';
 import manifest from '../data/vectors.json';
 import { knownReason } from '../src/ng-reasons.js';
@@ -219,7 +219,7 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
     expect(body).toMatchObject({ upserted: 2, mutationId: expect.any(String), sentAt: expect.any(Number) });
     const row = /** @type {import('../src/rowhash.js').ModuleRow} */ (await env.DB.prepare('SELECT * FROM modules WHERE code = ?').bind(a.code).first());
     const stored = fakes.vectorize.vectors.get(a.code);
-    expect(stored?.metadata).toEqual(storedVectorMetadata(fieldsFromRow(row)));
+    expect(stored?.metadata).toEqual(vectorizeMetadata(fieldsFromRow(row)));
     expect(stored?.metadata?.credits).toBe(12);
     expect(Float32Array.from(/** @type {number[]} */ (stored?.values))).toEqual(values.subarray(0, 384));
     expect(fakes.ai.calls).toEqual([]);
